@@ -13,6 +13,7 @@ from pandas.io.json import json_normalize
 from sklearn.externals import joblib
 from scipy.spatial.distance import cosine
 import sys
+import datetime
 
 
 
@@ -30,11 +31,14 @@ def main():
 
 
 	endpointUrl = 'http://elasticsearch.perf.lab.eng.bos.redhat.com:9280'
-	index = 'logstash-2018.07.18'
 
 	while True:
 
 		then = time.time()
+
+		now = datetime.datetime.now()
+		date = now.strftime("%Y.%m.%d")
+		index = 'logstash-'+date
 
 		print("Reading in Logs from ", endpointUrl)
 		test = get_data_from_ES(endpointUrl,index,3000, 60)
@@ -69,7 +73,7 @@ def main():
 		 	loc = np.argmax(dist)
 		 	anom.append(loc)
 
-		 	if dist[loc] > (3.5*stdd):
+		 	if dist[loc] > (1.6*maxx):
 		 		print(dist[loc], test['hits']['hits'][loc]['_source']['message'], "\n")
 
 

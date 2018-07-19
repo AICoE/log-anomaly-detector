@@ -13,6 +13,7 @@ from pandas.io.json import json_normalize
 from sklearn.externals import joblib
 from scipy.spatial.distance import cosine
 import sys
+import datetime 
 
 
 
@@ -35,8 +36,14 @@ def main(): # note: must take as userparmas model update or new, time span, and 
     except FileNotFoundError:
         m = None
 
+    now = datetime.datetime.now()
+    date = str(now.year)+'.'+str(now.month)+'.'+str(now.day)
+    date = now.strftime("%Y.%m.%d")
+
     endpointUrl = 'http://elasticsearch.perf.lab.eng.bos.redhat.com:9280'
-    index = 'logstash-2018.07.18'
+    index = 'logstash-'+date
+
+
 
     print("Reading in Logs from ", endpointUrl)
     logs = get_data_from_ES(endpointUrl,index, max_entries, time_span)
