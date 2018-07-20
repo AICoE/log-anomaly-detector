@@ -7,6 +7,8 @@ from SOM import SOM
 import json
 import time
 import os
+import matplotlib
+matplotlib.use("agg")
 from matplotlib import pyplot as plt
 import numpy as np
 from pandas.io.json import json_normalize
@@ -73,7 +75,7 @@ def main():
 		 	loc = np.argmax(dist)
 		 	anom.append(loc)
 
-		 	if dist[loc] > (1.6*maxx):
+		 	if dist[loc] > (.99*maxx):
 		 		print(dist[loc], test['hits']['hits'][loc]['_source']['message'], "\n")
 
 

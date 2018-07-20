@@ -7,6 +7,8 @@ from SOM import SOM
 import json
 import time
 import os
+import matplotlib
+matplotlib.use("agg")
 from matplotlib import pyplot as plt
 import numpy as np
 from pandas.io.json import json_normalize
@@ -37,7 +39,6 @@ def main(): # note: must take as userparmas model update or new, time span, and 
         m = None
 
     now = datetime.datetime.now()
-    date = str(now.year)+'.'+str(now.month)+'.'+str(now.day)
     date = now.strftime("%Y.%m.%d")
 
     endpointUrl = 'http://elasticsearch.perf.lab.eng.bos.redhat.com:9280'

@@ -5,11 +5,14 @@ from SOM import SOM
 import json
 import time
 import os
+import matplotlib
+matplotlib.use("agg")
 from matplotlib import pyplot as plt
 import numpy as np
 from pandas.io.json import json_normalize
 from sklearn.externals import joblib
 from scipy.spatial.distance import cosine
+import datetime 
 
 
 
