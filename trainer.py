@@ -63,7 +63,7 @@ def main(): # note: must take as userparmas model update or new, time span, and 
 
     then = time.time()
     
-    models = Make_Models(new_D,True)
+    models, new_D = Make_Models(new_D,True)
 
     now = time.time()
 

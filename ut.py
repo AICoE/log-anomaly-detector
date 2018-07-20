@@ -45,18 +45,32 @@ def Clean(x):
 
 
 def Make_Models(DF, Save = False, filename = 'W2V.models'):
+
+
+    DF = DF.fillna("EMPTY")
+
+    keys = []
+
+    for x in list(DF.columns):
+    	if "_source" in x:
+    		keys.append(x)
+
     models = {}
-    for col in list(DF.keys()):  
+    for col in keys:  
         try:
             models[col] = Word2Vec([list(DF[col])],min_count=1,size=50)
         except:
-            print(col, " not Currently Vectorized")
+            fix = ["".join(p) for p in list(DF[col])]
+            DF[col] = fix
+            models[ col] = Word2Vec([fix], min_count=1, size=50)
+
+        print(col)
 
 
     if Save == True:
     	joblib.dump(models, filename)
     
-    return models
+    return models, DF
 
 
 def Transform_Text(models, new_D):
@@ -69,10 +83,19 @@ def Transform_Text(models, new_D):
 
 
 def Update_W2V_Models(models,new_words):
+	
+	new_words = new_words.fillna('EMPTY')
+
 	for m in list(models.keys()):
-		(models[m]).build_vocab([new_words[m]],update=True)
+		try:
+			(models[m]).build_vocab([new_words[m]],update=True)
+		except:
+			fix = ["".join(p) for p in list(new_words[m])]
+			new_words[m] = fix
+			(models[m]).build_vocab([fix], update=True)
 
 	print("Models Updated")
+	return new_words
 
 
 
