@@ -37,16 +37,18 @@ def main(): # note: must take as userparmas model update or new, time span, and 
     
     except IndexError:
         print("\n","Insufficent arguments provided. Must provide a model name, timespan in seconds, max logs, and number of iterations for SOM training.",
-            "EXAMPLE: 'python trainer.py model.sav 600 10000 10000' to update a model called model.sav 9it it exisits on 600 seconds of data, with a maximum of 10000 logs and iterate over SOM 10000 times.")
+            "EXAMPLE: 'python trainer.py model.sav 600 10000 10000' to update a model called model.sav  if it exisits on 600 seconds of data, with a maximum of 10000 logs and iterate over SOM 10000 times.")
         quit()
 
     
     try:
         m = Load_Map(model)
-        m = m[1]
+        m = m[0]
+        up = True
     
     except FileNotFoundError:
-        m = None
+        m = 0
+        up = False
 
     now = datetime.datetime.now()
     date = now.strftime("%Y.%m.%d")
@@ -87,7 +89,12 @@ def main(): # note: must take as userparmas model update or new, time span, and 
     
     print("Start Training SOM...")
     then = time.time()
-    m = np.random.rand(24,24,to_put_train.shape[1])
+
+    if up== False:
+        m = np.random.rand(24,24,to_put_train.shape[1])
+    else: 
+        pass
+    
     mapp = SOM(to_put_train,24,itters, m)
     now = time.time()
 
