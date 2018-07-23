@@ -55,7 +55,7 @@ def main():
 		for lines in range(len(new_D["_source.message"])):
 			new_D["_source.message"][lines] = Clean(new_D["_source.message"][lines]) 
 
-		new_D = Update_W2V_Models(mod,new_D)
+		new_D, nothing = Update_W2V_Models(mod,new_D)
 
 
 		transforms = Transform_Text(mod,new_D)

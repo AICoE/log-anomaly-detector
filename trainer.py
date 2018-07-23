@@ -34,6 +34,7 @@ def main(): # note: must take as userparmas model update or new, time span, and 
         time_span = sys.argv[2]
         max_entries = sys.argv[3]
         itters = int(sys.argv[4])
+
     
     except IndexError:
         print("\n","Insufficent arguments provided. Must provide a model name, timespan in seconds, max logs, and number of iterations for SOM training.",
@@ -45,6 +46,7 @@ def main(): # note: must take as userparmas model update or new, time span, and 
         m = Load_Map(model)
         m = m[0]
         up = True
+        mod = Load_Map("W2V.models")
     
     except FileNotFoundError:
         m = 0
@@ -75,7 +77,18 @@ def main(): # note: must take as userparmas model update or new, time span, and 
 
     then = time.time()
     
-    models, new_D = Make_Models(new_D,True)
+    
+
+    if up == False:
+        models, new_D = Make_Models(new_D,True)
+
+    else:
+        models = mod
+        new_D, models = Update_W2V_Models(mod,new_D)
+        joblib.dump(models,"W2V.models")
+
+
+
 
     now = time.time()
 

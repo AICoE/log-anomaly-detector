@@ -95,7 +95,7 @@ def Update_W2V_Models(models,new_words):
 			(models[m]).build_vocab([fix], update=True)
 
 	print("Models Updated")
-	return new_words
+	return new_words, models
 
 
 
