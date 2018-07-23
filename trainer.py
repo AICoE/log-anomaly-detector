@@ -26,10 +26,20 @@ def main(): # note: must take as userparmas model update or new, time span, and 
     
     T_Then = time.time()
 
-    model = sys.argv[1]
-    time_span = sys.argv[2]
-    max_entries = sys.argv[3]
-    itters = int(sys.argv[4])
+
+
+    try:
+
+        model = sys.argv[1]
+        time_span = sys.argv[2]
+        max_entries = sys.argv[3]
+        itters = int(sys.argv[4])
+    
+    except IndexError:
+        print("\n","Insufficent arguments provided. Must provide a model name, timespan in seconds, max logs, and number of iterations for SOM training.",
+            "EXAMPLE: 'python trainer.py model.sav 600 10000 10000' to update a model called model.sav 9it it exisits on 600 seconds of data, with a maximum of 10000 logs and iterate over SOM 10000 times.")
+        quit()
+
     
     try:
         m = Load_Map(model)
