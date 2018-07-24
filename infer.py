@@ -70,13 +70,18 @@ def main():
 		count = 0
 		anom = []
 
-
+		es = Elasticsearch(endpointUrl)
 		for i in range(5):
 		 	loc = np.argmax(dist)
 		 	anom.append(loc)
 
 		 	if dist[loc] > (.99*maxx):
+		 		m_push = test['hits']['hits'][loc]['_source']['message'] 
 		 		print(dist[loc], test['hits']['hits'][loc]['_source']['message'], "\n")
+
+
+		 		body_p = {"Message": m_push, "Anomaly_Score": dist[loc]}
+		 		res = es.index(index = "mcliffor_test_ingest", doc_type="log", body=body_p)
 
 
 		 	dist[loc] = 0
