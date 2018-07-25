@@ -76,7 +76,8 @@ def main():
 		 	anom.append(loc)
 
 		 	if dist[loc] > (.99*maxx):
-		 		m_push = test['hits']['hits'][loc]['_source']['message'] 
+		 		#m_push = test['hits']['hits'][loc]['_source']['message'] 
+		 		m_push = '0'
 		 		print(dist[loc], test['hits']['hits'][loc]['_source']['message'], "\n")
 
 
