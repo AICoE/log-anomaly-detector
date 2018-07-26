@@ -21,47 +21,43 @@ import datetime
 
 
 
-def main(): # note: must take as userparmas model update or new, time span, and max entries, itters
+def main():
     
     
     T_Then = time.time()
 
 
-
-    try:
-
-        model = sys.argv[1]
-        time_span = sys.argv[2]
-        max_entries = sys.argv[3]
-        itters = int(sys.argv[4])
-
-    
-    except IndexError:
-        print("\n","Insufficent arguments provided. Must provide a model name, timespan in seconds, max logs, and number of iterations for SOM training.",
-            "EXAMPLE: 'python trainer.py model.sav 600 10000 10000' to update a model called model.sav  if it exisits on 600 seconds of data, with a maximum of 10000 logs and iterate over SOM 10000 times.")
-        quit()
+    endpointUrl = os.environ.get("LADT_ELASTICSEARCH_ENDPOINT","no endpoint supplied in config")
+    model = os.environ.get("LADT_MODEL","no model supplied in config")
+    index = os.environ.get("LADT_INDEX", "no index supplied in config")
+    time_span = os.environ.get("LADT_TIME_SPAN", "no time span supplied in config")
+    max_entries = os.environ.get("LADT_MAX_ENTRIES", "no max entries supplied in config")
+    itters = int(os.environ.get("LADT_ITERS","no iterations supplied in config"))
+    service = os.environ.get("LADT_SERVICE", "no service supplied in config")
 
     
-    try:
+    up = os.path.isfile(model)
+    if up == True:
         m = Load_Map(model)
         m = m[0]
-        up = True
         mod = Load_Map("W2V.models")
-    
-    except FileNotFoundError:
+    else:
         m = 0
-        up = False
+
+
+
 
     now = datetime.datetime.now()
     date = now.strftime("%Y.%m.%d")
 
-    endpointUrl = 'http://elasticsearch.perf.lab.eng.bos.redhat.com:9280'
-    index = 'logstash-'+date
+    #endpointUrl = 'http://elasticsearch.perf.lab.eng.bos.redhat.com:9280'
+    #index = 'logstash-'+date
+    index = index+date
 
 
 
     print("Reading in Logs from ", endpointUrl)
-    logs = get_data_from_ES(endpointUrl,index, max_entries, time_span)
+    logs = get_data_from_ES(endpointUrl,index, service, max_entries, time_span)
 
     print(len(logs['hits']['hits']), "logs loaded in from last ", time_span, " seconds")
 

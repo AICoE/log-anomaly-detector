@@ -25,11 +25,13 @@ default_query =  {'query': {'match': {'service': 'journal'}},
                 "size":20 #size is more critical than "terminate_after" to limit query size!!!
                 }
 
-def get_data_from_ES(endpoint, index,num = 20, time = 2, query = default_query):
+def get_data_from_ES(endpoint, index,service,num = 20, time = 2, query = default_query, ):
     
     es = Elasticsearch(endpoint)
     query['size'] = num
     query['filter']['range']['@timestamp']['gte'] = 'now-'+str(time)+'s'
+    query['query']['match']['service'] = service
+
 
     return es.search(index, body=json.dumps(query))
 

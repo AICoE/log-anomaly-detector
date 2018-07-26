@@ -22,7 +22,26 @@ import datetime
 
 def main():
 
-	c = Load_Map("map.sav")
+
+	endpointUrl = os.environ.get("LADI_ELASTICSEARCH_ENDPOINT","no endpoint supplied in config")
+	outpoint = os.environ.get("LADI_OUTDEX", "no ES output index supplied in config")
+	model = os.environ.get("LADI_MODEL","no model supplied in config")
+	index = os.environ.get("LADI_INDEX", "no index supplied in config")
+	time_span = os.environ.get("LADI_TIME_SPAN", "no time span supplied in config")
+	max_entries = os.environ.get("LADI_MAX_ENTRIES", "no max entries supplied in config")
+	service = os.environ.get("LADI_SERVICE", "no service supplied in config")
+	threshold = float(os.environ.get("LADI_THRESHOLD", "no threshold supplied in config"))
+	max_anoms = int(os.environ.get("LADI_MAX_ANOMALIES", "no maximum anomalies supplied in config"))
+
+
+
+
+
+
+
+
+
+	c = Load_Map(model)
 	mod = Load_Map("W2V.models")
 
 	mapp = c[0]
@@ -32,7 +51,7 @@ def main():
 
 
 
-	endpointUrl = 'http://elasticsearch.perf.lab.eng.bos.redhat.com:9280'
+	#endpointUrl = 'http://elasticsearch.perf.lab.eng.bos.redhat.com:9280'
 
 	while True:
 
@@ -40,12 +59,14 @@ def main():
 
 		now = datetime.datetime.now()
 		date = now.strftime("%Y.%m.%d")
-		index = 'logstash-'+date
+		#index = 'logstash-'+date
+		index = index+date
+
 
 		print("Reading in Logs from ", endpointUrl)
-		test = get_data_from_ES(endpointUrl,index,3000, 60)
+		test = get_data_from_ES(endpointUrl,index,service,max_entries, time_span)
 
-		print(len(test['hits']['hits']), "logs loaded from the last minute.")
+		print(len(test['hits']['hits']), "logs loaded from the last", time_span ," seconds")
 
 
 		print("Preprocessing logs")
@@ -71,18 +92,18 @@ def main():
 		anom = []
 
 		es = Elasticsearch(endpointUrl)
-		for i in range(5):
+		for i in range(max_anoms):
 		 	loc = np.argmax(dist)
 		 	anom.append(loc)
 
-		 	if dist[loc] > (.99*maxx):
+		 	if dist[loc] > (threshold*maxx):
 		 		#m_push = test['hits']['hits'][loc]['_source']['message'] 
 		 		m_push = '0'
 		 		print(dist[loc], test['hits']['hits'][loc]['_source']['message'], "\n")
 
 
 		 		body_p = {"Message": m_push, "Anomaly_Score": dist[loc]}
-		 		res = es.index(index = "mcliffor_test_ingest", doc_type="log", body=body_p)
+		 		res = es.index(index = outpoint, doc_type="log", body=body_p)
 
 
 		 	dist[loc] = 0
