@@ -1,5 +1,5 @@
 . env.sh
 
-python train.py
+python trainer.py
 
 python infer.py 
