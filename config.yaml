@@ -1,0 +1,130 @@
+kind: List
+apiVersion: v1
+
+items:
+
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: s2i-Anomaly-Dection
+    labels:
+      build: s2i-Anomaly-Dection
+  spec:
+    lookupPolicy:
+      local: true
+
+
+
+
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: s2i-Anomaly-Dection
+    labels:
+      build: s2i-Anomaly-Dection
+  
+
+  spec:
+    source:
+      type: Git
+      git:
+        uri: https://gitlab.cee.redhat.com/mcliffor/AO_AD_POC.git
+        ref: master
+
+    strategy:
+      type: Source
+      sourceStrategy:
+        from:
+          kind: DockerImage
+          name: quay.io/vpavlin/python-36-centos7-dash:latest
+
+    output:
+      to:
+        kind: ImageStreamTag
+        name: s2i-dash-base:latest
+    resources:
+      limist:
+        memory: 512Mi
+
+- kind: DeploymentConfig
+  metadata:
+    labels:
+      app: s2i-Anomaly-Dection
+    name: s2i-Anomaly-Dection
+  spec:
+    replicas: 1
+    selector:
+      app: s2i-Anomaly-Dection
+      deploymentconfig: s2i-Anomaly-Dection
+    template:
+      metadata:
+        labels:
+          app: s2i-Anomaly-Dection
+          deploymentconfig: s2i-Anomaly-Dection
+      spec:
+        containers:
+        - env:
+          - name: LADT_ELASTICSEARCH_ENDPOINT
+            value: http://elasticsearch.perf.lab.eng.bos.redhat.com:9280
+
+          - name: LADT_MODEL
+            value: map.sav
+
+          - name: LADT_INDEX
+            value: logstash-
+
+          - name: LADT_TIME_SPAN
+            value: 900
+
+          - name: LADT_MAX_ENTIRES
+            value: 25000
+
+          - name: LADT_ITERS
+            value: 25000
+
+          - name: LADT_SERVICE
+            value: journal
+
+          - name: LADI_ELASTICSEARCH_ENDPOINT
+            value: http://elasticsearch.perf.lab.eng.bos.redhat.com:9280
+
+          - name: LADI_MODEL
+            value: map.sav
+
+          - name: LADI_INDEX
+            value: logstash-
+
+          - name: LADI_OUTDEX
+            value: mcliffor_test_ingest
+
+          - name: LADI_TIME_SPAN
+            value: 60
+
+          - name: LADI_MAX_ENTRIES
+            value: 250
+
+          - name: LADI_SERVICE
+            value: journal
+
+          - name: LADI_THRESHOLD
+            value: 0.99
+
+          - name: LADI_MAX_ANOMALIES
+            value: 5
+
+          command:
+            - . start.sh
+
+          image: quay.io/vpavlin/ngrok-openshift:latest
+          imagePullPolicy: Always
+          name: s2i-Anomaly-Dection
+        
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    
+    test: false
+    triggers:
+    - type: ConfigChange
