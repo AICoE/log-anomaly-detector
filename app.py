@@ -1,1 +1,3 @@
-print("Hello OpenShift!")
+import os
+
+os.system("bash start.sh")
