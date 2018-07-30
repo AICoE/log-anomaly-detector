@@ -27,13 +27,13 @@ def main():
     T_Then = time.time()
 
 
-    endpointUrl = os.environ.get("LADT_ELASTICSEARCH_ENDPOINT","no endpoint supplied in config")
-    model = os.environ.get("LADT_MODEL","no model supplied in config")
-    index = os.environ.get("LADT_INDEX", "no index supplied in config")
-    time_span = os.environ.get("LADT_TIME_SPAN", "no time span supplied in config")
-    max_entries = os.environ.get("LADT_MAX_ENTRIES", "no max entries supplied in config")
-    itters = int(os.environ.get("LADT_ITERS","no iterations supplied in config"))
-    service = os.environ.get("LADT_SERVICE", "no service supplied in config")
+    endpointUrl = os.environ.get("LADT_ELASTICSEARCH_ENDPOINT")
+    model = os.environ.get("LADT_MODEL")
+    index = os.environ.get("LADT_INDEX")
+    time_span = os.environ.get("LADT_TIME_SPAN")
+    max_entries = os.environ.get("LADT_MAX_ENTRIES")
+    itters = int(os.environ.get("LADT_ITERS"))
+    service = os.environ.get("LADT_SERVICE")
 
     
     up = os.path.isfile(model)

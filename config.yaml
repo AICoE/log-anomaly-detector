@@ -1,130 +1,124 @@
 kind: List
-apiVersion: v1
 
 items:
-
 - kind: ImageStream
-  apiVersion: v1
+  apiVersion: image.openshift.io/v1
   metadata:
-    name: s2i-Anomaly-Dection
+    name: anomaly-detection # this requires that there is an image stream with this name? 
     labels:
-      build: s2i-Anomaly-Dection
+      build: anomaly-detection
+      app:  anomaly-detection
+    
   spec:
     lookupPolicy:
       local: true
 
 
-
-
 - kind: BuildConfig
-  apiVersion: v1
-  metadata:
-    name: s2i-Anomaly-Dection
-    labels:
-      build: s2i-Anomaly-Dection
+  apiVersion: build.openshift.io/v1
   
-
+  metadata:
+    labels:
+      app: anomaly-detection
+      build: anomaly-detection
+    name: anomaly-detection
   spec:
-    source:
-      type: Git
-      git:
-        uri: https://gitlab.cee.redhat.com/mcliffor/AO_AD_POC.git
-        ref: master
+    triggers:
+      - generic:
+          secret: abef1035f7e8528b
+        type: Generic
+      - github:
+          secret: 104e14d978977712
+        type: GitHub
+      - imageChange:
+          lastTriggeredImageID: >-
+            registry.access.redhat.com/rhscl/python-36-rhel7@sha256:faa41271420f7e198e887f74cdcdad89474dc13acde54a227bb5fbe40fe1ead7
+        type: ImageChange
+      - type: ConfigChange
 
+    source:
+      git:
+        ref: master
+        uri: 'git@gitlab.cee.redhat.com:mcliffor/AO_AD_POC.git'
+      sourceSecret:
+        name: repo-at-gitlab
+      type: Git
+    
     strategy:
-      type: Source
       sourceStrategy:
         from:
-          kind: DockerImage
-          name: quay.io/vpavlin/python-36-centos7-dash:latest
-
+          kind: ImageStreamTag
+          name: 'python:3.6'
+          namespace: openshift
+      type: Source
+    
     output:
       to:
         kind: ImageStreamTag
-        name: s2i-dash-base:latest
-    resources:
-      limist:
-        memory: 512Mi
-
+        name: 'anomaly-detection:latest'
+    
+    
+    
 - kind: DeploymentConfig
+  apiVersion: apps.openshift.io/v1
+  
   metadata:
     labels:
-      app: s2i-Anomaly-Dection
-    name: s2i-Anomaly-Dection
+      app: anomaly-detection
+    name: anomaly-detection
   spec:
     replicas: 1
     selector:
-      app: s2i-Anomaly-Dection
-      deploymentconfig: s2i-Anomaly-Dection
+      deploymentconfig: anomaly-detection
     template:
       metadata:
         labels:
-          app: s2i-Anomaly-Dection
-          deploymentconfig: s2i-Anomaly-Dection
+          app: anomaly-detection
+          deploymentconfig: anomaly-detection
       spec:
         containers:
-        - env:
-          - name: LADT_ELASTICSEARCH_ENDPOINT
-            value: http://elasticsearch.perf.lab.eng.bos.redhat.com:9280
-
-          - name: LADT_MODEL
-            value: map.sav
-
-          - name: LADT_INDEX
-            value: logstash-
-
-          - name: LADT_TIME_SPAN
-            value: 900
-
-          - name: LADT_MAX_ENTIRES
-            value: 25000
-
-          - name: LADT_ITERS
-            value: 25000
-
-          - name: LADT_SERVICE
-            value: journal
-
-          - name: LADI_ELASTICSEARCH_ENDPOINT
-            value: http://elasticsearch.perf.lab.eng.bos.redhat.com:9280
-
-          - name: LADI_MODEL
-            value: map.sav
-
-          - name: LADI_INDEX
-            value: logstash-
-
-          - name: LADI_OUTDEX
-            value: mcliffor_test_ingest
-
-          - name: LADI_TIME_SPAN
-            value: 60
-
-          - name: LADI_MAX_ENTRIES
-            value: 250
-
-          - name: LADI_SERVICE
-            value: journal
-
-          - name: LADI_THRESHOLD
-            value: 0.99
-
-          - name: LADI_MAX_ANOMALIES
-            value: 5
-
-          command:
-            - . start.sh
-
-          image: quay.io/vpavlin/ngrok-openshift:latest
-          imagePullPolicy: Always
-          name: s2i-Anomaly-Dection
-        
+          - env:
+            - name: LADT_ELASTICSEARCH_ENDPOINT
+              value: "http://elasticsearch.perf.lab.eng.bos.redhat.com:9280"
+            - name: LADT_MODEL
+              value: map.sav
+            - name: LADT_INDEX
+              value: logstash-
+            - name: LADT_TIME_SPAN
+              value: "900"
+            - name: LADT_MAX_ENTIRES
+              value: "25000"
+            - name: LADT_ITERS
+              value: "25000"
+            - name: LADT_SERVICE
+              value: journal
+            - name: LADI_ELASTICSEARCH_ENDPOINT
+              value: http://elasticsearch.perf.lab.eng.bos.redhat.com:9280
+            - name: LADI_MODEL
+              value: map.sav
+            - name: LADI_INDEX
+              value: logstash-
+            - name: LADI_OUTDEX
+              value: mcliffor_test_ingest
+            - name: LADI_TIME_SPAN
+              value: "60"
+            - name: LADI_MAX_ENTRIES
+              value: "250"
+            - name: LADI_SERVICE
+              value: journal
+            - name: LADI_THRESHOLD
+              value: "0.99"
+            - name: LADI_MAX_ANOMALIES
+              value: "5"
+            image: anomaly-detection:latest
+            imagePullPolicy: Always
+            name: anomaly-detection-deploy
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         schedulerName: default-scheduler
         securityContext: {}
         terminationGracePeriodSeconds: 30
-    
     test: false
     triggers:
-    - type: ConfigChange
+      - type: ConfigChange
+

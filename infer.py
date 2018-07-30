@@ -23,15 +23,15 @@ import datetime
 def main():
 
 
-	endpointUrl = os.environ.get("LADI_ELASTICSEARCH_ENDPOINT","no endpoint supplied in config")
-	outpoint = os.environ.get("LADI_OUTDEX", "no ES output index supplied in config")
-	model = os.environ.get("LADI_MODEL","no model supplied in config")
-	index = os.environ.get("LADI_INDEX", "no index supplied in config")
-	time_span = os.environ.get("LADI_TIME_SPAN", "no time span supplied in config")
-	max_entries = os.environ.get("LADI_MAX_ENTRIES", "no max entries supplied in config")
-	service = os.environ.get("LADI_SERVICE", "no service supplied in config")
-	threshold = float(os.environ.get("LADI_THRESHOLD", "no threshold supplied in config"))
-	max_anoms = int(os.environ.get("LADI_MAX_ANOMALIES", "no maximum anomalies supplied in config"))
+	endpointUrl = os.environ.get("LADI_ELASTICSEARCH_ENDPOINT")
+	outpoint = os.environ.get("LADI_OUTDEX")
+	model = os.environ.get("LADI_MODEL")
+	index = os.environ.get("LADI_INDEX")
+	time_span = os.environ.get("LADI_TIME_SPAN")
+	max_entries = os.environ.get("LADI_MAX_ENTRIES")
+	service = os.environ.get("LADI_SERVICE")
+	threshold = float(os.environ.get("LADI_THRESHOLD"))
+	max_anoms = int(os.environ.get("LADI_MAX_ANOMALIES"))
 
 
 
