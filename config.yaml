@@ -110,6 +110,8 @@ items:
               value: "0.99"
             - name: LADI_MAX_ANOMALIES
               value: "5"
+            - name: APP_SCRIPT
+              value: start.sh
             image: anomaly-detection:latest
             imagePullPolicy: Always
             name: anomaly-detection-deploy

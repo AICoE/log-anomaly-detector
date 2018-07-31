@@ -30,7 +30,7 @@ def main():
     endpointUrl = os.environ.get("LADT_ELASTICSEARCH_ENDPOINT")
     model = os.environ.get("LADT_MODEL")
     index = os.environ.get("LADT_INDEX")
-    time_span = int(os.environ.get("LADT_TIME_SPAN"))
+    time_span = os.environ.get("LADT_TIME_SPAN")
     max_entries = int(os.environ.get("LADT_MAX_ENTRIES"))
     itters = int(os.environ.get("LADT_ITERS"))
     service = os.environ.get("LADT_SERVICE")
