@@ -1,3 +1,3 @@
-#import os
+import os
 
-#os.system("bash start.sh")
+os.system("python trainer.py")
