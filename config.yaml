@@ -86,7 +86,7 @@ items:
               value: logstash-
             - name: LADT_TIME_SPAN
               value: "900"
-            - name: LADT_MAX_ENTIRES
+            - name: LADT_MAX_ENTRIES
               value: "25000"
             - name: LADT_ITERS
               value: "25000"
@@ -110,11 +110,13 @@ items:
               value: "0.99"
             - name: LADI_MAX_ANOMALIES
               value: "5"
-            - name: APP_SCRIPT
-              value: start.sh
             image: anomaly-detection:latest
             imagePullPolicy: Always
             name: anomaly-detection-deploy
+            resources:
+              limits:
+                memory: 2Gi
+                cpu: 2
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         schedulerName: default-scheduler
@@ -123,4 +125,9 @@ items:
     test: false
     triggers:
       - type: ConfigChange
+      - type: "imagechange"
+        imageChange:
+          from:
+            kind: "ImageStreamTag"
+            name: "anomaly-detection:latest"
 

@@ -20,7 +20,7 @@ import datetime
 
 
 
-def main():
+def infer():
 
 
 	endpointUrl = os.environ.get("LADI_ELASTICSEARCH_ENDPOINT")
@@ -124,4 +124,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    infer()
