@@ -10,7 +10,7 @@ objects:
 - kind: ImageStream
   apiVersion: image.openshift.io/v1
   metadata:
-    name: anomaly-detection # this requires that there is an image stream with this name? 
+    name: anomaly-detection
     labels:
       build: anomaly-detection
       app:  anomaly-detection
