@@ -21,7 +21,7 @@ import datetime
 
 
 
-def main():
+def trainer():
     
     
     T_Then = time.time()
@@ -132,4 +132,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    trainer()
