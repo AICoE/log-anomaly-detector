@@ -16,6 +16,7 @@ from sklearn.externals import joblib
 from scipy.spatial.distance import cosine
 import sys
 import datetime 
+import warnings
 
 
 
@@ -25,6 +26,7 @@ def trainer():
     
     
     T_Then = time.time()
+    warnings.filterwarnings("ignore")
 
 
     endpointUrl = os.environ.get("LADT_ELASTICSEARCH_ENDPOINT")
