@@ -26,7 +26,7 @@ def infer():
 	endpointUrl = os.environ.get("LADI_ELASTICSEARCH_ENDPOINT")
 	outpoint = os.environ.get("LADI_OUTDEX")
 	model = os.environ.get("LADI_MODEL")
-	index = os.environ.get("LADI_INDEX")
+	index_prefix = os.environ.get("LADI_INDEX")
 	time_span = int(os.environ.get("LADI_TIME_SPAN"))
 	max_entries = int(os.environ.get("LADI_MAX_ENTRIES"))
 	service = os.environ.get("LADI_SERVICE")
@@ -60,7 +60,7 @@ def infer():
 		now = datetime.datetime.now()
 		date = now.strftime("%Y.%m.%d")
 		#index = 'logstash-'+date
-		index = index+date
+		index = index_prefix + date
 
 
 		print("Reading in Logs from ", endpointUrl)
