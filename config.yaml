@@ -1,6 +1,12 @@
-kind: List
+apiVersion: v1
+kind: Template
+metadata:
+  name: anomaly-detection-template
+  annotations:
+    discription: "Anomaly Detection descripton"
 
-items:
+objects:
+
 - kind: ImageStream
   apiVersion: image.openshift.io/v1
   metadata:
@@ -77,37 +83,37 @@ items:
         containers:
           - env:
             - name: LADT_ELASTICSEARCH_ENDPOINT
-              value: "http://elasticsearch.perf.lab.eng.bos.redhat.com:9280"
+              value: ${LADT_ELASTICSEARCH_ENDPOINT}
             - name: LADT_MODEL
-              value: map.sav
+              value: ${LADT_MODEL}
             - name: LADT_INDEX
-              value: logstash-
+              value: ${LADT_INDEX}
             - name: LADT_TIME_SPAN
-              value: "900"
+              value: ${LADT_TIME_SPAN}
             - name: LADT_MAX_ENTRIES
-              value: "2500" 
+              value: ${LADT_MAX_ENTRIES}
             - name: LADT_ITERS
-              value: "25000"
+              value: ${LADT_ITERS}
             - name: LADT_SERVICE
-              value: journal
+              value: ${LADT_SERVICE}
             - name: LADI_ELASTICSEARCH_ENDPOINT
-              value: http://elasticsearch.perf.lab.eng.bos.redhat.com:9280
+              value: ${LADI_ELASTICSEARCH_ENDPOINT}
             - name: LADI_MODEL
-              value: map.sav
+              value: ${LADI_MODEL}
             - name: LADI_INDEX
-              value: logstash-
+              value: ${LADI_INDEX}
             - name: LADI_OUTDEX
-              value: mcliffor_test_ingest
+              value: ${LADI_OUTDEX}
             - name: LADI_TIME_SPAN
-              value: "60"
+              value: ${LADI_TIME_SPAN}
             - name: LADI_MAX_ENTRIES
-              value: "250"
+              value: ${LADI_MAX_ENTRIES}
             - name: LADI_SERVICE
-              value: journal
+              value: ${LADI_SERVICE}
             - name: LADI_THRESHOLD
-              value: "0.99"
+              value: ${LADI_THRESHOLD}
             - name: LADI_MAX_ANOMALIES
-              value: "5"
+              value: ${LADI_MAX_ANOMALIES}
             image: anomaly-detection:latest
             imagePullPolicy: Always
             name: anomaly-detection
@@ -132,3 +138,53 @@ items:
             kind: "ImageStreamTag"
             name: "anomaly-detection:latest"
 
+parameters:
+  - name: LADT_ELASTICSEARCH_ENDPOINT
+    descripton: "Elasticsearch endpoint to pull log data from for training"
+    value: "http://elasticsearch.perf.lab.eng.bos.redhat.com:9280"
+  - name: LADT_MODEL
+    descripton: "Name of model to train"
+    value: map.sav
+  - name: LADT_INDEX
+    descripton: "Name of Elasticsearch index to pull log data from for training"
+    value: logstash-
+  - name: LADT_TIME_SPAN
+    descripton: "Timespan for training set in seconds"
+    value: "900"
+  - name: LADT_MAX_ENTRIES
+    descripton: "Maximum number of logs to be pulled for training"
+    value: "2500" 
+  - name: LADT_ITERS
+    descripton: "Number of iterations of SOM training"  
+    value: "25000"
+  - name: LADT_SERVICE
+    descripton: "Name of the Elasticsearch service to monitor"  
+    value: journal
+
+  - name: LADI_ELASTICSEARCH_ENDPOINT
+    descripton: "Elasticsearch endpoint to pull log data from for Anomaly Detection"
+    value: http://elasticsearch.perf.lab.eng.bos.redhat.com:9280
+  - name: LADI_MODEL
+    descripton: "Name of the model to be loaded"
+    value: map.sav
+  - name: LADI_INDEX
+    descripton: "Name of Elasticsearch index to pull log data from for anomlay detection"  
+    value: logstash-
+  - name: LADI_OUTDEX
+    descripton: "Name of Elasticsearch index to push anomlay detection results to"  
+    value: mcliffor_test_ingest
+  - name: LADI_TIME_SPAN
+    descripton: "Timespan for inference loop in seconds"  
+    value: "60"
+  - name: LADI_MAX_ENTRIES
+    descripton: "Maximum number of logs to be pulled on each inference loop"  
+    value: "250"
+  - name: LADI_SERVICE
+    descripton: "Name of the Elasticsearch service to monitor"  
+    value: journal
+  - name: LADI_THRESHOLD
+    descripton: "Real-Valued number to modify anomaly detection threshold "  
+    value: "0.99"
+  - name: LADI_MAX_ANOMALIES
+    descripton: "Maximum number of anomalies to be flagged per inference loop"  
+    value: "5"
