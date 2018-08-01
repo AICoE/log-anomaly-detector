@@ -33,14 +33,6 @@ def infer():
 	threshold = float(os.environ.get("LADI_THRESHOLD"))
 	max_anoms = int(os.environ.get("LADI_MAX_ANOMALIES"))
 
-
-
-
-
-
-
-
-
 	c = Load_Map(model)
 	mod = Load_Map("W2V.models")
 
@@ -59,7 +51,6 @@ def infer():
 
 		now = datetime.datetime.now()
 		date = now.strftime("%Y.%m.%d")
-		#index = 'logstash-'+date
 		index = index_prefix + date
 
 
@@ -68,6 +59,14 @@ def infer():
 
 		print(len(test['hits']['hits']), "logs loaded from the last", time_span ," seconds")
 
+		if len(test['hits']['hits']) == 0:
+			
+			print("There are no logs for this service in the last ", time_span, " seconds")
+			print("waiting for next minute to start...", "\n", "press ctrl+c to stop process")
+			nown = time.time()
+			time.sleep(60-(nown-then))
+			continue
+			
 
 		print("Preprocessing logs")
 
@@ -87,6 +86,8 @@ def infer():
 		dist = []
 		for i in v:
 			dist.append(Get_Anomaly_Score(mapp,i))
+
+
 
 		count = 0
 		anom = []
