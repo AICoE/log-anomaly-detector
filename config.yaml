@@ -86,8 +86,8 @@ items:
               value: logstash-
             - name: LADT_TIME_SPAN
               value: "900"
-            - name: LADT_MAX_ENTIRES
-              value: "25000"
+            - name: LADT_MAX_ENTRIES
+              value: "2500" 
             - name: LADT_ITERS
               value: "25000"
             - name: LADT_SERVICE
