@@ -30,9 +30,7 @@ items:
       - github:
           secret: 104e14d978977712
         type: GitHub
-      - imageChange:
-          lastTriggeredImageID: >-
-            registry.access.redhat.com/rhscl/python-36-rhel7@sha256:faa41271420f7e198e887f74cdcdad89474dc13acde54a227bb5fbe40fe1ead7
+      - imageChange: {}
         type: ImageChange
       - type: ConfigChange
 
@@ -112,7 +110,7 @@ items:
               value: "5"
             image: anomaly-detection:latest
             imagePullPolicy: Always
-            name: anomaly-detection-deploy
+            name: anomaly-detection
             resources:
               limits:
                 memory: 2Gi
@@ -125,8 +123,11 @@ items:
     test: false
     triggers:
       - type: ConfigChange
-      - type: "imagechange"
-        imageChange:
+      - type: ImageChange
+        imageChangeParams:
+          automatic: true
+          containerNames:
+          - anomaly-detection
           from:
             kind: "ImageStreamTag"
             name: "anomaly-detection:latest"
