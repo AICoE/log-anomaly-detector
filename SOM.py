@@ -1,5 +1,6 @@
 
 import numpy as np
+from tqdm import tqdm 
 
 
 def alph(T,t): # Learning Rate, Deacrease as we move through the iterations
@@ -23,7 +24,7 @@ def SOM(inp, map_size,iterations, mapp = 'None'):
     else: mapp = mapp
 
 
-    for iters in range(iterations): 
+    for iters in tqdm(range(iterations)): 
 
         rand_num = np.random.randint(inp.shape[0])
         current_vector = inp[rand_num,:] # Select a Random Document Vector From the training data

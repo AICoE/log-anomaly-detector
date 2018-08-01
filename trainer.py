@@ -17,6 +17,7 @@ from scipy.spatial.distance import cosine
 import sys
 import datetime 
 import warnings
+from tqdm import tqdm
 
 
 
@@ -118,7 +119,7 @@ def trainer():
     print("Generating Baseline Metrics")
 
     dist = []
-    for i in to_put_train:
+    for i in tqdm(to_put_train):
         dist.append(Get_Anomaly_Score(mapp,i))
 
     meta_data = (np.mean(dist), np.std(dist), np.max(dist),np.min(dist))
