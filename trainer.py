@@ -64,6 +64,18 @@ def trainer():
 
     print(len(logs['hits']['hits']), "logs loaded in from last ", time_span, " seconds")
 
+
+    if len(logs['hits']['hits']) == 0:
+        print("There are no logs for this service in the last ", time_span, " seconds")
+        print("Waiting 60 seconds and trying again")
+        time.sleep(60)
+        trainer()
+        quit()
+
+
+
+
+
     print("Preprocessing logs & Cleaning Messages")
 
     new_D = json_normalize(logs['hits']['hits'])
