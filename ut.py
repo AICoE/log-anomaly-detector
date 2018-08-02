@@ -33,7 +33,7 @@ def get_data_from_ES(endpoint, index,service,num = 20, time = 2, query = default
     query['query']['match']['service'] = service
 
 
-    return es.search(index, body=json.dumps(query))
+    return es.search(index, body=json.dumps(query), request_timeout=30)
 
 
 
