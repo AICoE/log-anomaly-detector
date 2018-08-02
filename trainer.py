@@ -70,7 +70,7 @@ def trainer():
         print("Waiting 60 seconds and trying again")
         time.sleep(60)
         trainer()
-        quit()
+        return 
 
 
 
