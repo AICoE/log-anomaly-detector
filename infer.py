@@ -101,9 +101,12 @@ def infer():
 		 		#m_push = test['hits']['hits'][loc]['_source']['message'] 
 		 		m_push = '0'
 		 		print(dist[loc], test['hits']['hits'][loc]['_source']['message'], "\n")
+		 		now_f = datetime.datetime.now()
+				t = now_f.strftime('%Y-%m-%dT%H:%M:%S.')
+				p = now_f.strftime('%f')[:3]+'Z'
+				t = t+p
 
-
-		 		body_p = {"Message": m_push, "Anomaly_Score": dist[loc]}
+		 		body_p = {"Message": m_push, "Anomaly_Score": dist[loc],"@timestamp": t}
 		 		res = es.index(index = outpoint, doc_type="log", body=body_p)
 
 
