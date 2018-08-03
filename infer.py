@@ -94,23 +94,23 @@ def infer():
 
 		es = Elasticsearch(endpointUrl)
 		for i in range(max_anoms):
-		 	loc = np.argmax(dist)
-		 	anom.append(loc)
+			loc = np.argmax(dist)
+			anom.append(loc)
 
-		 	if dist[loc] > (threshold*maxx):
-		 		#m_push = test['hits']['hits'][loc]['_source']['message'] 
-		 		m_push = '0'
-		 		print(dist[loc], test['hits']['hits'][loc]['_source']['message'], "\n")
-		 		now_f = datetime.datetime.now()
+			if dist[loc] > (threshold*maxx):
+				#m_push = test['hits']['hits'][loc]['_source']['message'] 
+				m_push = '0'
+				print(dist[loc], test['hits']['hits'][loc]['_source']['message'], "\n")
+				now_f = datetime.datetime.now()
 				t = now_f.strftime('%Y-%m-%dT%H:%M:%S.')
 				p = now_f.strftime('%f')[:3]+'Z'
 				t = t+p
 
-		 		body_p = {"Message": m_push, "Anomaly_Score": dist[loc],"@timestamp": t}
-		 		res = es.index(index = outpoint, doc_type="log", body=body_p)
+				body_p = {"Message": m_push, "Anomaly_Score": dist[loc],"@timestamp": t}
+				res = es.index(index = outpoint, doc_type="log", body=body_p)
 
 
-		 	dist[loc] = 0
+			dist[loc] = 0
 
 		#print(count)
 
