@@ -7,6 +7,25 @@ metadata:
 
 objects:
 
+
+
+
+
+- kind: PersistentVolumeClaim
+  apiVersion: v1
+  metadata:
+    name: anomaly-detection-model-storage
+  spec:
+    storageClassName: dynamic-nfs
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+    
+
+
+
 - kind: ImageStream
   apiVersion: image.openshift.io/v1
   metadata:
@@ -80,6 +99,10 @@ objects:
           app: anomaly-detection
           deploymentconfig: anomaly-detection
       spec:
+        volumes: 
+          - persistentVolumeClaim:
+              claimName: anomaly-detection-model-storage
+            name: pvol
         containers:
           - env:
             - name: LADT_ELASTICSEARCH_ENDPOINT
@@ -117,6 +140,11 @@ objects:
             image: anomaly-detection:latest
             imagePullPolicy: Always
             name: anomaly-detection
+            
+            volumeMounts: 
+              - mountPath: "/var/www/html"
+                name: pvol
+            
             resources:
               limits:
                 memory: 2Gi
@@ -153,10 +181,10 @@ parameters:
     value: "900"
   - name: LADT_MAX_ENTRIES
     descripton: "Maximum number of logs to be pulled for training"
-    value: "2500" 
+    value: "4500" 
   - name: LADT_ITERS
     descripton: "Number of iterations of SOM training"  
-    value: "25000"
+    value: "45000"
   - name: LADT_SERVICE
     descripton: "Name of the Elasticsearch service to monitor"  
     value: journal
@@ -178,7 +206,7 @@ parameters:
     value: "60"
   - name: LADI_MAX_ENTRIES
     descripton: "Maximum number of logs to be pulled on each inference loop"  
-    value: "250"
+    value: "1000"
   - name: LADI_SERVICE
     descripton: "Name of the Elasticsearch service to monitor"  
     value: journal
