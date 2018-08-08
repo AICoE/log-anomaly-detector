@@ -16,7 +16,7 @@ objects:
   metadata:
     name: anomaly-detection-model-storage
   spec:
-    storageClassName: dynamic-nfs
+    storageClassName: ceph-dyn-datahub-paas
     accessModes:
       - ReadWriteOnce
     resources:
@@ -102,7 +102,7 @@ objects:
         volumes: 
           - persistentVolumeClaim:
               claimName: anomaly-detection-model-storage
-            name: pvol
+            name: model-storage
         containers:
           - env:
             - name: LADT_ELASTICSEARCH_ENDPOINT
@@ -142,8 +142,8 @@ objects:
             name: anomaly-detection
             
             volumeMounts: 
-              - mountPath: "/var/www/html"
-                name: pvol
+              - mountPath: "/opt/app-root/src/models"
+                name: model-storage
             
             resources:
               limits:
