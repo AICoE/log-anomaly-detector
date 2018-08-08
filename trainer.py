@@ -12,6 +12,7 @@ matplotlib.use("agg")
 from matplotlib import pyplot as plt
 import numpy as np
 from pandas.io.json import json_normalize
+import pandas as pd
 from sklearn.externals import joblib
 from scipy.spatial.distance import cosine
 import sys
@@ -39,11 +40,11 @@ def trainer():
     service = os.environ.get("LADT_SERVICE")
 
     
-    up = os.path.isfile(model)
+    up = os.path.isfile("models/"+model)
     if up == True:
-        m = Load_Map(model)
+        m = Load_Map("models/"+model)
         m = m[0]
-        mod = Load_Map("W2V.models")
+        mod = Load_Map("models/W2V.models")
     else:
         m = 0
 
@@ -83,7 +84,16 @@ def trainer():
     for lines in range(len(new_D["_source.message"])):
         new_D["_source.message"][lines] = Clean(new_D["_source.message"][lines]) 
 
+    # Below code for user feedback    
+    # if os.path.isfile("found_anomalies.csv") == True:
 
+    #     f = pd.read_csv("found_anomalies.csv")
+    #     extra = f[f["label"] == 0]
+    #     extra = extra.drop("label", axis=1)
+    #     extra = extra.drop("Unnamed: 0", axis = 1)
+    #     new_D.append(extra)
+
+    
     print("Learning Word2Vec Models and Saving for Inference Step")
 
     then = time.time()
@@ -96,7 +106,7 @@ def trainer():
     else:
         models = mod
         new_D, models = Update_W2V_Models(mod,new_D)
-        joblib.dump(models,"W2V.models")
+        joblib.dump(models,"models/W2V.models")
 
 
 

@@ -70,7 +70,7 @@ def Make_Models(DF, Save = False, filename = 'W2V.models'):
 
 
     if Save == True:
-    	joblib.dump(models, filename)
+    	joblib.dump(models, "models/"+filename)
     
     return models, DF
 
@@ -149,7 +149,7 @@ def One_Vector(model):
 ######################## SOM #########################
 
 def Save_Model(mapp, filename):
-    joblib.dump(mapp, filename)
+    joblib.dump(mapp, "models/"+filename)
 
 
 def Load_Map(filename):
@@ -190,7 +190,7 @@ def Viz_SOM(mapp):
    ax = fig.add_subplot(111)
    cax = ax.matshow(new, interpolation='nearest')
    fig.colorbar(cax)
-   fig.savefig('U-map.png')
+   fig.savefig('models/U-map.png')
 
 
 

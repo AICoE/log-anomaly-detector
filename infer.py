@@ -12,6 +12,7 @@ matplotlib.use("agg")
 from matplotlib import pyplot as plt
 import numpy as np
 from pandas.io.json import json_normalize
+import pandas as pd
 from sklearn.externals import joblib
 from scipy.spatial.distance import cosine
 import sys
@@ -33,8 +34,8 @@ def infer():
 	threshold = float(os.environ.get("LADI_THRESHOLD"))
 	max_anoms = int(os.environ.get("LADI_MAX_ANOMALIES"))
 
-	c = Load_Map(model)
-	mod = Load_Map("W2V.models")
+	c = Load_Map("models/"+model)
+	mod = Load_Map("models/W2V.models")
 
 	mapp = c[0]
 	meta_data = c[1]
@@ -44,8 +45,8 @@ def infer():
 
 
 	#endpointUrl = 'http://elasticsearch.perf.lab.eng.bos.redhat.com:9280'
-
-	while True:
+	for i in range(20):
+	#while True:
 
 		then = time.time()
 
@@ -108,6 +109,24 @@ def infer():
 
 				body_p = {"Message": m_push, "Anomaly_Score": dist[loc],"@timestamp": t}
 				res = es.index(index = outpoint, doc_type="log", body=body_p)
+
+				# Also push to CSV for Human-In-Loop Portion
+
+				#d = {"label":"not reviewed"}
+				#f = pd.DataFrame(d, index = range(1))
+				#data = new_D.loc[loc:loc].join(f)
+				#data["label"] = 0;
+
+				#if os.path.isfile("found_anomalies.csv") == False:
+				#	with open("found_anomalies.csv", "a") as f:
+				#		data.to_csv(f,header = True)
+
+				#else:
+				#	with open("found_anomalies.csv", "a") as f:
+				#		data.to_csv(f,header = False)
+
+
+
 
 
 			dist[loc] = 0
