@@ -27,15 +27,17 @@ def infer():
 	endpointUrl = os.environ.get("LADI_ELASTICSEARCH_ENDPOINT")
 	outpoint = os.environ.get("LADI_OUTDEX")
 	model = os.environ.get("LADI_MODEL")
+	model_path = os.environ.get("LADT_MODEL_DIR")
 	index_prefix = os.environ.get("LADI_INDEX")
 	time_span = int(os.environ.get("LADI_TIME_SPAN"))
 	max_entries = int(os.environ.get("LADI_MAX_ENTRIES"))
 	service = os.environ.get("LADI_SERVICE")
 	threshold = float(os.environ.get("LADI_THRESHOLD"))
 	max_anoms = int(os.environ.get("LADI_MAX_ANOMALIES"))
+	infer_loops = int(os.environ.get("LADT_TRAIN_LAG"))
 
-	c = Load_Map("models/"+model)
-	mod = Load_Map("models/W2V.models")
+	c = Load_Map(model_path  +"/" +  model)
+	mod = Load_Map(model_path +"/W2V.models")
 
 	mapp = c[0]
 	meta_data = c[1]
@@ -45,7 +47,7 @@ def infer():
 
 
 	#endpointUrl = 'http://elasticsearch.perf.lab.eng.bos.redhat.com:9280'
-	for i in range(20):
+	for i in range(infer_loops):
 	#while True:
 
 		then = time.time()

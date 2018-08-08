@@ -33,18 +33,20 @@ def trainer():
 
     endpointUrl = os.environ.get("LADT_ELASTICSEARCH_ENDPOINT")
     model = os.environ.get("LADT_MODEL")
+    model_path = os.environ.get("LADT_MODEL_DIR")
     index = os.environ.get("LADT_INDEX")
     time_span = os.environ.get("LADT_TIME_SPAN")
     max_entries = int(os.environ.get("LADT_MAX_ENTRIES"))
     itters = int(os.environ.get("LADT_ITERS"))
     service = os.environ.get("LADT_SERVICE")
+    path = model_path+"/"+model
 
     
-    up = os.path.isfile("models/"+model)
+    up = os.path.isfile(path)
     if up == True:
-        m = Load_Map("models/"+model)
+        m = Load_Map(path)
         m = m[0]
-        mod = Load_Map("models/W2V.models")
+        mod = Load_Map(model_path +"/W2V.models")
     else:
         m = 0
 
@@ -101,12 +103,12 @@ def trainer():
     
 
     if up == False:
-        models, new_D = Make_Models(new_D,True)
+        models, new_D = Make_Models(new_D,True, model_path+"/W2V.models")
 
     else:
         models = mod
         new_D, models = Update_W2V_Models(mod,new_D)
-        joblib.dump(models,"models/W2V.models")
+        joblib.dump(models,model_path+"/W2V.models")
 
 
 
@@ -136,7 +138,7 @@ def trainer():
 
     print('Saving U-map')
 
-    Viz_SOM(mapp)
+    Viz_SOM(mapp, model_path)
 
     print("Generating Baseline Metrics")
 
@@ -148,7 +150,7 @@ def trainer():
 
     model_to_save = [mapp, meta_data]
 
-    Save_Model(model_to_save,"map.sav")
+    Save_Model(model_to_save,  model_path+"/map.sav")
 
     T_Now = time.time()
 

@@ -70,7 +70,7 @@ def Make_Models(DF, Save = False, filename = 'W2V.models'):
 
 
     if Save == True:
-    	joblib.dump(models, "models/"+filename)
+    	joblib.dump(models, filename)
     
     return models, DF
 
@@ -149,7 +149,7 @@ def One_Vector(model):
 ######################## SOM #########################
 
 def Save_Model(mapp, filename):
-    joblib.dump(mapp, "models/"+filename)
+    joblib.dump(mapp, filename)
 
 
 def Load_Map(filename):
@@ -169,7 +169,7 @@ def Get_Anomaly_Score(som,log):
     return dist_smallest
 
 
-def Viz_SOM(mapp):
+def Viz_SOM(mapp, dir):
 	# Since Data is no longer representable in 2 or 3 dimensions we will display a matrix of distances from adjecent vectors
    new = np.zeros((24,24))
 
@@ -190,7 +190,7 @@ def Viz_SOM(mapp):
    ax = fig.add_subplot(111)
    cax = ax.matshow(new, interpolation='nearest')
    fig.colorbar(cax)
-   fig.savefig('models/U-map.png')
+   fig.savefig(dir +'/U-map.png')
 
 
 
