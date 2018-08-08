@@ -1,7 +1,10 @@
 from trainer import trainer
 
-trainer()
+
 
 from infer import infer
 
-infer()
+while True:
+
+	trainer()
+	infer()
