@@ -20,32 +20,34 @@ Both functions rely on correctly configuring below parameters, where the prefix 
 
 #### Training (trainer.py)
 
-* LADT_ELASTICSEARCH_ENDPOINT= address to Elasticsearch endpoint
-* LADT_MODEL= path to SOM map to update 
-* LADT_INDEX= name of Elasticsearch index to pull logs from 
-* LADT_TIME_SPAN= number of seconds from now that you would like to query Elasticsearch for training logs
-* LADT_MAX_ENTRIES= limits the number of entries returned from Elasticsearch for the training query
-* LADT_ITERS= number of training iterations of the SOM 
-* LADT_SERVICE= name of Elasticsearch service to be monitored 
+* LADT_MODEL_DIR = Name of persistant storage directory that models will be saved to
+* LADT_ELASTICSEARCH_ENDPOINT = address to Elasticsearch endpoint
+* LADT_MODEL = path to SOM map to update 
+* LADT_INDEX = name of Elasticsearch index to pull logs from 
+* LADT_TIME_SPAN = number of seconds from now that you would like to query Elasticsearch for training logs
+* LADT_MAX_ENTRIES = limits the number of entries returned from Elasticsearch for the training query
+* LADT_ITERS = number of training iterations of the SOM 
+* LADT_SERVICE = name of Elasticsearch service to be monitored 
+* LADT_TRAIN_LOG = Number of Inference iterations between retraining the model  
 
 
 
 #### Inference (infer.py)
 
-* LADI_ELASTICSEARCH_ENDPOINT= address to Elasticsearch endpoint for inference
-* LADI_INDEX= path to SOM map to test against
-* LADI_OUTDEX= name of index the anoamliy data will be pushed back to in Elasticsearch
-* LADI_TIME_SPAN=number of seconds from now that you would like to query Elasticsearch for
-* LADI_MAX_ENTRIES=limits the number of entries returned from Elasticsearch for the inference query
-* LADI_SERVICE= name of Elasticsearch service to be monitored 
-* LADI_THRESHOLD= float tunes the anomaly threshold based on the max value of the training set
-* LADI_MAX_ANOMALIES= maximum number of anomalies allowed on each testing iteration
+* LADI_ELASTICSEARCH_ENDPOINT = address to Elasticsearch endpoint for inference
+* LADI_INDEX = path to SOM map to test against
+* LADI_OUTDEX = name of index the anoamliy data will be pushed back to in Elasticsearch
+* LADI_TIME_SPAN = number of seconds from now that you would like to query Elasticsearch for
+* LADI_MAX_ENTRIES = limits the number of entries returned from Elasticsearch for the inference query
+* LADI_SERVICE = name of Elasticsearch service to be monitored 
+* LADI_THRESHOLD = float tunes the anomaly threshold based on the max value of the training set
+* LADI_MAX_ANOMALIES = maximum number of anomalies allowed on each testing iteration
 
 
 --------------------------------
 
 
-## More Details (WIP)
+## More Details
 
 
 ### Training 
@@ -54,11 +56,21 @@ Both functions rely on correctly configuring below parameters, where the prefix 
 
 
 ### Inference
+
 **infer.py** loads the models saved by the training script and (with default configuration) pulls the last minute of logs from a specific service at an Elasticsearch endpoint. It then updates the existing W2V models and converts the new data into vectors that can be fed into the Self-Organizing Map. The map will then prodice an anomaly score for each log
 
 
 ### Word2Vec
 
+We are using Word2Vec in this application in order to vectorize the natural language elements of our log data. We have decided to use Word2Vec(https://en.wikipedia.org/wiki/Word2vec) because it has shown a great ability to convert text data into numerical vectors in such a way that much of their semantic meaning is retained. We have also decided to use the gensim package's verison of Word2Vec for this project. 
+
+
 ### SOM
 
+SOM (Self_organizming map) is the learning algorithm used to help us quantify the anomalousness of our logs.  
 
+SOM, or Kohonon maps, are a type of unsupervised learning algorithm that "produce a low-dimensional (typically two-dimensional), discretized representation of the input space of the training samples" (wikipedia: https://en.wikipedia.org/wiki/Self-organizing_map). The idea to use this type of algorithm for our log data was inspired by a talk by Will Benton (found here: https://www.youtube.com/watch?v=fhuoKe4li6E).
+
+In short, we intialize a graph of some user-specified fixed dimensions, in our default case 24x24, where each node is an object of the same dimensions as our training data. We then iterate through each training example over the graph and find the node that is closest (here using L2 distance) to that trainng example. We then update the value of that node and the neighboring nodes. This process will generate a map that resembels the space of our training samples.
+
+Once the map is trained, we can take a new example, measure its distance to each node on the map and determine how "close"/"similar" it is to our training data. This distance metric will be how we quantify the spectrum form normal to anomalous and how we generate our anomaly scores. 
