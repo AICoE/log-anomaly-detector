@@ -103,7 +103,7 @@ def infer():
 			s['anomaly_score'] = dist[i] 
 
 			if dist[i] > (threshold*maxx): 
-				print(dist[loc], test['hits']['hits'][i]['_source']['message'], "\n")
+				print(dist[i], test['hits']['hits'][i]['_source']['message'], "\n")
 				s['anomaly'] = 1
 
 			else:
