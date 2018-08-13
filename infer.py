@@ -62,6 +62,8 @@ def infer():
 
 		print(len(test['hits']['hits']), "logs loaded from the last", time_span ," seconds")
 
+		logs = test['hits']['hits']
+
 		if len(test['hits']['hits']) == 0:
 			
 			print("There are no logs for this service in the last ", time_span, " seconds")
@@ -96,21 +98,22 @@ def infer():
 		anom = []
 
 		es = Elasticsearch(endpointUrl)
-		for i in range(max_anoms):
-			loc = np.argmax(dist)
-			anom.append(loc)
+		for i in range(len(logs)):
+			s = logs[i]["_source"]
+			s['anomaly_score'] = dist[i] 
 
-			if dist[loc] > (threshold*maxx):
-				#m_push = test['hits']['hits'][loc]['_source']['message'] 
-				m_push = '0'
+			if dist[i] > (threshold*maxx): 
 				print(dist[loc], test['hits']['hits'][loc]['_source']['message'], "\n")
-				now_f = datetime.datetime.now()
-				t = now_f.strftime('%Y-%m-%dT%H:%M:%S.')
-				p = now_f.strftime('%f')[:3]+'Z'
-				t = t+p
+				s['anomaly'] = 1
 
-				body_p = {"Message": m_push, "Anomaly_Score": dist[loc],"@timestamp": t}
-				res = es.index(index = outpoint, doc_type="log", body=body_p)
+			else:
+				s['anomaly'] = 0
+
+			#print(s)
+
+				
+			res = es.index(index = outpoint, doc_type="log", body=s)
+			#print(res)
 
 				# Also push to CSV for Human-In-Loop Portion
 
@@ -131,7 +134,7 @@ def infer():
 
 
 
-			dist[loc] = 0
+			#dist[loc] = 0
 
 		#print(count)
 
