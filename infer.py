@@ -120,7 +120,7 @@ def infer():
 					for j in range(len(logs))]
 
 
-		helpers.bulk(es,actions, chunk_size = 100) 
+		helpers.bulk(es,actions, chunk_size = 200) 
 			#print(res)
 
 				# Also push to CSV for Human-In-Loop Portion
