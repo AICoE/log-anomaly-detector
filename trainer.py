@@ -12,7 +12,6 @@ matplotlib.use("agg")
 from matplotlib import pyplot as plt
 import numpy as np
 from pandas.io.json import json_normalize
-import pandas as pd
 from sklearn.externals import joblib
 from scipy.spatial.distance import cosine
 import sys
@@ -50,14 +49,8 @@ def trainer():
     else:
         m = 0
 
-
-
-
     now = datetime.datetime.now()
     date = now.strftime("%Y.%m.%d")
-
-    #endpointUrl = 'http://elasticsearch.perf.lab.eng.bos.redhat.com:9280'
-    #index = 'logstash-'+date
     index = index+date
 
 
@@ -74,9 +67,6 @@ def trainer():
         time.sleep(60)
         trainer()
         return 
-
-
-
 
 
     print("Preprocessing logs & Cleaning Messages")
