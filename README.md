@@ -31,7 +31,7 @@ Both functions rely on correctly configuring below parameters, where the prefix 
 * LADT_MAX_ENTRIES = limits the number of entries returned from Elasticsearch for the training query
 * LADT_ITERS = number of training iterations of the SOM 
 * LADT_SERVICE = name of Elasticsearch service to be monitored 
-* LADT_TRAIN_LOG = Number of Inference iterations between retraining the model  
+* LADT_TRAIN_LAG = Number of Inference iterations between retraining the model  
 
 
 
@@ -39,7 +39,7 @@ Both functions rely on correctly configuring below parameters, where the prefix 
 
 * LADI_ELASTICSEARCH_ENDPOINT = address to Elasticsearch endpoint for inference
 * LADI_INDEX = path to SOM map to test against
-* LADI_OUTDEX = name of index the anoamliy data will be pushed back to in Elasticsearch
+* LADI_TARGET_INDEX = name of index the anoamliy data will be pushed back to in Elasticsearch
 * LADI_TIME_SPAN = number of seconds from now that you would like to query Elasticsearch for
 * LADI_MAX_ENTRIES = limits the number of entries returned from Elasticsearch for the inference query
 * LADI_SERVICE = name of Elasticsearch service to be monitored 
