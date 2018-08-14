@@ -1,6 +1,6 @@
 from ut import * 
 
-from elasticsearch2 import Elasticsearch
+from elasticsearch2 import Elasticsearch, helpers
 import re
 from gensim.models import Word2Vec
 from SOM import SOM 
@@ -25,7 +25,7 @@ def infer():
 
 
 	endpointUrl = os.environ.get("LADI_ELASTICSEARCH_ENDPOINT")
-	outpoint = os.environ.get("LADI_OUTDEX")
+	outpoint = os.environ.get("LADI_TARGET_INDEX")
 	model = os.environ.get("LADI_MODEL")
 	model_path = os.environ.get("LADT_MODEL_DIR")
 	index_prefix = os.environ.get("LADI_INDEX")
@@ -55,6 +55,7 @@ def infer():
 		now = datetime.datetime.now()
 		date = now.strftime("%Y.%m.%d")
 		index = index_prefix + date
+		#outpoint = outpoint + date
 
 
 		print("Reading in Logs from ", endpointUrl)
@@ -98,6 +99,7 @@ def infer():
 		anom = []
 
 		es = Elasticsearch(endpointUrl)
+		f = []
 		for i in range(len(logs)):
 			s = logs[i]["_source"]
 			s['anomaly_score'] = dist[i] 
@@ -109,10 +111,16 @@ def infer():
 			else:
 				s['anomaly'] = 0
 
-			#print(s)
-
+			f.append(s)
+				#res = es.index(index = outpoint, doc_type="log", body=s)
 				
-			res = es.index(index = outpoint, doc_type="log", body=s)
+		actions = [ {"_index":outpoint,
+					"_type": "log",
+					"_source": f[j]}
+					for j in range(len(logs))]
+
+
+		helpers.bulk(es,actions, chunk_size = 100) 
 			#print(res)
 
 				# Also push to CSV for Human-In-Loop Portion
@@ -145,7 +153,7 @@ def infer():
 		print("waiting for next minute to start...", "\n", "press ctrl+c to stop process")
 
 
-		time.sleep(60-(now-then))
+		time.sleep(time_span-(now-then))
 
 
 
