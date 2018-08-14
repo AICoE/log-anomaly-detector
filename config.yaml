@@ -7,10 +7,6 @@ metadata:
 
 objects:
 
-
-
-
-
 - kind: PersistentVolumeClaim
   apiVersion: v1
   metadata:
@@ -23,17 +19,13 @@ objects:
       requests:
         storage: 1Gi
     
-
-
-
 - kind: ImageStream
   apiVersion: image.openshift.io/v1
   metadata:
     name: anomaly-detection
     labels:
       build: anomaly-detection
-      app:  anomaly-detection
-    
+      app:  anomaly-detection 
   spec:
     lookupPolicy:
       local: true
@@ -41,7 +33,6 @@ objects:
 
 - kind: BuildConfig
   apiVersion: build.openshift.io/v1
-  
   metadata:
     labels:
       app: anomaly-detection
@@ -58,15 +49,13 @@ objects:
       - imageChange: {}
         type: ImageChange
       - type: ConfigChange
-
     source:
       git:
         ref: master
         uri: 'git@gitlab.cee.redhat.com:mcliffor/AO_AD_POC.git'
       sourceSecret:
         name: repo-at-gitlab
-      type: Git
-    
+      type: Git    
     strategy:
       sourceStrategy:
         from:
@@ -74,17 +63,13 @@ objects:
           name: 'python:3.6'
           namespace: openshift
       type: Source
-    
     output:
       to:
         kind: ImageStreamTag
         name: 'anomaly-detection:latest'
     
-    
-    
 - kind: DeploymentConfig
   apiVersion: apps.openshift.io/v1
-  
   metadata:
     labels:
       app: anomaly-detection
@@ -144,11 +129,9 @@ objects:
             image: anomaly-detection:latest
             imagePullPolicy: Always
             name: anomaly-detection
-            
             volumeMounts: 
-              - mountPath: /opt/app-root/src/${LADT_MODEL_DIR}            # ${LADT_TRAIN_LAG} gotta use something like this
+              - mountPath: /opt/app-root/src/${LADT_MODEL_DIR}
                 name: model-storage
-            
             resources:
               limits:
                 memory: 2Gi
