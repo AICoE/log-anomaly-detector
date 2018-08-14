@@ -105,6 +105,10 @@ objects:
             name: model-storage
         containers:
           - env:
+            - name: LADT_TRAIN_LAG
+              value: ${LADT_TRAIN_LAG}
+            - name: LADT_MODEL_DIR
+              value: ${LADT_MODEL_DIR}
             - name: LADT_ELASTICSEARCH_ENDPOINT
               value: ${LADT_ELASTICSEARCH_ENDPOINT}
             - name: LADT_MODEL
@@ -125,8 +129,8 @@ objects:
               value: ${LADI_MODEL}
             - name: LADI_INDEX
               value: ${LADI_INDEX}
-            - name: LADI_OUTDEX
-              value: ${LADI_OUTDEX}
+            - name: LADI_TARGET_INDEX
+              value: ${LADI_TARGET_INDEX}
             - name: LADI_TIME_SPAN
               value: ${LADI_TIME_SPAN}
             - name: LADI_MAX_ENTRIES
@@ -142,7 +146,7 @@ objects:
             name: anomaly-detection
             
             volumeMounts: 
-              - mountPath: "/opt/app-root/src/models"
+              - mountPath: /opt/app-root/src/${LADT_MODEL_DIR}            # ${LADT_TRAIN_LAG} gotta use something like this
                 name: model-storage
             
             resources:
@@ -167,6 +171,9 @@ objects:
             name: "anomaly-detection:latest"
 
 parameters:
+  - name: LADT_MODEL_DIR
+    descripton: "Name of persistant storage directory that models will be saved to"
+    value: models
   - name: LADT_ELASTICSEARCH_ENDPOINT
     descripton: "Elasticsearch endpoint to pull log data from for training"
     value: "http://elasticsearch.perf.lab.eng.bos.redhat.com:9280"
@@ -188,6 +195,9 @@ parameters:
   - name: LADT_SERVICE
     descripton: "Name of the Elasticsearch service to monitor"  
     value: journal
+  - name: LADT_TRAIN_LAG
+    descripton: "Number of Inference iterations between retraining the model"  
+    value: "20"
 
   - name: LADI_ELASTICSEARCH_ENDPOINT
     descripton: "Elasticsearch endpoint to pull log data from for Anomaly Detection"
@@ -198,7 +208,7 @@ parameters:
   - name: LADI_INDEX
     descripton: "Name of Elasticsearch index to pull log data from for anomlay detection"  
     value: logstash-
-  - name: LADI_OUTDEX
+  - name: LADI_TARGET_INDEX
     descripton: "Name of Elasticsearch index to push anomlay detection results to"  
     value: mcliffor_test_ingest
   - name: LADI_TIME_SPAN
