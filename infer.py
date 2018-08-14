@@ -1,21 +1,14 @@
 from ut import * 
 
 from elasticsearch2 import Elasticsearch, helpers
-import re
 from gensim.models import Word2Vec
 from SOM import SOM 
 import json
-import time
 import os
-import matplotlib
-matplotlib.use("agg")
-from matplotlib import pyplot as plt
 import numpy as np
 from pandas.io.json import json_normalize
-import pandas as pd
 from sklearn.externals import joblib
 from scipy.spatial.distance import cosine
-import sys
 import datetime
 
 
@@ -46,12 +39,9 @@ def infer():
 
 
 
-	#endpointUrl = 'http://elasticsearch.perf.lab.eng.bos.redhat.com:9280'
 	for i in range(infer_loops):
-	#while True:
 
 		then = time.time()
-
 		now = datetime.datetime.now()
 		date = now.strftime("%Y.%m.%d")
 		index = index_prefix + date
@@ -82,21 +72,13 @@ def infer():
 			new_D["_source.message"][lines] = Clean(new_D["_source.message"][lines]) 
 
 		new_D, nothing = Update_W2V_Models(mod,new_D)
-
-
 		transforms = Transform_Text(mod,new_D)
-
-
 		v = One_Vector(transforms)
 
 		dist = []
 		for i in v:
 			dist.append(Get_Anomaly_Score(mapp,i))
 
-
-
-		count = 0
-		anom = []
 
 		es = Elasticsearch(endpointUrl)
 		f = []
@@ -112,7 +94,6 @@ def infer():
 				s['anomaly'] = 0
 
 			f.append(s)
-				#res = es.index(index = outpoint, doc_type="log", body=s)
 				
 		actions = [ {"_index":outpoint,
 					"_type": "log",
@@ -138,24 +119,10 @@ def infer():
 				#	with open("found_anomalies.csv", "a") as f:
 				#		data.to_csv(f,header = False)
 
-
-
-
-
-			#dist[loc] = 0
-
-		#print(count)
-
 		now = time.time()
-
 		print("Analyzed one minute of data in ",(now-then)," seconds")
-
 		print("waiting for next minute to start...", "\n", "press ctrl+c to stop process")
-
-
 		time.sleep(time_span-(now-then))
-
-
 
 
 
