@@ -28,7 +28,6 @@ def infer():
 	threshold = float(os.environ.get("LADI_THRESHOLD"))
 	max_anoms = int(os.environ.get("LADI_MAX_ANOMALIES"))
 	infer_loops = int(os.environ.get("LADT_TRAIN_LAG"))
-	chunk_size = int(os.environ.get("LADI_CHUNK_SIZE"))
 
 	c = Load_Map(model_path  +"/" +  model)
 	mod = Load_Map(model_path +"/W2V.models")
