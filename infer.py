@@ -18,7 +18,7 @@ def infer():
 
 
 	endpointUrl = os.environ.get("LADI_ELASTICSEARCH_ENDPOINT")
-	outpoint = os.environ.get("LADI_TARGET_INDEX")
+	outpoint_prefix = os.environ.get("LADI_TARGET_INDEX")
 	model = os.environ.get("LADI_MODEL")
 	model_path = os.environ.get("LADT_MODEL_DIR")
 	index_prefix = os.environ.get("LADI_INDEX")
@@ -28,6 +28,7 @@ def infer():
 	threshold = float(os.environ.get("LADI_THRESHOLD"))
 	max_anoms = int(os.environ.get("LADI_MAX_ANOMALIES"))
 	infer_loops = int(os.environ.get("LADT_TRAIN_LAG"))
+	chunk_size = int(os.environ.get("LADI_CHUNK_SIZE"))
 
 	c = Load_Map(model_path  +"/" +  model)
 	mod = Load_Map(model_path +"/W2V.models")
@@ -45,13 +46,15 @@ def infer():
 		now = datetime.datetime.now()
 		date = now.strftime("%Y.%m.%d")
 		index = index_prefix + date
-		#outpoint = outpoint + date
+		outpoint = outpoint_prefix + date
 
 
 		print("Reading in Logs from ", endpointUrl)
 		test = get_data_from_ES(endpointUrl,index,service,max_entries, time_span)
 
 		print(len(test['hits']['hits']), "logs loaded from the last", time_span ," seconds")
+
+		length = len(test['hits']['hits'])
 
 		logs = test['hits']['hits']
 
@@ -80,7 +83,7 @@ def infer():
 			dist.append(Get_Anomaly_Score(mapp,i))
 
 
-		es = Elasticsearch(endpointUrl)
+		es = Elasticsearch(endpointUrl, timeout=60, max_retries=2)
 		f = []
 		for i in range(len(logs)):
 			s = logs[i]["_source"]
@@ -101,7 +104,7 @@ def infer():
 					for j in range(len(logs))]
 
 
-		helpers.bulk(es,actions, chunk_size = 400 , timeout=30) 
+		helpers.bulk(es,actions, chunk_size = int(length/4)+1) 
 			#print(res)
 
 				# Also push to CSV for Human-In-Loop Portion
