@@ -38,13 +38,15 @@ Both functions rely on correctly configuring below parameters, where the prefix 
 #### Inference (infer.py)
 
 * LADI_ELASTICSEARCH_ENDPOINT = address to Elasticsearch endpoint for inference
-* LADI_INDEX = path to SOM map to test against
-* LADI_TARGET_INDEX = name of index the anoamliy data will be pushed back to in Elasticsearch
+* LADI_MODEL = path to SOM map to test against
+* LADI_INDEX = name of Elasticsearch index to pull logs from 
+* LADI_TARGET_INDEX = name of index the anomaly data will be pushed back to in Elasticsearch
 * LADI_TIME_SPAN = number of seconds from now that you would like to query Elasticsearch for
 * LADI_MAX_ENTRIES = limits the number of entries returned from Elasticsearch for the inference query
 * LADI_SERVICE = name of Elasticsearch service to be monitored 
 * LADI_THRESHOLD = float tunes the anomaly threshold based on the max value of the training set
 * LADI_MAX_ANOMALIES = maximum number of anomalies allowed on each testing iteration
+* LADI_CHUNK_SIZE = Chunk size for bulk upload to ES
 
 
 --------------------------------
