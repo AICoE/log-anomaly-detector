@@ -4,7 +4,7 @@ This repository contains the prototype for an application log Anomaly Detector w
 
 As with any Machine Learning pipeline there are two main portions of this repo: Training and Inference. Both stages of the ML pipeline can be run either locally or in OpenShift.
 
-**Note on Requirments:** *For the time being, in order to utilize this Anomaly Detection system you must be using Elasticsearch to capture your application log data. In future iterations of this project we hope to move away from the reliance on Elasticsearch, but for the purposes of this initail Proof Of Concept, ES is sufficent.*    
+**Note on Requirments:** *For the time being, in order to utilize this Anomaly Detection system you must be using Elasticsearch to capture your application log data. In future iterations of this project we hope to move away from the reliance on Elasticsearch, but for the purposes of this initial Proof Of Concept, ES is required. Also, please note that the current code was built assuming an ES index pattern of the format "INDEX_NAME-YYYY.MM.DD" and as such the date portion of the index name is updated and appended automaically within the code to prevent crashing at midnight. So, when identifiying your ES index parameter (for both in watched index and the output index), be sure to **not** include the date portion of the index name, "INDEX_NAME-" is sufficient.*    
 
 
 ## Local Deployment
