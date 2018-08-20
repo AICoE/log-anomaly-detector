@@ -1,6 +1,6 @@
 # Anomaloy Detection in Logs - POC 
 
-This repository contains the prototype for an application log Anomaly Detector which can be deployed either locally or on Openshift. It currently uses ElasticSearch as its source of data, gensim for Word2Vec log encoding, and a Self-Organizing map to analyze our streaming logs. It also stores a copy of the Elasticsearch index that it monitors with the addition of a field that identifies the log as either an anomaly or not for later review by Users. 
+This repository contains the prototype for an application log Anomaly Detector which can be deployed either locally or on Openshift. It currently uses Elasticsearch as its source of data, gensim for its Word2Vec function used to encode the natural language portion of our logs, and a Self-Organizing map to analyze our stream of, now vectorized, log data. It also stores a copy of the Elasticsearch index that it monitors with the addition of two fields that help to identify logs as either anomalous or not for later review by users: "anomaly", which is either "0" for no, or a "1" for yes. And "anomaly_score", a real valued number used to quantify the anomalousness of a log.    
 
 As with any Machine Learning pipeline there are two main portions of this repo: Training and Inference. Both stages of the ML pipeline can be run either locally or in OpenShift.
 
@@ -9,7 +9,7 @@ As with any Machine Learning pipeline there are two main portions of this repo: 
 
 ## Local Deployment
 
-To run the Anomaly Detector locally, clone this repo and update the **env.sh** file with the relevent paramaters for your Elasticsearch instance, index and service as well as the appropriate training and testing pramaters. Documentation of each parameter can be found below as well as in the **env.sh** comments. Then on the command line type `. env.sh` to load the environment variables. Then type `python app.py` to train and save a model, then start watching for anomalies in your specified service and start logging them back to Elasticsearch.  
+To run the Anomaly Detector locally, clone this repo and update the **env.sh** file with the relevent paramaters for your Elasticsearch instance, index and service as well as the appropriate training and testing parameters. Documentation of each parameter can be found below as well as in the **env.sh** comments. Then on the command line type `. env.sh` to load the environment variables. Then type `python app.py` to train and save a model, then start watching for anomalies in your specified service and start logging them back to Elasticsearch.  
 
 
 ## Openshift Deployment
@@ -17,9 +17,9 @@ To run the Anomaly Detector locally, clone this repo and update the **env.sh** f
 To run the above in Openshift, simply import the file **config.yaml** into your openshift project. This template file will prompt you for parameter inputs before deploying. Documentation for each parameter can be found below as well as within the **config.yaml** file. Once the application is created, it will start an s2i build from this git repository, and then deploy a pod that will first train and save a model, then start to watch for anomalies in your specified service and push the results back to Elasticsearch.
 
 
-## Paramaters
+## Paramaeters
 
-Both functions rely on correctly configuring below parameters, where the prefix LADT_ denotes Log Anomaly Detector Training (**trainer.py**) paramters and LADI_ denotes Log Anomaly Detector Inference (**infer.py**) parameters.
+Both functions rely on correctly configuring the below parameters, where the prefix LADT_ denotes Log Anomaly Detector Training (**trainer.py**) parameters and LADI_ denotes Log Anomaly Detector Inference (**infer.py**) parameters.
 
 #### Training (trainer.py)
 
@@ -57,12 +57,12 @@ Both functions rely on correctly configuring below parameters, where the prefix 
 
 ### Training 
 
-**trainer.py** reads in log data from a specific service from an index at an Elasticsearch endpoint, parses the json data and converts it into a vector represntation using Word2Vec. It then trains a Self-Organizing Map on our current log data. This script then saves the W2V model as well as the trained SOM to disk to be used later by the inference script. It provides the option to either generate a new trained model or to update the existing model. 
+**trainer.py** reads in log data from a specific service from an index at an Elasticsearch endpoint, parses the json data and converts it into a vector representation using Word2Vec. It then trains a Self-Organizing Map on our current log data. This script then saves the W2V model as well as the trained SOM to disk to be used later by the inference script. It provides the option to either generate a new trained model or to update the existing model. 
 
 
 ### Inference
 
-**infer.py** loads the models saved by the training script and (with default configuration) pulls the last minute of logs from a specific service at an Elasticsearch endpoint. It then updates the existing W2V models and converts the new data into vectors that can be fed into the Self-Organizing Map. The function will then produce an anomaly score for each log and determine if they are anomolaouse or not. This function will then push the log back to a new Elasticsearch index that can be reviewed later by the user.  
+**infer.py** loads the models saved by the training script and (with default configuration) pulls the last minute of logs from a specific service at an Elasticsearch endpoint. It then updates the existing W2V models and converts the new data into vectors that can be fed into the Self-Organizing Map. The function will then produce an anomaly score for each log and determine if they are anomalouse or not. This function will then push the log back to a new Elasticsearch index that can be reviewed later by the user.  
 
 
 ### Supporting Scripts
@@ -88,5 +88,5 @@ SOM, or Kohonon maps, are a type of unsupervised learning algorithm that "produc
 
 In short, we intialize a graph of some user-specified fixed dimensions, in our default case 24x24, where each node is an object of the same dimensions as our training data. We then iterate through each training example over the graph and find the node that is closest (here using L2 distance) to that trainng example. We then update the value of that node and the neighboring nodes. This process will generate a map that resembels the space of our training samples.
 
-Once the map is trained, we can take a new example, measure its distance to each node on the map and determine how "close"/"similar" it is to our training data. This distance metric will be how we quantify the spectrum form normal to anomalous and how we generate our anomaly scores. 
+Once the map is trained, we can take a new example, measure its distance to each node on the map and determine how "close"/"similar" it is to our training data. This distance metric is how we quantify the spectrum from normal to anomalous and how we generate our anomaly scores. 
 
