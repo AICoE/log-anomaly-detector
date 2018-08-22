@@ -108,6 +108,8 @@ objects:
               value: ${LADT_ITERS}
             - name: LADT_SERVICE
               value: ${LADT_SERVICE}
+            - name: LADT_UPDATE_MODEL
+              value: ${LADT_UPDATE_MODEL} 
             - name: LADI_ELASTICSEARCH_ENDPOINT
               value: ${LADI_ELASTICSEARCH_ENDPOINT}
             - name: LADI_MODEL
@@ -124,8 +126,6 @@ objects:
               value: ${LADI_SERVICE}
             - name: LADI_THRESHOLD
               value: ${LADI_THRESHOLD}
-            - name: LADI_MAX_ANOMALIES
-              value: ${LADI_MAX_ANOMALIES}
             image: anomaly-detection:latest
             imagePullPolicy: Always
             name: anomaly-detection
@@ -182,6 +182,10 @@ parameters:
     descripton: "Number of Inference iterations between retraining the model"  
     value: "20"
 
+  - name: LADT_UPDATE_MODEL
+    description: "True if updating existing model, False if starting new model"
+    value: True  
+
   - name: LADI_ELASTICSEARCH_ENDPOINT
     descripton: "Elasticsearch endpoint to pull log data from for Anomaly Detection"
     value: http://elasticsearch.perf.lab.eng.bos.redhat.com:9280
@@ -206,6 +210,3 @@ parameters:
   - name: LADI_THRESHOLD
     descripton: "Real-Valued number to modify anomaly detection threshold "  
     value: "1.3"
-  - name: LADI_MAX_ANOMALIES
-    descripton: "Maximum number of anomalies to be flagged per inference loop"  
-    value: "5"

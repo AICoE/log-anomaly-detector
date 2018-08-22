@@ -42,9 +42,14 @@ def trainer():
     itters = int(os.environ.get("LADT_ITERS"))
     service = os.environ.get("LADT_SERVICE")
     path = model_path+"/"+model
+    update = os.environ.get("LADT_UPDATE_MODEL")
 
     
-    up = os.path.isfile(path)
+    if os.path.isfile(path) == True and update == True:
+        up = True
+    else:
+        up = False
+
     if up == True:
         m = Load_Map(path)
         m = m[0]
@@ -98,7 +103,13 @@ def trainer():
 
     else:
         models = mod
-        new_D, models = Update_W2V_Models(mod,new_D)
+        try:
+            new_D, models = Update_W2V_Models(mod,new_D)
+
+        except KeyError:
+            logging.error("Can't update current Word2Vec model. Log fileds incompatible")
+            exit()
+
         joblib.dump(models,model_path+"/W2V.models")
 
 

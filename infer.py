@@ -13,7 +13,7 @@ import datetime
 import logging
 
 
-logging.basicConfig(format = '%(levelname)s: %(message)s' , level= logging.INFO)clea
+logging.basicConfig(format = '%(levelname)s: %(message)s' , level= logging.INFO)
 
 def infer():
 
@@ -76,7 +76,15 @@ def infer():
 		for lines in range(len(new_D["_source.message"])):
 			new_D["_source.message"][lines] = Clean(new_D["_source.message"][lines]) 
 
-		new_D, nothing = Update_W2V_Models(mod,new_D)
+		try:
+			new_D, nothing = Update_W2V_Models(mod,new_D)
+		except KeyError:
+			logging.error("Word2Vec model fields incompatible with current log set. Retrain model with log data from the same service")
+			exit()
+
+
+
+		
 		transforms = Transform_Text(mod,new_D)
 		v = One_Vector(transforms)
 
