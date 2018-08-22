@@ -65,8 +65,7 @@ def trainer():
         print("There are no logs for this service in the last ", time_span, " seconds")
         print("Waiting 60 seconds and trying again")
         time.sleep(60)
-        trainer()
-        return 
+        return 1
 
 
     print("Preprocessing logs & Cleaning Messages")
@@ -145,6 +144,8 @@ def trainer():
     T_Now = time.time()
 
     print("Whole Process takes ",(T_Now-T_Then)/60, "minutes")
+
+    return 0
 
 
 

@@ -1,7 +1,15 @@
 from trainer import trainer
 from infer import infer
 
-while True:
+def main():
 
-	trainer()
-	infer()
+	while True:
+		if trainer()  == 1:
+			main()
+		else:
+			pass
+		infer()
+
+
+if __name__ == "__main__":
+    main()
