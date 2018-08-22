@@ -18,7 +18,10 @@ import sys
 import datetime 
 import warnings
 from tqdm import tqdm
+import logging
 
+
+logging.basicConfig(format = '%(levelname)s: %(message)s' , level= logging.INFO)
 
 
 
@@ -55,20 +58,19 @@ def trainer():
 
 
 
-    print("Reading in Logs from ", endpointUrl)
+    logging.info("Reading in Logs from %s", endpointUrl)
     logs = get_data_from_ES(endpointUrl,index, service, max_entries, time_span)
 
-    print(len(logs['hits']['hits']), "logs loaded in from last ", time_span, " seconds")
-
+    logging.info("%s logs loaded in from last %s seconds", str(len(logs['hits']['hits'])), time_span)
 
     if len(logs['hits']['hits']) == 0:
-        print("There are no logs for this service in the last ", time_span, " seconds")
-        print("Waiting 60 seconds and trying again")
+        logging.info("There are no logs for this service in the last %s seconds", time_span)
+        logging.info("Waiting 60 seconds and trying again")
         time.sleep(60)
         return 1
 
 
-    print("Preprocessing logs & Cleaning Messages")
+    logging.info("Preprocessing logs & Cleaning Messages")
 
     new_D = json_normalize(logs['hits']['hits'])
 
@@ -85,7 +87,7 @@ def trainer():
     #     new_D.append(extra)
 
     
-    print("Learning Word2Vec Models and Saving for Inference Step")
+    logging.info("Learning Word2Vec Models and Saving for Inference Step")
 
     then = time.time()
     
@@ -104,15 +106,15 @@ def trainer():
 
     now = time.time()
 
-    print("Training and Saving took",(now-then)/60,"Minutes")
+    logging.info("Training and Saving took %s minutes",((now-then)/60))
 
-    print("Encoding Text Data")
+    logging.info("Encoding Text Data")
 
     transforms = Transform_Text(models,new_D)
 
     to_put_train = One_Vector(transforms)
     
-    print("Start Training SOM...")
+    logging.info("Start Training SOM...")
     then = time.time()
 
     if up== False:
@@ -123,13 +125,14 @@ def trainer():
     mapp = SOM(to_put_train,24,itters, m)
     now = time.time()
 
-    print("Training took ",(now-then)/60, "minutes")
+    logging.info("Training took %s minutes",((now-then)/60)) 
 
-    print('Saving U-map')
+    logging.info('Saving U-map')
+
 
     Viz_SOM(mapp, model_path)
 
-    print("Generating Baseline Metrics")
+    logging.info("Generating Baseline Metrics")
 
     dist = []
     for i in tqdm(to_put_train):
@@ -143,7 +146,7 @@ def trainer():
 
     T_Now = time.time()
 
-    print("Whole Process takes ",(T_Now-T_Then)/60, "minutes")
+    logging.info("Whole Process takes %s minutes", ((T_Now-T_Then)/60))
 
     return 0
 

@@ -10,9 +10,10 @@ from pandas.io.json import json_normalize
 from sklearn.externals import joblib
 from scipy.spatial.distance import cosine
 import datetime
+import logging
 
 
-
+logging.basicConfig(format = '%(levelname)s: %(message)s' , level= logging.INFO)clea
 
 def infer():
 
@@ -48,10 +49,10 @@ def infer():
 		outpoint = outpoint_prefix + date
 
 
-		print("Reading in Logs from ", endpointUrl)
+		logging.info("Reading in Logs from %s", endpointUrl)
 		test = get_data_from_ES(endpointUrl,index,service,max_entries, time_span)
 
-		print(len(test['hits']['hits']), "logs loaded from the last", time_span ," seconds")
+		logging.info("%s logs loaded from the last %s seconds", str(len(test['hits']['hits'])) , time_span)
 
 		length = len(test['hits']['hits'])
 
@@ -59,14 +60,16 @@ def infer():
 
 		if len(test['hits']['hits']) == 0:
 			
-			print("There are no logs for this service in the last ", time_span, " seconds")
-			print("waiting for next minute to start...", "\n", "press ctrl+c to stop process")
+			logging.info("There are no logs for this service in the last %s seconds", time_span)
+
+			logging.info("waiting for next minute to start...")
+			logging.info("press ctrl+c to stop process")
 			nown = time.time()
 			time.sleep(60-(nown-then))
 			continue
 			
 
-		print("Preprocessing logs")
+		logging.info("Preprocessing logs")
 
 		new_D = json_normalize(test['hits']['hits'])
 
@@ -122,8 +125,9 @@ def infer():
 				#		data.to_csv(f,header = False)
 
 		now = time.time()
-		print("Analyzed one minute of data in ",(now-then)," seconds")
-		print("waiting for next minute to start...", "\n", "press ctrl+c to stop process")
+		logging.info("Analyzed one minute of data in %s seconds",(now-then))
+		logging.info("waiting for next minute to start...") 
+		logging.info("press ctrl+c to stop process")
 		time.sleep(time_span-(now-then))
 
 

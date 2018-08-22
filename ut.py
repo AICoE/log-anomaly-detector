@@ -12,7 +12,11 @@ import numpy as np
 from pandas.io.json import json_normalize
 from sklearn.externals import joblib
 from scipy.spatial.distance import cosine
-import datetime 
+import datetime
+import logging
+
+
+logging.basicConfig(format = '%(levelname)s: %(message)s' , level= logging.INFO) 
 
 
 
@@ -66,7 +70,7 @@ def Make_Models(DF, Save = False, filename = 'W2V.models'):
             DF[col] = fix
             models[ col] = Word2Vec([fix], min_count=1, size=50)
 
-        print(col)
+        #print(col)
 
 
     if Save == True:
@@ -96,7 +100,7 @@ def Update_W2V_Models(models,new_words):
 			new_words[m] = fix
 			(models[m]).build_vocab([fix], update=True)
 
-	print("Models Updated")
+	logging.info("Models Updated")
 	return new_words, models
 
 
@@ -131,7 +135,6 @@ def One_Vector(model):
                     logc = np.append(logc,a)
 
                 except IndexError:
-                    print("nO!!")
                     a = np.array([0,0,0,0,0])
                     logc = np.append(logc,a)
 
