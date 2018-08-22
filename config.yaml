@@ -171,7 +171,7 @@ parameters:
     value: "900"
   - name: LADT_MAX_ENTRIES
     descripton: "Maximum number of logs to be pulled for training"
-    value: "4500" 
+    value: "45000" 
   - name: LADT_ITERS
     descripton: "Number of iterations of SOM training"  
     value: "45000"
@@ -193,19 +193,19 @@ parameters:
     value: logstash-
   - name: LADI_TARGET_INDEX
     descripton: "Name of Elasticsearch index to push anomlay detection results to"  
-    value: mcliffor_test_ingest
+    value: mcliffor_test_ingest-
   - name: LADI_TIME_SPAN
     descripton: "Timespan for inference loop in seconds"  
     value: "60"
   - name: LADI_MAX_ENTRIES
     descripton: "Maximum number of logs to be pulled on each inference loop"  
-    value: "1000"
+    value: "3000"
   - name: LADI_SERVICE
     descripton: "Name of the Elasticsearch service to monitor"  
     value: journal
   - name: LADI_THRESHOLD
     descripton: "Real-Valued number to modify anomaly detection threshold "  
-    value: "0.99"
+    value: "1.3"
   - name: LADI_MAX_ANOMALIES
     descripton: "Maximum number of anomalies to be flagged per inference loop"  
     value: "5"

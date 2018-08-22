@@ -3,8 +3,8 @@ export LADT_ELASTICSEARCH_ENDPOINT='http://elasticsearch.perf.lab.eng.bos.redhat
 export LADT_MODEL='map.sav' # path to SOM map to update 
 export LADT_INDEX='logstash-' # name of Elasticsearch index to pull logs from 
 export LADT_TIME_SPAN=900 # number of seconds from now that you would like to query Elasticsearch for training logs
-export LADT_MAX_ENTRIES=450 # limits the number of entries returned from Elasticsearch for the training query
-export LADT_ITERS=450 # number of training iterations of the SOM   
+export LADT_MAX_ENTRIES=450000 # limits the number of entries returned from Elasticsearch for the training query
+export LADT_ITERS=4500 # number of training iterations of the SOM   
 export LADT_SERVICE='journal' # name of Elasticsearch service to be monitored 
 export LADT_TRAIN_LAG=60 # Number of Inference iterations between retraining the model
 
