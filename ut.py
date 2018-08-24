@@ -1,4 +1,4 @@
-from elasticsearch2 import Elasticsearch
+ from elasticsearch2 import Elasticsearch
 import re
 from gensim.models import Word2Vec
 from SOM import SOM 
@@ -29,6 +29,9 @@ default_query =  {'query': {'match': {'service': 'journal'}},
                 "size":20 #size is more critical than "terminate_after" to limit query size!!!
                 }
 
+
+# Creates a simple interface to pull the most recent logs for a specific service from an Elasticsearch index. 
+
 def get_data_from_ES(endpoint, index,service,num = 20, time = 2, query = default_query, ):
     
     es = Elasticsearch(endpoint, timeout=30)
@@ -46,12 +49,20 @@ def get_data_from_ES(endpoint, index,service,num = 20, time = 2, query = default
 
 ###################Word 2 Vec#####################
 
+
+
 def Clean(x):
+
+    """
+    function to remove all none alphabetical characters from message strings.
+    """
 	return "".join(re.findall("[a-zA-Z]+",x))
 
 
 def Make_Models(DF, Save = False, filename = 'W2V.models'):
 
+    """
+    """
 
     DF = DF.fillna("EMPTY")
 

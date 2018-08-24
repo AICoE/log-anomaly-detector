@@ -1,5 +1,4 @@
 from ut import * 
-
 from elasticsearch2 import Elasticsearch, helpers
 from gensim.models import Word2Vec
 from SOM import SOM 
@@ -27,7 +26,6 @@ def infer():
 	max_entries = int(os.environ.get("LADI_MAX_ENTRIES"))
 	service = os.environ.get("LADI_SERVICE")
 	threshold = float(os.environ.get("LADI_THRESHOLD"))
-	#max_anoms = int(os.environ.get("LADI_MAX_ANOMALIES"))
 	infer_loops = int(os.environ.get("LADT_TRAIN_LAG"))
 
 	c = Load_Map(model_path  +"/" +  model)
@@ -94,6 +92,7 @@ def infer():
 
 
 		es = Elasticsearch(endpointUrl, timeout=60, max_retries=2)
+		
 		f = []
 		for i in range(len(logs)):
 			s = logs[i]["_source"]

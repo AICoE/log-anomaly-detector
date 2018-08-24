@@ -178,13 +178,14 @@ parameters:
   - name: LADT_SERVICE
     descripton: "Name of the Elasticsearch service to monitor"  
     value: journal
+
   - name: LADT_TRAIN_LAG
     descripton: "Number of Inference iterations between retraining the model"  
     value: "20"
 
   - name: LADT_UPDATE_MODEL
     description: "True if updating existing model, False if starting new model"
-    value: True  
+    value: "True"  
 
   - name: LADI_ELASTICSEARCH_ENDPOINT
     descripton: "Elasticsearch endpoint to pull log data from for Anomaly Detection"
