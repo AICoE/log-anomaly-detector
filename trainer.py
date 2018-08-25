@@ -20,12 +20,12 @@ import warnings
 from tqdm import tqdm
 import logging
 
-# I am making changes on the OOP branch
+from ES_Storage import ES_Storage
+
+## making OOP changes 
 
 
 logging.basicConfig(format = '%(levelname)s: %(message)s' , level= logging.INFO)
-
-
 
 
 def trainer():
@@ -59,18 +59,20 @@ def trainer():
     else:
         m = 0
 
-    now = datetime.datetime.now()
-    date = now.strftime("%Y.%m.%d")
-    index = index+date
+
+
+    # get data and convert to a pandas DF
+    E = ES_Storage(endpointUrl,index,service,"none")
+    E.add_time()
+    data = E.retrieve(time_span,max_entries)
 
 
 
     logging.info("Reading in Logs from %s", endpointUrl)
-    logs = get_data_from_ES(endpointUrl,index, service, max_entries, time_span)
+    logging.info("%s logs loaded in from last %s seconds", str(data.get_length()), time_span)
 
-    logging.info("%s logs loaded in from last %s seconds", str(len(logs['hits']['hits'])), time_span)
-
-    if len(logs['hits']['hits']) == 0:
+    
+    if data.get_length() == 0:
         logging.info("There are no logs for this service in the last %s seconds", time_span)
         logging.info("Waiting 60 seconds and trying again")
         time.sleep(60)
@@ -79,10 +81,8 @@ def trainer():
 
     logging.info("Preprocessing logs & Cleaning Messages")
 
-    new_D = json_normalize(logs['hits']['hits'])
-
-    for lines in range(len(new_D["_source.message"])):
-        new_D["_source.message"][lines] = Clean(new_D["_source.message"][lines]) 
+    for lines in range(data.get_length()):
+        data.Data["_source.message"][lines] = Clean(data.Data["_source.message"][lines]) 
 
     # Below code for user feedback    
     # if os.path.isfile("found_anomalies.csv") == True:
@@ -101,12 +101,12 @@ def trainer():
     
 
     if up == False:
-        models, new_D = Make_Models(new_D,True, model_path+"/W2V.models")
+        models, new_D = Make_Models(data.Data,True, model_path+"/W2V.models")
 
     else:
         models = mod
         try:
-            new_D, models = Update_W2V_Models(mod,new_D)
+            new_D, models = Update_W2V_Models(mod,data.Data)
 
         except KeyError:
             logging.error("Can't update current Word2Vec model. Log fileds incompatible")
@@ -115,19 +115,16 @@ def trainer():
         joblib.dump(models,model_path+"/W2V.models")
 
 
-
-
     now = time.time()
 
     logging.info("Training and Saving took %s minutes",((now-then)/60))
-
     logging.info("Encoding Text Data")
 
     transforms = Transform_Text(models,new_D)
-
     to_put_train = One_Vector(transforms)
     
     logging.info("Start Training SOM...")
+    
     then = time.time()
 
     if up== False:
