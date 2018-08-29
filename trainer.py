@@ -20,7 +20,8 @@ import warnings
 from tqdm import tqdm
 import logging
 
-from storage.es_storage import ES_Storage
+#from storage.es_storage import ES_Storage
+from storage.local_storage import Local_Storage
 
 ## making OOP changes 
 
@@ -61,10 +62,13 @@ def trainer():
 
 
 
-    # get data and convert to a pandas DF
+    get data and convert to a pandas DF
     E = ES_Storage(endpointUrl,index,service,"none")
     E.add_time()
     data, json_logs = E.retrieve(time_span,max_entries)
+
+    #L = Local_Storage("/home/mcliffor/Desktop/toy_data.json","nothing")
+    #data, json_logs = L.retrieve()
 
 
 

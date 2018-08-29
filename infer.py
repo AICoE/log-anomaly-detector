@@ -11,7 +11,8 @@ from scipy.spatial.distance import cosine
 import datetime
 import logging
 
-from storage.es_storage import ES_Storage
+#from storage.es_storage import ES_Storage
+from storage.local_storage import Local_Storage
 
 logging.basicConfig(format = '%(levelname)s: %(message)s' , level= logging.INFO)
 
@@ -46,10 +47,13 @@ def infer():
 		then = time.time()
 		now = datetime.datetime.now()
 
-		# get data and convert to a pandas DF
+		get data and convert to a pandas DF
 		E = ES_Storage(endpointUrl,index_prefix,service,outpoint_prefix)
 		E.add_time()
 		data, json_logs = E.retrieve(time_span,max_entries)
+
+		#L = Local_Storage("/home/mcliffor/Desktop/toy_data.json","/home/mcliffor/Desktop/test_output.json")
+		#data, json_logs = L.retrieve()
 
 
 
@@ -91,7 +95,8 @@ def infer():
 		
 		f = []
 		for i in range(data.get_length()):
-			s = json_logs[i]["_source"]
+			s = json_logs[i]["_source"]  # This needs to be more general, only works for ES incoming logs right now. 
+			#s = json_logs[i] # for local_storage
 			s['anomaly_score'] = dist[i] 
 
 			if dist[i] > (threshold*maxx): 
@@ -102,6 +107,7 @@ def infer():
 
 			f.append(s)
 				
+		#L.store_results(f)
 		E.store_results(f)
 			#print(res)
 
