@@ -11,8 +11,8 @@ from scipy.spatial.distance import cosine
 import datetime
 import logging
 
-#from storage.es_storage import ES_Storage
-from storage.local_storage import Local_Storage
+from storage.es_storage import ES_Storage
+#from storage.local_storage import Local_Storage
 
 logging.basicConfig(format = '%(levelname)s: %(message)s' , level= logging.INFO)
 

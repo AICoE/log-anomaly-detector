@@ -20,8 +20,8 @@ import warnings
 from tqdm import tqdm
 import logging
 
-#from storage.es_storage import ES_Storage
-from storage.local_storage import Local_Storage
+from storage.es_storage import ES_Storage
+#from storage.local_storage import Local_Storage
 
 ## making OOP changes 
 
