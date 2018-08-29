@@ -1,4 +1,4 @@
- from elasticsearch2 import Elasticsearch
+from elasticsearch2 import Elasticsearch
 import re
 from gensim.models import Word2Vec
 from SOM import SOM 
@@ -56,7 +56,7 @@ def Clean(x):
     """
     function to remove all none alphabetical characters from message strings.
     """
-	return "".join(re.findall("[a-zA-Z]+",x))
+    return "".join(re.findall("[a-zA-Z]+",x))
 
 
 def Make_Models(DF, Save = False, filename = 'W2V.models'):

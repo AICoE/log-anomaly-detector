@@ -11,8 +11,11 @@ from scipy.spatial.distance import cosine
 import datetime
 import logging
 
+from storage.es_storage import ES_Storage
 
 logging.basicConfig(format = '%(levelname)s: %(message)s' , level= logging.INFO)
+
+# making chnages to the OOP branch
 
 def infer():
 
@@ -42,24 +45,22 @@ def infer():
 
 		then = time.time()
 		now = datetime.datetime.now()
-		date = now.strftime("%Y.%m.%d")
-		index = index_prefix + date
-		outpoint = outpoint_prefix + date
+
+		# get data and convert to a pandas DF
+		E = ES_Storage(endpointUrl,index_prefix,service,outpoint_prefix)
+		E.add_time()
+		data, json_logs = E.retrieve(time_span,max_entries)
+
+
+
 
 
 		logging.info("Reading in Logs from %s", endpointUrl)
-		test = get_data_from_ES(endpointUrl,index,service,max_entries, time_span)
+		logging.info("%s logs loaded from the last %s seconds", str(data.get_length()) , time_span)
 
-		logging.info("%s logs loaded from the last %s seconds", str(len(test['hits']['hits'])) , time_span)
-
-		length = len(test['hits']['hits'])
-
-		logs = test['hits']['hits']
-
-		if len(test['hits']['hits']) == 0:
+		if data.get_length() == 0:
 			
 			logging.info("There are no logs for this service in the last %s seconds", time_span)
-
 			logging.info("waiting for next minute to start...")
 			logging.info("press ctrl+c to stop process")
 			nown = time.time()
@@ -69,13 +70,11 @@ def infer():
 
 		logging.info("Preprocessing logs")
 
-		new_D = json_normalize(test['hits']['hits'])
-
-		for lines in range(len(new_D["_source.message"])):
-			new_D["_source.message"][lines] = Clean(new_D["_source.message"][lines]) 
+		for lines in range(data.get_length()):
+			data.Data["_source.message"][lines] = Clean(data.Data["_source.message"][lines]) 
 
 		try:
-			new_D, nothing = Update_W2V_Models(mod,new_D)
+			new_D, nothing = Update_W2V_Models(mod,data.Data)
 		except KeyError:
 			logging.error("Word2Vec model fields incompatible with current log set. Retrain model with log data from the same service")
 			exit()
@@ -89,17 +88,13 @@ def infer():
 		dist = []
 		for i in v:
 			dist.append(Get_Anomaly_Score(mapp,i))
-
-
-		es = Elasticsearch(endpointUrl, timeout=60, max_retries=2)
 		
 		f = []
-		for i in range(len(logs)):
-			s = logs[i]["_source"]
+		for i in range(data.get_length()):
+			s = json_logs[i]["_source"]
 			s['anomaly_score'] = dist[i] 
 
 			if dist[i] > (threshold*maxx): 
-				print(dist[i], test['hits']['hits'][i]['_source']['message'], "\n")
 				s['anomaly'] = 1
 
 			else:
@@ -107,13 +102,7 @@ def infer():
 
 			f.append(s)
 				
-		actions = [ {"_index":outpoint,
-					"_type": "log",
-					"_source": f[j]}
-					for j in range(len(logs))]
-
-
-		helpers.bulk(es,actions, chunk_size = int(length/4)+1) 
+		E.store_results(f)
 			#print(res)
 
 				# Also push to CSV for Human-In-Loop Portion
