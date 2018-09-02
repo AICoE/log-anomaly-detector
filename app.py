@@ -1,29 +1,26 @@
-from trainer import trainer
-from infer import infer
+from anomaly_detector.anomaly_detector import AnomalyDetector
 import os
 import logging
 
+from anomaly_detector.config import Configuration
+
+CONFIGURATION_PREFIX = "LAD"
+
 def main():
-
-	model_path = os.environ.get("LADT_MODEL_DIR")
-	model = os.environ.get("LADT_MODEL")
-	path = model_path+"/"+model
-
-
-	if os.path.isfile(path) == True:
-		logging.info("Models already exist, skipping training")
-		infer()
-
+	config = Configuration(CONFIGURATION_PREFIX)
+	anomaly_detector = AnomalyDetector(config)
 
 	while True:
-
-		if trainer()  == 1:
-			main()
+		if os.path.isfile(config.MODEL_PATH) and not config.TRAIN_UPDATE_MODEL:
+			logging.info("Models already exists, skipping training")
 		else:
-			pass
+			try:
+				anomaly_detector.train()
+			except Exception as e:
+				logging.error(e)
+				raise
 		
-		infer()
-
+		anomaly_detector.infer()
 
 if __name__ == "__main__":
     main()

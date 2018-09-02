@@ -1,6 +1,6 @@
-from storage.batch_entry import Batch_Entry
+from .batch_entry import BatchEntry
 
-class Local_Batch_Entry(Batch_Entry):
+class ESBatchEntry(BatchEntry):
 
 	def __init__(self,Data):
 		self.Data = Data
