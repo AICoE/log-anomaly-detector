@@ -10,32 +10,37 @@ def join_model_path(config):
 def join_w2v_model_path(config):
   config.W2V_MODEL_PATH = os.path.join(config.MODEL_DIR, config.W2V_MODEL_FILE)
 
+def check_or_create_model_dir(config):
+  if not os.path.exists(config.MODEL_DIR):
+    os.mkdir(config.MODEL_DIR)
+
 class Configuration():
   STORAGE_BACKEND = "local"
-  MODEL_FILE = "model.sav"
-  W2V_MODEL_FILE = "W2V.models"
   MODEL_DIR = "./models/"
+  MODE_DIR_CALLABLE=check_or_create_model_dir
+  MODEL_FILE = "SOM.model"
+  W2V_MODEL_FILE = "W2V.model"
   MODEL_PATH_CALLABLE = join_model_path
   MODEL_PATH = ""
   W2V_MODEL_PATH_CALLABLE = join_w2v_model_path
   W2V_MODEL_PATH = ""
 
   TRAIN_TIME_SPAN = 900
-  TRAIN_MAX_ENTRIES = 450000
+  TRAIN_MAX_ENTRIES = 45000
   TRAIN_ITERATIONS = 4500
   TRAIN_UPDATE_MODEL = False
 
-  ANOMALY_THRESHOLD = 1.5
-
+  INFER_ANOMALY_THRESHOLD = 1.1
   INFER_TIME_SPAN = 60
-  INFER_LOOPS = 15
+  INFER_LOOPS = 10
   INFER_MAX_ENTRIES = 10000
   
   prefix = "LAD"
 
-  def __init__(self, prefix):
+  def __init__(self, prefix=None):
     self.storage = None
-    self.prefix = prefix
+    if prefix:
+      self.prefix = prefix
     self.load()
 
   def load(self):

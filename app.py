@@ -20,7 +20,11 @@ def main():
 				logging.error(e)
 				raise
 		
-		anomaly_detector.infer()
+		try:
+			anomaly_detector.infer()
+		except Exception as e:
+			logging.error(e)
+
 
 if __name__ == "__main__":
     main()
