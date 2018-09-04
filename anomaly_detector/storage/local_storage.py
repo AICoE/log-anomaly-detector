@@ -25,11 +25,17 @@ class LocalStorage(Storage):
 		if self.config.storage.LS_INPUT_PATH == "-":
 			cnt = 0
 			for line in self._stdin():
-				data.append({'_source': {'message': line}})
+				try:
+					data.append(json.loads(line))
+				except ValueError as ex:
+					logging.error("Parsing failed (%s), assuming plain text" % ex)
+					data.append({'_source': {'message': str(line)}})
 				cnt += 1
 				if cnt >= number_of_entries:
 					break
 
+			#only use _source sub-dict
+			data = [x['_source'] for x in data]
 			data_set = json_normalize(data)
 		else:
 			with open(self.config.storage.LS_INPUT_PATH, 'r') as fp:
@@ -41,17 +47,19 @@ class LocalStorage(Storage):
 				data_set = data_set[:-number_of_entries]
 		logging.info("%d logs loaded", len(data_set))
 
-		for lines in range(len(data_set)):
-			data_set["_source.message"][lines] = self._clean_message(data_set["_source.message"][lines])
+		#Prepare data for training/inference
+		self._preprocess(data_set)
 
-		return data_set, data # bad solution, this is how Entry objects could come in. 
+		return data_set, data
 
 	def store_results(self, data): #Should take in a Batch_Entries object
 		if len(self.config.storage.LS_OUTPUT_PATH) > 0:
 			with open(self.config.storage.LS_OUTPUT_PATH, 'a') as fp:
 				json.dump(data, fp)
 		else:
-			print(data)
+			for item in data:
+				print("Anomaly: %d, Anmaly score: %f" % (item['anomaly'], item['anomaly_score']))
+
 
 	@classmethod
 	def _stdin(cls):

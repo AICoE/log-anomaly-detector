@@ -57,7 +57,7 @@ class SOMModel(BaseModel):
     fig.colorbar(cax)
     fig.savefig(os.path.join(dest, 'U-map.png'))
 
-  def get_anomaly_Sscore(self, log):
+  def get_anomaly_score(self, log):
         # convert log into vector using same word2vec model (here just going to grab from existing)
     dist_smallest = np.inf
     for x in range(self.model.shape[0]):

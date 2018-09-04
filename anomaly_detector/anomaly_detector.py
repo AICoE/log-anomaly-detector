@@ -20,6 +20,7 @@ from .storage.es_storage import ESStorage
 from .storage.local_storage import LocalStorage
 from .config import Configuration
 from .model.som_model import SOMModel
+from .model.model_exception import ModelLoadException, ModelSaveException
 from .model.w2v_model import W2VModel
 
 logging.basicConfig(format = '%(levelname)s: %(message)s' , level= logging.INFO)
@@ -31,6 +32,7 @@ class AnomalyDetector():
     self.config = configuration
     self.update_model = os.path.isfile(configuration.MODEL_PATH) and configuration.TRAIN_UPDATE_MODEL #model exists and update was requested
     self.update_w2v_model = os.path.isfile(configuration.W2V_MODEL_PATH) and configuration.TRAIN_UPDATE_MODEL #model exists and update was requested
+    self.model_load_failed = False
 
     for backend in self.STORAGE_BACKENDS:
       if backend.NAME == self.config.STORAGE_BACKEND:
@@ -42,22 +44,26 @@ class AnomalyDetector():
 
     self.model = SOMModel()
     self.w2v_model = W2VModel()
-    if os.path.isfile(configuration.MODEL_PATH):
+    try:
       self.model.load(self.config.MODEL_PATH)
+    except ModelLoadException as ex:
+      logging.error("Failed to load SOM model: %s" % ex)
+      self.update_model = False
+      self.model_load_failed = True
 
-    if self.update_w2v_model:
+    try:
       self.w2v_model.load(self.config.W2V_MODEL_PATH)
+    except ModelLoadException as ex:
+      logging.error("Failed to load W2V model: %s" % ex)
+      self.update_w2v_model = False
+      self.model_load_failed = True
 
   def _load_data(self, time_span, max_entries):
     data, raw = self.storage.retrieve(time_span, max_entries)
       
     if len(data) == 0:
-        logging.info("There are no logs for this service in the last %s seconds", self.config.TRAIN_TIME_SPAN)
-        logging.info("Waiting 60 seconds and trying again")
-        time.sleep(60)
-        return None
-
-    logging.info("Preprocessing logs & cleaning messages")
+        logging.info("There are no logs for this service in the last %s seconds", time_span)
+        return None, None
 
     return data, raw
 
@@ -69,30 +75,21 @@ class AnomalyDetector():
       data, _ = self._load_data(self.config.TRAIN_TIME_SPAN, self.config.TRAIN_MAX_ENTRIES)
       if data is None:
         return 1
-
-      # Below code for user feedback    
-      # if os.path.isfile("found_anomalies.csv") == True:
-
-      #     f = pd.read_csv("found_anomalies.csv")
-      #     extra = f[f["label"] == 0]
-      #     extra = extra.drop("label", axis=1)
-      #     extra = extra.drop("Unnamed: 0", axis = 1)
-      #     new_D.append(extra)
       
       logging.info("Learning Word2Vec Models and Saving for Inference Step")
 
       then = time.time()
 
       if self.update_w2v_model:
-          try:
-              new_D, models = self.w2v_model.update(data)
-          except KeyError:
-              logging.error("Can't update current Word2Vec model. Log fileds incompatible")
-              exit()
-          self.w2v_model.save(self.config.W2V_MODEL_PATH)
+        new_D, models = self.w2v_model.update(data)
       else:
         new_D, models = self.w2v_model.create(data)
+      
+      try:
         self.w2v_model.save(self.config.W2V_MODEL_PATH)
+      except ModelSaveException as ex:
+        logging.error("Failed to save W2V model: %s" % ex)
+        raise
 
       now = time.time()
 
@@ -105,9 +102,9 @@ class AnomalyDetector():
       
       then = time.time()
 
-      if not self.model:
+      if not self.model or self.update_model:
           self.model.set(np.random.rand(24, 24, to_put_train.shape[1]))
-      
+
       self.model.train(to_put_train, 24, self.config.TRAIN_ITERATIONS)
       now = time.time()
 
@@ -118,10 +115,15 @@ class AnomalyDetector():
 
       dist = []
       for i in tqdm(to_put_train):
-          dist.append(self.model.get_anomaly_Sscore(i))
+          dist.append(self.model.get_anomaly_score(i))
 
       self.model.set_metadata((np.mean(dist), np.std(dist), np.max(dist),np.min(dist)))
-      self.model.save(self.config.MODEL_PATH)
+      try:
+        self.model.save(self.config.MODEL_PATH)
+      except ModelSaveException as ex:
+        logging.error("Failed to save SOM model: %s" % ex)
+        raise
+
       T_Now = time.time()
       logging.info("Whole Process takes %s minutes", ((T_Now-T_Then)/60))
 
@@ -146,6 +148,7 @@ class AnomalyDetector():
       #Get data for inference
       data, json_logs = self._load_data(self.config.INFER_TIME_SPAN, self.config.INFER_MAX_ENTRIES)
       if data is None:
+        time.sleep(5)
         continue
       
       logging.info("%d logs loaded from the last %d seconds", len(data) , self.config.INFER_TIME_SPAN)
@@ -160,42 +163,25 @@ class AnomalyDetector():
 
       dist = []
       for i in v:
-        dist.append(self.model.get_anomaly_Sscore(i))
+        dist.append(self.model.get_anomaly_score(i))
       
       f = []
 
       logging.info("Max anomaly score: %f" % max(dist))
       for i in range(len(data)):
-        if json_logs[i].get('_source'):
-          logging.debug("Updating entry %d - dist: %f; maxx: %f" % (i, dist[i], maxx))
-          s = json_logs[i]["_source"]  # This needs to be more general, only works for ES incoming logs right now. 
-          s['anomaly_score'] = dist[i] 
+        logging.debug("Updating entry %d - dist: %f; maxx: %f" % (i, dist[i], maxx))
+        s = json_logs[i]  # This needs to be more general, only works for ES incoming logs right now. 
+        s['anomaly_score'] = dist[i] 
 
-          if dist[i] > (self.config.INFER_ANOMALY_THRESHOLD * maxx):
-            s['anomaly'] = 1
-            logging.warn("Anomaly found (score: %f): %s" % (dist[i], s['message']))
-          else:
-            s['anomaly'] = 0
+        if dist[i] > (self.config.INFER_ANOMALY_THRESHOLD * maxx):
+          s['anomaly'] = 1
+          logging.warn("Anomaly found (score: %f): %s" % (dist[i], s['message']))
+        else:
+          s['anomaly'] = 0
 
         f.append(s)
           
       self.storage.store_results(f)
-        #print(res)
-
-          # Also push to CSV for Human-In-Loop Portion
-
-          #d = {"label":"not reviewed"}
-          #f = pd.DataFrame(d, index = range(1))
-          #data = new_D.loc[loc:loc].join(f)
-          #data["label"] = 0;
-
-          #if os.path.isfile("found_anomalies.csv") == False:
-          #	with open("found_anomalies.csv", "a") as f:
-          #		data.to_csv(f,header = True)
-
-          #else:
-          #	with open("found_anomalies.csv", "a") as f:
-          #		data.to_csv(f,header = False)
 
       now = time.time()
       logging.info("Analyzed one minute of data in %s seconds",(now-then))
@@ -204,3 +190,22 @@ class AnomalyDetector():
       sleep_time = self.config.INFER_TIME_SPAN-(now-then)
       if sleep_time > 0:
         time.sleep(sleep_time)
+
+  def run(self):
+    while True:
+      if not os.path.isfile(self.config.MODEL_PATH) or self.config.TRAIN_UPDATE_MODEL or\
+           self.model_load_failed:
+        try:
+          self.train()
+        except Exception as ex:
+          logging.error("Training failed: %s" % ex)
+          raise
+      else:
+        logging.info("Models already exists, skipping training")
+
+      try:
+        self.infer()
+      except Exception as ex:
+        logging.error("Inference failed: %s" % ex)
+        raise
+        time.sleep(5)
