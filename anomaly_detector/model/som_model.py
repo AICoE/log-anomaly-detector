@@ -1,10 +1,13 @@
 import os
 import numpy as np
-from tqdm import tqdm 
 
 import matplotlib
 matplotlib.use("agg")
 from matplotlib import pyplot as plt
+
+import logging
+
+_LOGGER = logging.getLogger(__name__)
 
 from .base_model import BaseModel
 
@@ -13,7 +16,9 @@ class SOMModel(BaseModel):
     if self.model is None:
       self.model = np.random.rand(map_size, map_size, inp.shape[1]) # Generate a 24x24 node feature of color data
 
-    for iters in tqdm(range(iterations)): 
+    for iters in range(iterations):
+      if not iters%int(iterations/10):
+        _LOGGER.info("SOM training iteration %d/%d" % (iters, iterations))
       rand_num = np.random.randint(inp.shape[0])
       current_vector = inp[rand_num,:] # Select a Random Document Vector From the training data
 

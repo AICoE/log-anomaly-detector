@@ -5,6 +5,8 @@ from .base_model import BaseModel
 
 import logging
 
+_LOGGER = logging.getLogger(__name__)
+
 class W2VModel(BaseModel):
   def update(self, words):
     words = words.fillna('EMPTY')
@@ -13,8 +15,8 @@ class W2VModel(BaseModel):
       if col in words:
         self.model[col].build_vocab([words[col]], update=True)
       else:
-        logging.warning("Skipping key %s as it does not exist in 'words'" % col)
-    logging.info("Models Updated")
+        _LOGGER.warning("Skipping key %s as it does not exist in 'words'" % col)
+    _LOGGER.info("Models Updated")
     return words, self.model
 
   def create(self, words):
@@ -27,7 +29,7 @@ class W2VModel(BaseModel):
       if col in words:
         self.model[col] = Word2Vec([list(words[col])], min_count=1, size=50)
       else:
-        logging.warning("Skipping key %s as it does not exist in 'words'" % col)
+        _LOGGER.warning("Skipping key %s as it does not exist in 'words'" % col)
     
     return words, self.model
 

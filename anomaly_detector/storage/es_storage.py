@@ -9,7 +9,7 @@ from ..config import Configuration
 
 import logging
 
-logging.basicConfig(format = '%(levelname)s: %(message)s' , level= logging.INFO)
+_LOGGER = logging.getLogger(__name__)
 
 class ESStorage(Storage):
 
@@ -40,7 +40,7 @@ class ESStorage(Storage):
 				"size":20
 				}
 
-		logging.info("Reading in max %d log entries in last %d seconds from %s", number_of_entires, time_range, self.config.storage.ES_ENDPOINT)
+		_LOGGER.info("Reading in max %d log entries in last %d seconds from %s", number_of_entires, time_range, self.config.storage.ES_ENDPOINT)
 
 		query['size'] = number_of_entires
 		query['filter']['range']['@timestamp']['gte'] = 'now-%ds' % time_range
@@ -52,7 +52,7 @@ class ESStorage(Storage):
 		es_data = [x['_source'] for x in es_data['hits']['hits']]
 		es_data_normalized = json_normalize(es_data)
 
-		logging.info("%d logs loaded in from last %d seconds", len(es_data_normalized), time_range)
+		_LOGGER.info("%d logs loaded in from last %d seconds", len(es_data_normalized), time_range)
 
 		self._preprocess(es_data_normalized)
 

@@ -7,14 +7,14 @@ from pandas.io.json import json_normalize
 from sklearn.externals import joblib
 from scipy.spatial.distance import cosine
 import datetime
-import logging
 import re
 import time
 import matplotlib
 matplotlib.use("agg")
 from matplotlib import pyplot as plt
 import warnings
-from tqdm import tqdm
+
+import logging
 
 from .storage.es_storage import ESStorage
 from .storage.local_storage import LocalStorage
@@ -23,7 +23,7 @@ from .model.som_model import SOMModel
 from .model.model_exception import ModelLoadException, ModelSaveException
 from .model.w2v_model import W2VModel
 
-logging.basicConfig(format = '%(levelname)s: %(message)s' , level= logging.INFO)
+_LOGGER = logging.getLogger(__name__)
 
 class AnomalyDetector():
   STORAGE_BACKENDS = [LocalStorage, ESStorage]
@@ -36,7 +36,7 @@ class AnomalyDetector():
 
     for backend in self.STORAGE_BACKENDS:
       if backend.NAME == self.config.STORAGE_BACKEND:
-        logging.info("Using %s storage backend" % backend.NAME)
+        _LOGGER.info("Using %s storage backend" % backend.NAME)
         self.storage = backend(configuration)
         break
     if not self.storage:
@@ -47,14 +47,14 @@ class AnomalyDetector():
     try:
       self.model.load(self.config.MODEL_PATH)
     except ModelLoadException as ex:
-      logging.error("Failed to load SOM model: %s" % ex)
+      _LOGGER.error("Failed to load SOM model: %s" % ex)
       self.update_model = False
       self.model_load_failed = True
 
     try:
       self.w2v_model.load(self.config.W2V_MODEL_PATH)
     except ModelLoadException as ex:
-      logging.error("Failed to load W2V model: %s" % ex)
+      _LOGGER.error("Failed to load W2V model: %s" % ex)
       self.update_w2v_model = False
       self.model_load_failed = True
 
@@ -62,7 +62,7 @@ class AnomalyDetector():
     data, raw = self.storage.retrieve(time_span, max_entries)
       
     if len(data) == 0:
-        logging.info("There are no logs for this service in the last %s seconds", time_span)
+        _LOGGER.info("There are no logs for this service in the last %s seconds", time_span)
         return None, None
 
     return data, raw
@@ -76,7 +76,7 @@ class AnomalyDetector():
       if data is None:
         return 1
       
-      logging.info("Learning Word2Vec Models and Saving for Inference Step")
+      _LOGGER.info("Learning Word2Vec Models and Saving for Inference Step")
 
       then = time.time()
 
@@ -88,17 +88,17 @@ class AnomalyDetector():
       try:
         self.w2v_model.save(self.config.W2V_MODEL_PATH)
       except ModelSaveException as ex:
-        logging.error("Failed to save W2V model: %s" % ex)
+        _LOGGER.error("Failed to save W2V model: %s" % ex)
         raise
 
       now = time.time()
 
-      logging.info("Training and Saving took %s minutes",((now-then)/60))
-      logging.info("Encoding Text Data")
+      _LOGGER.info("Training and Saving took %s minutes",((now-then)/60))
+      _LOGGER.info("Encoding Text Data")
 
       to_put_train = self.w2v_model.one_vector(new_D)
       
-      logging.info("Start Training SOM...")
+      _LOGGER.info("Start Training SOM...")
       
       then = time.time()
 
@@ -108,24 +108,29 @@ class AnomalyDetector():
       self.model.train(to_put_train, 24, self.config.TRAIN_ITERATIONS)
       now = time.time()
 
-      logging.info("Training took %s minutes",((now-then)/60)) 
-      logging.info('Saving U-map')
+      _LOGGER.info("Training took %s minutes",((now-then)/60))
+      _LOGGER.info('Saving U-map')
       self.model.save_visualisation(self.config.MODEL_DIR)
-      logging.info("Generating Baseline Metrics")
+      _LOGGER.info("Generating Baseline Metrics")
 
       dist = []
-      for i in tqdm(to_put_train):
-          dist.append(self.model.get_anomaly_score(i))
+      cnt = 0
+      total = len(to_put_train)
+      for i in to_put_train:
+        if not cnt%int(total/10):
+          _LOGGER.info("Anomaly scoring %d/%d" % (cnt, total))
+        dist.append(self.model.get_anomaly_score(i))
+        cnt += 1
 
       self.model.set_metadata((np.mean(dist), np.std(dist), np.max(dist),np.min(dist)))
       try:
         self.model.save(self.config.MODEL_PATH)
       except ModelSaveException as ex:
-        logging.error("Failed to save SOM model: %s" % ex)
+        _LOGGER.error("Failed to save SOM model: %s" % ex)
         raise
 
       T_Now = time.time()
-      logging.info("Whole Process takes %s minutes", ((T_Now-T_Then)/60))
+      _LOGGER.info("Whole Process takes %s minutes", ((T_Now-T_Then)/60))
 
       return 0
 
@@ -137,9 +142,9 @@ class AnomalyDetector():
     maxx = meta_data[2]
     stdd = meta_data[1]
 
-    logging.info("Maxx: %f, stdd: %f" % (maxx, stdd))
+    _LOGGER.info("Maxx: %f, stdd: %f" % (maxx, stdd))
 
-    logging.info("Models loaded, running %d infer loops" % self.config.INFER_LOOPS)
+    _LOGGER.info("Models loaded, running %d infer loops" % self.config.INFER_LOOPS)
 
     #
     infer_loops = 0
@@ -153,12 +158,12 @@ class AnomalyDetector():
         time.sleep(5)
         continue
       
-      logging.info("%d logs loaded from the last %d seconds", len(data) , self.config.INFER_TIME_SPAN)
+      _LOGGER.info("%d logs loaded from the last %d seconds", len(data) , self.config.INFER_TIME_SPAN)
 
       try:
         new_D, _ = self.w2v_model.update(data)
       except KeyError:
-        logging.error("Word2Vec model fields incompatible with current log set. Retrain model with log data from the same service")
+        _LOGGER.error("Word2Vec model fields incompatible with current log set. Retrain model with log data from the same service")
         exit()
       
       v = self.w2v_model.one_vector(new_D)
@@ -169,19 +174,19 @@ class AnomalyDetector():
       
       f = []
 
-      logging.info("Max anomaly score: %f" % max(dist))
+      _LOGGER.info("Max anomaly score: %f" % max(dist))
       for i in range(len(data)):
-        logging.debug("Updating entry %d - dist: %f; maxx: %f" % (i, dist[i], maxx))
+        _LOGGER.debug("Updating entry %d - dist: %f; maxx: %f" % (i, dist[i], maxx))
         s = json_logs[i]  # This needs to be more general, only works for ES incoming logs right now. 
         s['anomaly_score'] = dist[i] 
 
         if dist[i] > (self.config.INFER_ANOMALY_THRESHOLD * maxx):
           s['anomaly'] = 1
-          logging.warn("Anomaly found (score: %f): %s" % (dist[i], s['message']))
+          _LOGGER.warn("Anomaly found (score: %f): %s" % (dist[i], s['message']))
         else:
           s['anomaly'] = 0
 
-        logging.info("Storing entry (score: %f, anomaly: %d) with message: %s" % (s['anomaly_score'], s['anomaly'], s['message']))
+        #_LOGGER.info("Storing entry (score: %f, anomaly: %d) with message: %s" % (s['anomaly_score'], s['anomaly'], s['message']))
 
         f.append(s)
           
@@ -191,9 +196,9 @@ class AnomalyDetector():
       infer_loops += 1
 
       now = time.time()
-      logging.info("Analyzed one minute of data in %s seconds",(now-then))
-      logging.info("waiting for next minute to start...") 
-      logging.info("press ctrl+c to stop process")
+      _LOGGER.info("Analyzed one minute of data in %s seconds",(now-then))
+      _LOGGER.info("waiting for next minute to start...")
+      _LOGGER.info("press ctrl+c to stop process")
       sleep_time = self.config.INFER_TIME_SPAN-(now-then)
       if sleep_time > 0:
         time.sleep(sleep_time)
@@ -208,13 +213,13 @@ class AnomalyDetector():
         try:
           self.train()
         except Exception as ex:
-          logging.error("Training failed: %s" % ex)
+          _LOGGER.error("Training failed: %s" % ex)
           raise
       else:
-        logging.info("Models already exists, skipping training")
+        _LOGGER.info("Models already exists, skipping training")
 
       try:
         self.infer()
       except Exception as ex:
-        logging.error("Inference failed: %s" % ex)
+        _LOGGER.error("Inference failed: %s" % ex)
         time.sleep(5)

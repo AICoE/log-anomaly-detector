@@ -2,7 +2,7 @@ import os
 
 import logging
 
-logging.basicConfig(format = '%(levelname)s: %(message)s' , level= logging.INFO)
+_LOGGER = logging.getLogger(__name__)
 
 def join_model_path(config):
   config.MODEL_PATH = os.path.join(config.MODEL_DIR, config.MODEL_FILE)
@@ -44,7 +44,7 @@ class Configuration():
     self.load()
 
   def load(self):
-    logging.info("Loading %s" % self.__class__.__name__)
+    _LOGGER.info("Loading %s" % self.__class__.__name__)
     self.load_from_env()
 
   def load_from_env(self):
@@ -55,7 +55,7 @@ class Configuration():
       val = os.environ.get(env)
       typ = type(getattr(self, prop))
       if val:
-        logging.info("Loading %s from environment" % env)
+        _LOGGER.info("Loading %s from environment" % env)
         if typ is int:
           setattr(self, prop, int(val))
         elif typ is float:

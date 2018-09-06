@@ -9,7 +9,7 @@ from ..config import Configuration
 
 import logging
 
-logging.basicConfig(format = '%(levelname)s: %(message)s' , level= logging.INFO)
+_LOGGER = logging.getLogger(__name__)
 
 class LocalStorage(Storage):
 
@@ -21,14 +21,14 @@ class LocalStorage(Storage):
 
 	def retrieve(self, time_range, number_of_entries):
 		data = []
-		logging.info("Reading from %s" % self.config.storage.LS_INPUT_PATH)
+		_LOGGER.info("Reading from %s" % self.config.storage.LS_INPUT_PATH)
 		if self.config.storage.LS_INPUT_PATH == "-":
 			cnt = 0
 			for line in self._stdin():
 				try:
 					data.append(json.loads(line))
 				except ValueError as ex:
-					logging.error("Parsing failed (%s), assuming plain text" % ex)
+					_LOGGER.error("Parsing failed (%s), assuming plain text" % ex)
 					data.append({'_source': {'message': str(line)}})
 				cnt += 1
 				if cnt >= number_of_entries:
@@ -45,7 +45,7 @@ class LocalStorage(Storage):
 
 			if len(data_set) > number_of_entries:
 				data_set = data_set[:-number_of_entries]
-		logging.info("%d logs loaded", len(data_set))
+		_LOGGER.info("%d logs loaded", len(data_set))
 
 		#Prepare data for training/inference
 		self._preprocess(data_set)
@@ -58,7 +58,7 @@ class LocalStorage(Storage):
 				json.dump(data, fp)
 		else:
 			for item in data:
-				print("Anomaly: %d, Anmaly score: %f" % (item['anomaly'], item['anomaly_score']))
+				_LOGGER.info("Anomaly: %d, Anmaly score: %f" % (item['anomaly'], item['anomaly_score']))
 
 
 	@classmethod
