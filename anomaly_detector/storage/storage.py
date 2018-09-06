@@ -24,7 +24,8 @@ class Storage(object):
 		"""
 		function to remove all none alphabetical characters from message strings.
 		"""
-		return "".join(re.findall("[a-zA-Z]+", line))
+		
+		return "".join(re.findall("[a-zA-Z0-7 ]+", line))
 
 	@classmethod
 	def _preprocess(cls, data):

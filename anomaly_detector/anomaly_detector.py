@@ -141,7 +141,9 @@ class AnomalyDetector():
 
     logging.info("Models loaded, running %d infer loops" % self.config.INFER_LOOPS)
 
-    for i in range(self.config.INFER_LOOPS):
+    #
+    infer_loops = 0
+    while infer_loops < self.config.INFER_LOOPS:
       then = time.time()
       now = datetime.datetime.now()
 
@@ -179,9 +181,14 @@ class AnomalyDetector():
         else:
           s['anomaly'] = 0
 
+        logging.info("Storing entry (score: %f, anomaly: %d) with message: %s" % (s['anomaly_score'], s['anomaly'], s['message']))
+
         f.append(s)
           
       self.storage.store_results(f)
+
+      #Inference done, increase counter
+      infer_loops += 1
 
       now = time.time()
       logging.info("Analyzed one minute of data in %s seconds",(now-then))
@@ -191,10 +198,13 @@ class AnomalyDetector():
       if sleep_time > 0:
         time.sleep(sleep_time)
 
+    #When we reached # of inference loops, retrain models
+    self.update_model = True
+    self.update_w2v_model = True
+
   def run(self):
     while True:
-      if not os.path.isfile(self.config.MODEL_PATH) or self.config.TRAIN_UPDATE_MODEL or\
-           self.model_load_failed:
+      if self.update_model or self.update_w2v_model or self.model_load_failed:
         try:
           self.train()
         except Exception as ex:
@@ -207,5 +217,4 @@ class AnomalyDetector():
         self.infer()
       except Exception as ex:
         logging.error("Inference failed: %s" % ex)
-        raise
         time.sleep(5)
