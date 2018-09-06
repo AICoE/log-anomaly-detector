@@ -32,7 +32,7 @@ class AnomalyDetector():
     self.config = configuration
     self.update_model = os.path.isfile(configuration.MODEL_PATH) and configuration.TRAIN_UPDATE_MODEL #model exists and update was requested
     self.update_w2v_model = os.path.isfile(configuration.W2V_MODEL_PATH) and configuration.TRAIN_UPDATE_MODEL #model exists and update was requested
-    self.model_load_failed = False
+    self.recreate_models = False
 
     for backend in self.STORAGE_BACKENDS:
       if backend.NAME == self.config.STORAGE_BACKEND:
@@ -49,14 +49,14 @@ class AnomalyDetector():
     except ModelLoadException as ex:
       _LOGGER.error("Failed to load SOM model: %s" % ex)
       self.update_model = False
-      self.model_load_failed = True
+      self.recreate_models = True
 
     try:
       self.w2v_model.load(self.config.W2V_MODEL_PATH)
     except ModelLoadException as ex:
       _LOGGER.error("Failed to load W2V model: %s" % ex)
       self.update_w2v_model = False
-      self.model_load_failed = True
+      self.recreate_models = True
 
   def _load_data(self, time_span, max_entries):
     data, raw = self.storage.retrieve(time_span, max_entries)
@@ -80,7 +80,7 @@ class AnomalyDetector():
 
       then = time.time()
 
-      if self.update_w2v_model:
+      if not self.recreate_models and self.update_w2v_model:
         new_D, models = self.w2v_model.update(data)
       else:
         new_D, models = self.w2v_model.create(data)
@@ -102,7 +102,7 @@ class AnomalyDetector():
       
       then = time.time()
 
-      if not self.model or self.update_model:
+      if self.recreate_models or self.update_model:
           self.model.set(np.random.rand(24, 24, to_put_train.shape[1]))
 
       self.model.train(to_put_train, 24, self.config.TRAIN_ITERATIONS)
@@ -204,12 +204,11 @@ class AnomalyDetector():
         time.sleep(sleep_time)
 
     #When we reached # of inference loops, retrain models
-    self.update_model = True
-    self.update_w2v_model = True
+    self.recreate_models = True
 
   def run(self):
     while True:
-      if self.update_model or self.update_w2v_model or self.model_load_failed:
+      if self.update_model or self.update_w2v_model or self.recreate_models:
         try:
           self.train()
         except Exception as ex:
