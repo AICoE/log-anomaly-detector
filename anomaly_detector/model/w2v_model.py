@@ -1,3 +1,6 @@
+"""
+"""
+
 import numpy as np
 from gensim.models import Word2Vec
 
@@ -7,46 +10,52 @@ import logging
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class W2VModel(BaseModel):
-  def update(self, words):
-    words = words.fillna('EMPTY')
+    """Word2Vec model wrapper."""
 
-    for col in list(self.model.keys()):
-      if col in words:
-        self.model[col].build_vocab([words[col]], update=True)
-      else:
-        _LOGGER.warning("Skipping key %s as it does not exist in 'words'" % col)
-    _LOGGER.info("Models Updated")
-    return words, self.model
+    def update(self, words):
+        """Update existing w2v model."""
+        words = words.fillna('EMPTY')
 
-  def create(self, words):
-    """
-    """
-    words = words.fillna("EMPTY")
+        for col in list(self.model.keys()):
+            if col in words:
+                self.model[col].build_vocab([words[col]], update=True)
+            else:
+                _LOGGER.warning("Skipping key %s as it does not exist in 'words'" % col)
+        _LOGGER.info("Models Updated")
+        return words, self.model
 
-    self.model = {}
-    for col in words.columns:  
-      if col in words:
-        self.model[col] = Word2Vec([list(words[col])], min_count=1, size=50)
-      else:
-        _LOGGER.warning("Skipping key %s as it does not exist in 'words'" % col)
-    
-    return words, self.model
+    def create(self, words):
+        """Create new word2vec model."""
+        words = words.fillna("EMPTY")
 
-  def one_vector(self, new_D): 
-    transforms = {}
-    for col in self.model.keys():
-      transforms[col] = self.model[col].wv[new_D[col]]
+        self.model = {}
+        for col in words.columns:
+            if col in words:
+                self.model[col] = Word2Vec([list(words[col])], min_count=1, size=50)
+            else:
+                _LOGGER.warning("Skipping key %s as it does not exist in 'words'" % col)
 
-    new_data = []
+        return words, self.model
 
-    for i in range(len(transforms['message'])):
-      logc = np.array(0)
-      for _, c in transforms.items():
-        if c.item(i):
-          logc = np.append(logc, c[i])
-        else:
-          logc = np.append(logc, [0,0,0,0,0])
-      new_data.append(logc)
+    def one_vector(self, new_D):
+        """Create a single vector from model."""
+        transforms = {}
+        for col in self.model.keys():
+            print(new_D[col][0])
+            print(self.model[col].wv[new_D[col]][0])
+            transforms[col] = self.model[col].wv[new_D[col]]
 
-    return np.array(new_data, ndmin=2)
+        new_data = []
+
+        for i in range(len(transforms['message'])):
+            logc = np.array(0)
+            for _, c in transforms.items():
+                if c.item(i):
+                    logc = np.append(logc, c[i])
+                else:
+                    logc = np.append(logc, [0,0,0,0,0])
+            new_data.append(logc)
+
+        return np.array(new_data, ndmin=2)

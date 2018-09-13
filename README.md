@@ -1,79 +1,74 @@
-# Anomaloy Detection in Logs - POC 
+# Anomaloy Detection in Logs
 
-This repository contains the prototype for an application log Anomaly Detector which can be deployed either locally or on Openshift. It currently uses Elasticsearch as its source of data, gensim for its Word2Vec function used to encode the natural language portion of our logs, and a Self-Organizing map to analyze our stream of, now vectorized, log data. It also stores a copy of the Elasticsearch index that it monitors with the addition of two fields that help to identify logs as either anomalous or not for later review by users: "anomaly", which is either "0" for no, or a "1" for yes. And "anomaly_score", a real valued number used to quantify the anomalousness of a log.    
+This repository contains the prototype for a Log Anomaly Detector (LAD) which can be deployed on Openshift. It supports multiple backends for data loading and uses Self-Organizing Maps to track differences and find anomalies in the log stream.
 
-As with any Machine Learning pipeline there are two main portions of this repo: Training and Inference. Both stages of the ML pipeline can be run either locally or in OpenShift.
+Internally it utilizes gensim for its Word2Vec implementation - used to encode the natural language portion of our logs, and an implementation of SOM, but it is possible to extend by other anomaly detection algorithms.
 
-**Note on Requirments:** *For the time being, in order to utilize this Anomaly Detection system you must be using Elasticsearch to capture your application log data. In future iterations of this project we hope to move away from the reliance on Elasticsearch, but for the purposes of this initial Proof Of Concept, ES is required. Also, please note that the current code was built assuming an ES index pattern of the format "INDEX_NAME-YYYY.MM.DD" and as such the date portion of the index name is updated and appended automaically within the code to prevent crashing at midnight. So, when identifiying your ES index parameter (for both in watched index and the output index), be sure to **not** include the date portion of the index name, "INDEX_NAME-" is sufficient.*    
+The execution flow containes of the two main portions (found in any ML application): training and inference.
 
+## Local Development
 
-## Local Deployment
+You can install and run the application locally by running a standard Python installation using `setup.py`, which will also bring in all the dependencies to your machine.
 
-To run the Anomaly Detector locally, clone this repo and update the **env.sh** file with the relevent paramaters for your Elasticsearch instance, index and service as well as the appropriate training and testing parameters. Documentation of each parameter can be found below as well as in the **env.sh** comments. Then on the command line type `. env.sh` to load the environment variables. Then type `python app.py` to train and save a model, then start watching for anomalies in your specified service and start logging them back to Elasticsearch.  
+```
+python setup.py install
+```
+
+then start the application as (don't forget to replace  `...` will all the necessary environment variables)
+
+```
+LAD_STORAGE_BACKEND="es" ... python app.py
+```
+
+We recommend using containers and as we use source-to-image for deployments to OpenShift, we prefer to do the same for local development. For that you will need to download `s2i` binary from https://github.com/openshift/source-to-image/releases and install `docker`. To build an image with your application, run
+
+```
+s2i build --copy . centos/python-36-centos7 lad
+```
+
+To run the application, invoke a `docker run` command (don't forget to replace  `...` will all the necessary environment variables)
+
+```
+docker run -it --rm -e LAD_STORAGE_BACKEND="es" ... -v $PWD/:/opt/app-root/src/ -u 1000 lad
+```
 
 
 ## Openshift Deployment
 
-To run the above in Openshift, simply import the file **config.yaml** into your openshift project. This template file will prompt you for parameter inputs before deploying. Documentation for each parameter can be found below as well as within the **config.yaml** file. Once the application is created, it will start an s2i build from this git repository, and then deploy a pod that will first train and save a model, then start to watch for anomalies in your specified service and push the results back to Elasticsearch.
+
+We provide an OpenShift template for the application, which you can import by
+
+```
+oc apply -f openshift/log-anomaly-detector.app.yaml
+```
+
+and then use OpenShift console to fill in the parameters, or do that from command line directly by calling
 
 
-## Paramaeters
+```
+oc process -f openshift/log-anomaly-detector.app.yaml LAD_STORAGE_BACKEND="es" ... | oc apply -f -
+```
 
-Both functions rely on correctly configuring the below parameters, where the prefix LADT_ denotes Log Anomaly Detector Training (**trainer.py**) parameters and LADI_ denotes Log Anomaly Detector Inference (**infer.py**) parameters.
-
-#### Training (trainer.py)
-
-* LADT_MODEL_DIR = Name of persistant storage directory that models will be saved to
-* LADT_ELASTICSEARCH_ENDPOINT = address to Elasticsearch endpoint
-* LADT_MODEL = path to SOM map to update 
-* LADT_INDEX = name of Elasticsearch index to pull logs from 
-* LADT_TIME_SPAN = number of seconds from now that you would like to query Elasticsearch for training logs
-* LADT_MAX_ENTRIES = limits the number of entries returned from Elasticsearch for the training query
-* LADT_ITERS = number of training iterations of the SOM 
-* LADT_SERVICE = name of Elasticsearch service to be monitored 
-* LADT_TRAIN_LAG = Number of Inference iterations between retraining the model  
+This will deploy and trigger image build which in turn will deploy and start the application.
 
 
+## Configuraiton
 
-#### Inference (infer.py)
+Configuration is currently done via environment variables. All the variables have prefix `LAD_` to distinguish them from the rest. 
 
-* LADI_ELASTICSEARCH_ENDPOINT = address to Elasticsearch endpoint for inference
-* LADI_MODEL = path to SOM map to test against
-* LADI_INDEX = name of Elasticsearch index to pull logs from 
-* LADI_TARGET_INDEX = name of index the anomaly data will be pushed back to in Elasticsearch
-* LADI_TIME_SPAN = number of seconds from now that you would like to query Elasticsearch for
-* LADI_MAX_ENTRIES = limits the number of entries returned from Elasticsearch for the inference query
-* LADI_SERVICE = name of Elasticsearch service to be monitored 
-* LADI_THRESHOLD = float tunes the anomaly threshold based on the max value of the training set
-* LADI_MAX_ANOMALIES = maximum number of anomalies allowed on each testing iteration
-* LADI_CHUNK_SIZE = Chunk size for bulk upload to ES
+Global application configuration options are defined and documented in `anomaly_detector/config.py`.
 
-
---------------------------------
-
+There are specific configuration variables for each storage backend, so consult configuration classes in `anomaly_detector/storage/` directory for those.
 
 ## More Details
 
-
 ### Training 
 
-**trainer.py** reads in log data from a specific service from an index at an Elasticsearch endpoint, parses the json data and converts it into a vector representation using Word2Vec. It then trains a Self-Organizing Map on our current log data. This script then saves the W2V model as well as the trained SOM to disk to be used later by the inference script. It provides the option to either generate a new trained model or to update the existing model. 
-
+`anomaly_detector.train()` retrieves data from backend storage, converts it into vector representation using Gensim Word2Vec and stores the W2V model to disk. Next step is Self-Oragnizing Map training, once the model is trained, it is also stored to disk for furter use in `infer()`.
 
 ### Inference
 
-**infer.py** loads the models saved by the training script and (with default configuration) pulls the last minute of logs from a specific service at an Elasticsearch endpoint. It then updates the existing W2V models and converts the new data into vectors that can be fed into the Self-Organizing Map. The function will then produce an anomaly score for each log and determine if they are anomalouse or not. This function will then push the log back to a new Elasticsearch index that can be reviewed later by the user.  
-
-
-### Supporting Scripts
-
- **ut.py** includes many of the functions that are shared by both **trainer.py** and **infer.py** such as generating the distance from the SOM map and interacting with Elasticsearch.
-
- **SOM.py** contains the implementation of the Self-Organizing Map training function. 
-
- **env.sh** is a shell script where users can quickly set all of the needed paramters before running the Anomaly Detector.  
-
- **app.py** runs the the training testing loop. 
+`anomaly_detector.infer()` uses models stored on disk, loads new data from storage, updates W2V model to incorporate new tokens and get vectors for new data. Newly generated vectors are then fed into SOM and an anomaly score will be produced for each log entry. Threshold is used to decide whether the entry is an anomaly or not and results are fed back to the storage.
 
 ### Word2Vec
 
@@ -90,3 +85,22 @@ In short, we intialize a graph of some user-specified fixed dimensions, in our d
 
 Once the map is trained, we can take a new example, measure its distance to each node on the map and determine how "close"/"similar" it is to our training data. This distance metric is how we quantify the spectrum from normal to anomalous and how we generate our anomaly scores. 
 
+### Storage
+
+There are 2 storage backends implemented at the moment - ElasticSearch and local.
+
+#### ElasticSearch
+
+ES backend is pulling data from ElasticSearch instance. There are some assumptions made about the sturcture of the data and index names.
+
+* Index name is assumed to be in the format of `index_name-YYYY.MM.DD`, where the date is automatically appended based on current date - i.e. only provide `index_name-` prefix as a parameter
+* You index schema has to contain a `service` field which is used for filtering the input data
+* `_source` object in the index entry has to contain `message` field which then contains string representing the actual stored log message
+
+Results are stored back into ElasticSearch as a copy of the input ElasticSearch index with the addition of two fields that help to identify logs as either anomalous or not for later review by users: `anomaly`, which is either `0` for false, or a `1` for true. And `anomaly_score`, a real valued number used to quantify the anomalousness of a log.
+
+#### Local
+
+Local storage backend is able to read data from a file or standard input and write results back to a file or standard output.
+
+Input data can be in a form of JSON (one entry per line) or plain text (simplified JSON object resembling the ES entry described above is constructed).

@@ -1,5 +1,14 @@
+"""
+"""
+
+
 class ModelLoadException(Exception):
-  pass
+    """Exception to be used when a model load fails."""
+
+    pass
+
 
 class ModelSaveException(Exception):
-  pass
+    """Exception to be used when a model saving fails."""
+
+    pass

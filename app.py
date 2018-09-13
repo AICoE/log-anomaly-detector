@@ -1,8 +1,10 @@
+"""
+Log Anomaly Detector
+"""
+
 from anomaly_detector.anomaly_detector import AnomalyDetector
-import os
-import logging
-import time
 import sys
+import logging
 
 from anomaly_detector.config import Configuration
 
@@ -21,11 +23,13 @@ w2v_logger.setLevel(logging.WARNING)
 
 CONFIGURATION_PREFIX = "LAD"
 
-def main():
-	_LOGGER.info("Starting...")
-	config = Configuration(CONFIGURATION_PREFIX)
-	anomaly_detector = AnomalyDetector(config)
-	anomaly_detector.run()
+
+def _main():
+    _LOGGER.info("Starting...")
+    config = Configuration(CONFIGURATION_PREFIX)
+    anomaly_detector = AnomalyDetector(config)
+    anomaly_detector.run()
+
 
 if __name__ == "__main__":
-    main()
+    _main()

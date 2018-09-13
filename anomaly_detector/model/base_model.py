@@ -1,44 +1,56 @@
+"""
+"""
+
+from .model_exception import ModelLoadException, ModelSaveException
 from sklearn.externals import joblib
 import os
 
-from .model_exception import ModelLoadException, ModelSaveException
 
 class BaseModel():
-  def __init__(self):
-    self.model = None
-    self.metadata = None
+    """Base class for model implementations."""
 
-  def load(self, source):
-    if not os.path.isfile(source):
-      raise ModelLoadException("Could not load a model. File %s does not exist" % source)
+    def __init__(self):
+        """Initialize model."""
+        self.model = None
+        self.metadata = None
 
-    try:
-      loaded_model = joblib.load(source)
-    except Exception as ex:
-      raise ModelLoadException("Could not load a model: %s" % ex)
+    def load(self, source):
+        """Load a model from disk."""
+        if not os.path.isfile(source):
+            raise ModelLoadException("Could not load a model. File %s does not exist" % source)
 
-    self.model = loaded_model['model']
-    self.metadata = loaded_model['metadata']
+        try:
+            loaded_model = joblib.load(source)
+        except Exception as ex:
+            raise ModelLoadException("Could not load a model: %s" % ex)
 
-  def save(self, dest):
-    saved_model = {
-      'model': self.model, 
-      'metadata': self.metadata
-    }
+        self.model = loaded_model['model']
+        self.metadata = loaded_model['metadata']
 
-    try:
-      joblib.dump(saved_model, dest)
-    except Exception as ex:
-      raise ModelSaveException("Could not save the model: %s" % ex)
+    def save(self, dest):
+        """Save a model to disk."""
+        saved_model = {
+                       'model': self.model,
+                       'metadata': self.metadata
+                      }
 
-  def get(self):
-    return self.model
+        try:
+            joblib.dump(saved_model, dest)
+        except Exception as ex:
+            raise ModelSaveException("Could not save the model: %s" % ex)
 
-  def set(self, model):
-    self.model = model
+    def get(self):
+        """Get a model."""
+        return self.model
 
-  def get_metadata(self):
-    return self.metadata
+    def set(self, model):
+        """Set a model."""
+        self.model = model
 
-  def set_metadata(self, metadata):
-    self.metadata = metadata
+    def get_metadata(self):
+        """Get model metadata."""
+        return self.metadata
+
+    def set_metadata(self, metadata):
+        """Set model metadata."""
+        self.metadata = metadata
