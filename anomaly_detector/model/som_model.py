@@ -39,13 +39,15 @@ class SOMModel(BaseModel):
                         bmu_loc = (i, j)
 
             # Update BMU and Neighbours in the map:
-            try:
-                for x in range(-12,12):
-                    for y in range(-12,12):
-                        self.model[bmu_loc[0]+x][bmu_loc[1]+y] = self.model[bmu_loc[0]+x][bmu_loc[1]+y] + (self.alph(iterations, iters)) * \
-                                                                                                         self.neihborhood(np.array(bmu_loc), np.array([bmu_loc[0]+x, bmu_loc[1]+y])) * (current_vector - self.model[bmu_loc[0]+x][bmu_loc[1]+y])
-            except IndexError:
-                pass
+            for x in range(-12, 12):
+                for y in range(-12, 12):
+                    current_x = bmu_loc[0] + x
+                    current_y = bmu_loc[1] + y
+                    if 0 <= current_x < 24 and 0 <= current_y < 24:
+                        self.model[current_x][current_y] = self.model[current_x][current_y]\
+                                                           + (self.alph(iterations, iters)) \
+                                                           * self.neihborhood(np.array(bmu_loc), np.array([current_x, current_y])) \
+                                                           * (current_vector - self.model[current_x][current_y])
 
     def save_visualisation(self, dest):
         """Create and save a png image of the SOM."""
