@@ -1,4 +1,4 @@
-# Anomaloy Detection in Logs
+# Anomaly Detection in Logs
 
 This repository contains the prototype for a Log Anomaly Detector (LAD) which can be deployed on Openshift. It supports multiple backends for data loading and uses Self-Organizing Maps to track differences and find anomalies in the log stream.
 
