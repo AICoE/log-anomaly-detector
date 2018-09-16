@@ -1,9 +1,0 @@
-elasticsearch2==2.5.0
-gensim==3.5.0
-matplotlib==2.2.2
-numpy==1.14.3
-pandas==0.23.0
-scikit-learn==0.19.1
-scipy==1.1.0
-tqdm==v4.25.0
-
