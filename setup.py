@@ -4,14 +4,16 @@ from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
 
-def get_install_requires():
-    with open('requirements.txt', 'r') as requirements_file:
-        # TODO: respect hashes in requirements.txt file
-        res = requirements_file.readlines()
-        ret = [req.split(' ', maxsplit=1)[0].strip() for req in res if req]
-        print(ret)
-        return ret 
+def get_requirements():
+    packages = []
 
+    with open("./requirements.txt") as fd:
+        for line in fd.readlines():
+            if not line or line.startswith('-i'):
+                continue
+            packages.append(line.split(';', 1)[0])
+
+    return packages
 
 def get_test_requires():
   if os.path.exists('requirements-test.txt'):
@@ -53,7 +55,7 @@ setup(
         'anomaly_detector'
     ],
     zip_safe=False,
-    install_requires=get_install_requires(),
+    install_requires=get_requirements(),
     tests_require=get_test_requires(),
     cmdclass={'test': Test},
 )
