@@ -19,7 +19,7 @@ sh.setFormatter(formatter)
 _LOGGER.addHandler(sh)
 
 w2v_logger = logging.getLogger('gensim.models')
-w2v_logger.setLevel(logging.WARNING)
+w2v_logger.setLevel(logging.ERROR)
 
 CONFIGURATION_PREFIX = "LAD"
 

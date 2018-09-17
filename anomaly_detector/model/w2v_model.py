@@ -43,8 +43,6 @@ class W2VModel(BaseModel):
         """Create a single vector from model."""
         transforms = {}
         for col in self.model.keys():
-            print(new_D[col][0])
-            print(self.model[col].wv[new_D[col]][0])
             transforms[col] = self.model[col].wv[new_D[col]]
 
         new_data = []
