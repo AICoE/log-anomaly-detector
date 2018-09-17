@@ -55,7 +55,7 @@ setup(
         'anomaly_detector'
     ],
     zip_safe=False,
-    install_requires=get_install_requires(),
+    install_requires=get_requirements(),
     tests_require=get_test_requires(),
     cmdclass={'test': Test},
 )

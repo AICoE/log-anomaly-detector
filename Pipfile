@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[dev-packages]
+pylint = "*"
+"flake8" = "*"
+pydocstyle = "*"
+"pep8" = "*"
+
+[packages]
+"elasticsearch2" = "*"
+gensim = "*"
+matplotlib = "*"
+numpy = "*"
+pandas = "*"
+scikit-learn = "*"
+scipy = "*"
+tqdm = "*"
+
+[requires]
+python_version = "3.6"
