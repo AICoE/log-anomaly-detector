@@ -188,7 +188,7 @@ parameters:
     value: "20"
   - name: INFER_ANOMALY_THRESHOLD
     descripton: "Threshold for marking a log entry an anomaly"  
-    value: "1.3"
+    value: "3.1"
 #ES Storage Backend
   - name: ES_ENDPOINT
     descripton: "Elasticsearch endpoint to pull log data from for training"

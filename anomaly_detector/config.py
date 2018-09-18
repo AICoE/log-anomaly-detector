@@ -57,7 +57,7 @@ class Configuration():
     TRAIN_UPDATE_MODEL = False
 
     # Threshold used to decide whether an entry is an anomaly
-    INFER_ANOMALY_THRESHOLD = 1.1
+    INFER_ANOMALY_THRESHOLD = 3.1
     # Number of seconds specifying how far in the past to go to load log entries for inference TODO: move to es storage backend
     INFER_TIME_SPAN = 60
     # Number of inferences before retraining the models
