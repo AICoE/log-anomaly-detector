@@ -136,10 +136,11 @@ class AnomalyDetector():
     def infer(self):
         """Perform inference on trained models."""
         meta_data = self.model.get_metadata()
-        maxx = meta_data[2]
-        stdd = meta_data[1]
 
-        _LOGGER.info("Maxx: %f, stdd: %f" % (maxx, stdd))
+        stdd = meta_data[1]
+        mean = meta_data[0]
+
+        _LOGGER.info("Mean: %f, stdd: %f" % (mean, stdd))
 
         _LOGGER.info("Models loaded, running %d infer loops" % self.config.INFER_LOOPS)
 
@@ -172,11 +173,11 @@ class AnomalyDetector():
 
             _LOGGER.info("Max anomaly score: %f" % max(dist))
             for i in range(len(data)):
-                _LOGGER.debug("Updating entry %d - dist: %f; maxx: %f" % (i, dist[i], maxx))
+                _LOGGER.debug("Updating entry %d - dist: %f; mean: %f" % (i, dist[i], mean))
                 s = json_logs[i]    # This needs to be more general, only works for ES incoming logs right now.
                 s['anomaly_score'] = dist[i]
 
-                if dist[i] > (self.config.INFER_ANOMALY_THRESHOLD * maxx):
+                if dist[i] > (self.config.INFER_ANOMALY_THRESHOLD * stdd + mean):
                     s['anomaly'] = 1
                     _LOGGER.warn("Anomaly found (score: %f): %s" % (dist[i], s['message']))
                 else:
