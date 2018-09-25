@@ -80,9 +80,9 @@ class AnomalyDetector():
         then = time.time()
 
         if not self.recreate_models and self.update_w2v_model:
-            new_D, _ = self.w2v_model.update(data)
+            self.w2v_model.update(data)
         else:
-            new_D, _ = self.w2v_model.create(data)
+            self.w2v_model.create(data)
 
         try:
             self.w2v_model.save(self.config.W2V_MODEL_PATH)
@@ -95,7 +95,7 @@ class AnomalyDetector():
         _LOGGER.info("Training and Saving took %s minutes", ((now-then)/60))
         _LOGGER.info("Encoding Text Data")
 
-        to_put_train = self.w2v_model.one_vector(new_D)
+        to_put_train = self.w2v_model.one_vector(data)
 
         _LOGGER.info("Start Training SOM...")
 
@@ -155,15 +155,15 @@ class AnomalyDetector():
                 time.sleep(5)
                 continue
 
-            _LOGGER.info("%d logs loaded from the last %d seconds", len(data) , self.config.INFER_TIME_SPAN)
+            _LOGGER.info("%d logs loaded from the last %d seconds", len(data), self.config.INFER_TIME_SPAN)
 
             try:
-                new_D, _ = self.w2v_model.update(data)
+                self.w2v_model.update(data)
             except KeyError:
                 _LOGGER.error("Word2Vec model fields incompatible with current log set. Retrain model with log data from the same service")
                 exit()
 
-            v = self.w2v_model.one_vector(new_D)
+            v = self.w2v_model.one_vector(data)
 
             dist = []
             for i in v:
@@ -219,4 +219,5 @@ class AnomalyDetector():
                 self.infer()
             except Exception as ex:
                 _LOGGER.error("Inference failed: %s" % ex)
-                time.sleep(5)
+                raise ex
+                #time.sleep(5)

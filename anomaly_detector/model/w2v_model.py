@@ -16,28 +16,22 @@ class W2VModel(BaseModel):
 
     def update(self, words):
         """Update existing w2v model."""
-        words = words.fillna('EMPTY')
-
         for col in list(self.model.keys()):
             if col in words:
+                print(col)
                 self.model[col].build_vocab([words[col]], update=True)
             else:
                 _LOGGER.warning("Skipping key %s as it does not exist in 'words'" % col)
         _LOGGER.info("Models Updated")
-        return words, self.model
 
     def create(self, words):
         """Create new word2vec model."""
-        words = words.fillna("EMPTY")
-
         self.model = {}
         for col in words.columns:
             if col in words:
                 self.model[col] = Word2Vec([list(words[col])], min_count=1, size=50)
             else:
                 _LOGGER.warning("Skipping key %s as it does not exist in 'words'" % col)
-
-        return words, self.model
 
     def one_vector(self, new_D):
         """Create a single vector from model."""
