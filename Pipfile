@@ -10,7 +10,7 @@ pydocstyle = "*"
 "pep8" = "*"
 
 [packages]
-"elasticsearch2" = "*"
+"elasticsearch5" = "*"
 gensim = "*"
 matplotlib = "*"
 numpy = "*"

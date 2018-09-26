@@ -140,8 +140,8 @@ class AnomalyDetector():
         stdd = meta_data[1]
         mean = meta_data[0]
 
-        _LOGGER.info("Mean: %f, stdd: %f" % (mean, stdd))
-
+        _LOGGER.info("Log message has to cross score %f to be considered an anomaly."
+                        % (self.config.INFER_ANOMALY_THRESHOLD * stdd + mean))
         _LOGGER.info("Models loaded, running %d infer loops" % self.config.INFER_LOOPS)
 
         infer_loops = 0

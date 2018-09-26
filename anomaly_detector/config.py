@@ -2,6 +2,7 @@
 """
 
 import os
+import distutils
 
 import logging
 
@@ -50,7 +51,7 @@ class Configuration():
     # Number of seconds specifying how far to the past to go to load log entries for training TODO: move to es storage backend
     TRAIN_TIME_SPAN = 900
     # Maximum number of entries for training loaded from backend storage
-    TRAIN_MAX_ENTRIES = 45000
+    TRAIN_MAX_ENTRIES = 10000
     # Number of SOM training iterations TODO: move to model config
     TRAIN_ITERATIONS = 4500
     # If true, re-traing the models
@@ -88,7 +89,7 @@ class Configuration():
             val = os.environ.get(env)
             typ = type(getattr(self, prop))
             if val:
-                _LOGGER.info("Loading %s from environment" % env)
+                _LOGGER.info("Loading %s from environment as %s" % (env, typ))
                 if typ is int:
                     setattr(self, prop, int(val))
                 elif typ is float:
@@ -96,7 +97,7 @@ class Configuration():
                 elif typ is str:
                     setattr(self, prop, str(val))
                 elif typ is bool:
-                    setattr(self, prop, bool(val))
+                    setattr(self, prop, bool(distutils.util.strtobool(val)))
                 else:
                     raise Exception("Incorrect type for %s (%s) loaded from env %s" % (prop, typ, env))
 
