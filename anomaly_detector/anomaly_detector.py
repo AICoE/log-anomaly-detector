@@ -2,6 +2,7 @@
 """
 
 import logging
+from prometheus_client import start_http_server, Gauge, Counter
 
 from .storage.es_storage import ESStorage
 from .storage.local_storage import LocalStorage
@@ -21,6 +22,12 @@ matplotlib.use("agg")
 
 _LOGGER = logging.getLogger(__name__)
 
+ANOMALY_THRESHOLD = Gauge("anomaly_threshold", "A threshold which decides whether an entry is anomaly")
+TRAINING_COUNT = Counter("training_count", "Number of training runs")
+TRAINING_TIME = Gauge("training_time", "Time to train for last training")
+INFERENCE_COUNT = Counter("inference_count", "Number of inference runs")
+PROCESSED_MESSAGES = Counter("inference_processed_count", "Number of log entries processed in inference")
+ANOMALY_COUNT = Counter("anomaly_count", "Number of anomalies found")
 
 class AnomalyDetector():
     """Implements training and inference of Self-Organizing Map to detect anomalies in logs."""
@@ -67,6 +74,7 @@ class AnomalyDetector():
 
         return data, raw
 
+    @TRAINING_TIME.time()
     def train(self):
         """Train models for anomaly detection."""
         start = time.time()
@@ -131,6 +139,7 @@ class AnomalyDetector():
         end = time.time()
         _LOGGER.info("Whole Process takes %s minutes", ((end-start)/60))
 
+        TRAINING_COUNT.inc()
         return 0
 
     def infer(self):
@@ -139,13 +148,16 @@ class AnomalyDetector():
 
         stdd = meta_data[1]
         mean = meta_data[0]
+        threshold = self.config.INFER_ANOMALY_THRESHOLD * stdd + mean
 
+        ANOMALY_THRESHOLD.set(threshold)
         _LOGGER.info("Log message has to cross score %f to be considered an anomaly."
-                        % (self.config.INFER_ANOMALY_THRESHOLD * stdd + mean))
+                        % threshold)
         _LOGGER.info("Models loaded, running %d infer loops" % self.config.INFER_LOOPS)
 
         infer_loops = 0
         while infer_loops < self.config.INFER_LOOPS:
+            INFERENCE_COUNT.inc()
             then = time.time()
             now = datetime.datetime.now()
 
@@ -177,7 +189,8 @@ class AnomalyDetector():
                 s = json_logs[i]    # This needs to be more general, only works for ES incoming logs right now.
                 s['anomaly_score'] = dist[i]
 
-                if dist[i] > (self.config.INFER_ANOMALY_THRESHOLD * stdd + mean):
+                if dist[i] > threshold:
+                    ANOMALY_COUNT.inc()
                     s['anomaly'] = 1
                     _LOGGER.warn("Anomaly found (score: %f): %s" % (dist[i], s['message']))
                 else:
@@ -187,6 +200,7 @@ class AnomalyDetector():
 
                 f.append(s)
 
+            PROCESSED_MESSAGES.inc(len(f))
             self.storage.store_results(f)
 
             # Inference done, increase counter
@@ -205,6 +219,8 @@ class AnomalyDetector():
 
     def run(self):
         """Run the main loop."""
+        start_http_server(8080)
+
         while True:
             if self.update_model or self.update_w2v_model or self.recreate_models:
                 try:
