@@ -30,7 +30,7 @@ class Storage(object):
     @classmethod
     def _clean_message(cls, line):
         """Remove all none alphabetical characters from message strings."""
-        return "".join(re.findall("[a-zA-Z0-7 ]+", line))
+        return "".join(re.findall("[a-zA-Z]+", line)) # Leaving only a-z in there as numbers add to anomalousness quite a bit
 
     @classmethod
     def _preprocess(cls, data):

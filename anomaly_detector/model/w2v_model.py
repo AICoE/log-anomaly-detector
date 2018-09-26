@@ -18,7 +18,6 @@ class W2VModel(BaseModel):
         """Update existing w2v model."""
         for col in list(self.model.keys()):
             if col in words:
-                print(col)
                 self.model[col].build_vocab([words[col]], update=True)
             else:
                 _LOGGER.warning("Skipping key %s as it does not exist in 'words'" % col)
@@ -37,7 +36,8 @@ class W2VModel(BaseModel):
         """Create a single vector from model."""
         transforms = {}
         for col in self.model.keys():
-            transforms[col] = self.model[col].wv[new_D[col]]
+            if col in new_D:
+                transforms[col] = self.model[col].wv[new_D[col]]
 
         new_data = []
 

@@ -2,9 +2,12 @@
 """
 
 import datetime
+import pandas
 from pandas.io.json import json_normalize
-from elasticsearch2 import Elasticsearch, helpers
+from elasticsearch5 import Elasticsearch, helpers
 import json
+import os
+import urllib3
 
 from .storage import Storage
 from ..config import Configuration
@@ -27,7 +30,24 @@ class ESStorage(Storage):
         self._connect()
 
     def _connect(self):
-        self.es = Elasticsearch(self.config.storage.ES_ENDPOINT, timeout=60, max_retries=2)
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        if len(self.config.storage.ES_CERT_DIR) and os.path.isdir(self.config.storage.ES_CERT_DIR):
+            _LOGGER.warn("Using cert and key in %s for connection to %s (verify_certs=%s)." %
+                (self.config.storage.ES_CERT_DIR, self.config.storage.ES_ENDPOINT, self.config.storage.ES_VERIFY_CERTS))
+            self.es = Elasticsearch(self.config.storage.ES_ENDPOINT,
+                                    use_ssl=self.config.storage.ES_USE_SSL,
+                                    verify_certs=self.config.storage.ES_VERIFY_CERTS,
+                                    client_cert=os.path.join(self.config.storage.ES_CERT_DIR, "es.crt"),
+                                    client_key=os.path.join(self.config.storage.ES_CERT_DIR, "es.key"),
+                                    timeout=60,
+                                    max_retries=2)
+        else:
+            _LOGGER.warn("Conecting to ElasticSearch without authentication.")
+            print(self.config.storage.ES_USE_SSL)
+            self.es = Elasticsearch(self.config.storage.ES_ENDPOINT,
+                                    use_ssl=self.config.storage.ES_USE_SSL,
+                                    verify_certs=self.config.storage.ES_VERIFY_CERTS,
+                                    timeout=60, max_retries=2)
 
     def _prep_index_name(self, prefix):
         # appends the correct date to the index prefix
@@ -40,23 +60,42 @@ class ESStorage(Storage):
         """Retrieve data from ES."""
         index_in = self._prep_index_name(self.config.storage.ES_INPUT_INDEX)
 
-        query = {'query': {'match': {'service': 'journal'}},
-                 "filter": {"range": {"@timestamp": {"gte": "now-2s", "lte": "now"}}},
-                 'sort': {'@timestamp': {'order': 'desc'}},
-                 "size": 20
-                 }
-
+        query = {
+            'sort': {'@timestamp': {'order': 'desc'}},
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "query_string": {
+                                "analyze_wildcard": True,
+                                "query": ""
+                            }
+                        },
+                        {
+                            "range": {
+                                "@timestamp": {
+                                "gte": "now-900s",
+                                "lte": "now",
+                                }
+                            }
+                        }
+                    ],
+                    "must_not": []
+                }
+            }
+        }
         _LOGGER.info("Reading in max %d log entries in last %d seconds from %s", number_of_entires, time_range, self.config.storage.ES_ENDPOINT)
 
         query['size'] = number_of_entires
-        query['filter']['range']['@timestamp']['gte'] = 'now-%ds' % time_range
-        query['query']['match']['service'] = self.config.storage.ES_SERVICE
+        query['query']['bool']['must'][1]['range']['@timestamp']['gte'] = 'now-%ds' % time_range
+        query['query']['bool']['must'][0]['query_string']['query'] = self.config.storage.ES_QUERY
 
         es_data = self.es.search(index_in, body=json.dumps(query))
-
+        if es_data['hits']['total'] == 0:
+            return pandas.DataFrame(), es_data
         # only use _source sub-dict
         es_data = [x['_source'] for x in es_data['hits']['hits']]
-        es_data_normalized = json_normalize(es_data)
+        es_data_normalized = pandas.DataFrame(json_normalize(es_data)['message'])
 
         _LOGGER.info("%d logs loaded in from last %d seconds", len(es_data_normalized), time_range)
 
@@ -81,12 +120,18 @@ class ESConfiguration(Configuration):
 
     # ElasticSearch endpoint URL
     ES_ENDPOINT = ""
+    # Path to a directory where cert and key (es.crt and es.key) are stored for authentication
+    ES_CERT_DIR = ""
+    # If True, connect using ssl
+    ES_USE_SSL = True
+    # If True, verify SSL certificates
+    ES_VERIFY_CERTS = False
     # ElasticSearch index name where results will be pushed to
     ES_TARGET_INDEX = ""
     # ElasticSearch index name where log entries will be pulled from
     ES_INPUT_INDEX = ""
-    # Name of the service to be used in the ElasticSearch query
-    ES_SERVICE = ""
+    # JSON representing a query passed to ElasticSearch to match the data
+    ES_QUERY = ""
 
     def __init__(self):
         """Initialize ES configuration."""
