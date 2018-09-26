@@ -18,6 +18,7 @@ pandas = "*"
 scikit-learn = "*"
 scipy = "*"
 tqdm = "*"
+prometheus_client = "*"
 
 [requires]
 python_version = "3.6"

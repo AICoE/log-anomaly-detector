@@ -132,6 +132,8 @@ objects:
               limits:
                 memory: 2Gi
                 cpu: 2
+            ports:
+              - containerPort: 8080
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         schedulerName: default-scheduler
@@ -148,7 +150,16 @@ objects:
           from:
             kind: "ImageStreamTag"
             name: "log-anomaly-detector-${NAME}:latest"
-
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: log-anomaly-detector-${NAME}      
+  spec:
+    selector:                  
+      app: log-anomaly-detector-${NAME}
+    ports:
+    - port: 8080
+      targetPort: 8080
 parameters:
   - name: NAME
     required: true
