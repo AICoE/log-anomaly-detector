@@ -23,12 +23,12 @@ class W2VModel(BaseModel):
                 _LOGGER.warning("Skipping key %s as it does not exist in 'words'" % col)
         _LOGGER.info("Models Updated")
 
-    def create(self, words):
+    def create(self, words, vector_length, window_size):
         """Create new word2vec model."""
         self.model = {}
         for col in words.columns:
             if col in words:
-                self.model[col] = Word2Vec([list(words[col])], min_count=1, size=50)
+                self.model[col] = Word2Vec([list(words[col])], min_count=1, size=vector_length, window=window_size)
             else:
                 _LOGGER.warning("Skipping key %s as it does not exist in 'words'" % col)
 
