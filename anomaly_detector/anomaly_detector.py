@@ -90,7 +90,7 @@ class AnomalyDetector():
         if not self.recreate_models and self.update_w2v_model:
             self.w2v_model.update(data)
         else:
-            self.w2v_model.create(data)
+            self.w2v_model.create(data, self.config.TRAIN_VECTOR_LENGTH, self.config.TRAIN_WINDOW)
 
         try:
             self.w2v_model.save(self.config.W2V_MODEL_PATH)

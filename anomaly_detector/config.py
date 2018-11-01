@@ -56,6 +56,10 @@ class Configuration():
     TRAIN_ITERATIONS = 4500
     # If true, re-traing the models
     TRAIN_UPDATE_MODEL = False
+    # Set the window size for word2Vec training
+    TRAIN_WINDOW = 5
+    # Set the length of the encoded log vectors
+    TRAIN_VECTOR_LENGTH = 25
 
     # Threshold used to decide whether an entry is an anomaly
     INFER_ANOMALY_THRESHOLD = 3.1
