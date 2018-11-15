@@ -1,5 +1,5 @@
 export LADT_MODEL_DIR="models" # Name of persistant storage directory that models will be saved to
-export LADT_ELASTICSEARCH_ENDPOINT='http://elasticsearch.perf.lab.eng.bos.redhat.com:9280' # address to Elasticsearch endpoint
+export LADT_ELASTICSEARCH_ENDPOINT='' # address to Elasticsearch endpoint
 export LADT_MODEL='map.sav' # path to SOM map to update 
 export LADT_INDEX='logstash-' # name of Elasticsearch index to pull logs from 
 export LADT_TIME_SPAN=900 # number of seconds from now that you would like to query Elasticsearch for training logs
@@ -9,7 +9,7 @@ export LADT_SERVICE='journal' # name of Elasticsearch service to be monitored
 export LADT_TRAIN_LAG=15 # Number of Inference iterations between retraining the model
 export LADT_UPDATE_MODEL=True 
 
-export LADI_ELASTICSEARCH_ENDPOINT='http://elasticsearch.perf.lab.eng.bos.redhat.com:9280' # address to Elasticsearch endpoint for inference
+export LADI_ELASTICSEARCH_ENDPOINT='' # address to Elasticsearch endpoint for inference
 export LADI_MODEL='map.sav' # path to SOM map to test against
 export LADI_INDEX='logstash-' # name of Elasticsearch index to pull logs from 
 export LADI_TARGET_INDEX='mcliffor_test_ingest-' # name of index the anoamliy data will be pushed back to in Elasticsearch
