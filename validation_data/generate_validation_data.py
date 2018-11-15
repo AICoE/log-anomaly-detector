@@ -51,7 +51,7 @@ def create_anomlous_entires(string, entropy):
 
 def main():
 	random.seed(42)
-	data = get_data_from_es(ENDPOINT, INDEX, SERVICE, num=800, time=6000000)
+	data = get_data_from_es(ENDPOINT, INDEX, SERVICE, num=80000, time=6000000)
 	logs = data['hits']['hits']
 
 	eighty_percent = int(round(len(logs) * 0.80))
