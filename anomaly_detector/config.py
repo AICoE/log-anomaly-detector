@@ -36,6 +36,10 @@ class Configuration():
 
     # One of the storage backends available in storage/ dir
     STORAGE_BACKEND = "local"
+    # Location of local data
+    LOCAL_DATA_FILE = os.environ['LOCAL_DATA_FILE']
+    # Name of local results data
+    LOCAL_RESULTS_FILE = os.environ['LOCAL_RESULTS_FILE']
     # A directory where trained models will be stored
     MODEL_DIR = "./models/"
     MODE_DIR_CALLABLE = check_or_create_model_dir

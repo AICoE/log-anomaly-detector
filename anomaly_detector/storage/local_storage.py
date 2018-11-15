@@ -81,9 +81,9 @@ class LSConfiguration(Configuration):
     """Configuration for local storage."""
 
     # Path to a file containing input data. If the value is '-' the input is expected on STDIN
-    LS_INPUT_PATH = ""
+    LS_INPUT_PATH = Configuration.LOCAL_DATA_FILE #"validation_data/verification_data.json"
     # Path to a file where the results will be stored. Results will be printed to STDOUT if empty
-    LS_OUTPUT_PATH = ""
+    LS_OUTPUT_PATH = Configuration.LOCAL_RESULTS_FILE
 
     def __init__(self):
         """Initialize configuration."""
