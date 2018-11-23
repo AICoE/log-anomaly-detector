@@ -9,6 +9,7 @@ env:
     - LOCAL_RESULTS_FILE=/tmp/local-results.txt
 install:
   - "pip install pipenv"
+  - "pipenv install"
   - "pipenv install --dev"
 script:
   - "pipenv graph"
