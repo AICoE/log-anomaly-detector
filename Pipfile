@@ -20,5 +20,8 @@ scipy = "*"
 tqdm = "*"
 prometheus_client = "*"
 
+[dev-packages]
+pytest = "*"
+
 [requires]
 python_version = "3.6"

@@ -5,8 +5,11 @@ env:
   global:
     - PIPENV_VENV_IN_PROJECT=1
     - PIPENV_IGNORE_VIRTUALENVS=1
+    - LOCAL_DATA_FILE=../validation_data/Hadoop_2k.json
+    - LOCAL_RESULTS_FILE=/tmp/local-results.txt
 install:
   - "pip install pipenv"
-  - "pipenv install"
+  - "pipenv install --dev"
 script:
   - "pipenv graph"
+  - "pipenv run pytest"
