@@ -8,6 +8,7 @@ pylint = "*"
 "flake8" = "*"
 pydocstyle = "*"
 "pep8" = "*"
+pytest = "*"
 
 [packages]
 "elasticsearch5" = "*"
@@ -19,6 +20,7 @@ scikit-learn = "*"
 scipy = "*"
 tqdm = "*"
 prometheus_client = "*"
+
 
 [requires]
 python_version = "3.6"
