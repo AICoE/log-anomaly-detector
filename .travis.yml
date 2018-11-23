@@ -8,7 +8,7 @@ env:
     - LOCAL_DATA_FILE=../validation_data/Hadoop_2k.json
     - LOCAL_RESULTS_FILE=/tmp/local-results.txt
 install:
-  - "pip install --user --upgrade pipenv"
+  - "pip install --upgrade pipenv"
   - "pipenv install"
 script:
   - "pipenv run pytest"
