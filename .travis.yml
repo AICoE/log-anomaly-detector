@@ -9,7 +9,7 @@ env:
     - LOCAL_RESULTS_FILE=/tmp/local-results.txt
 install:
   - "pip install pipenv"
-  - "pipenv install --deploy"
+  - "pipenv update"
   - "pipenv install"
 script:
   - "pipenv run pytest"
