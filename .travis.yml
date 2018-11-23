@@ -5,10 +5,12 @@ env:
   global:
     - PIPENV_VENV_IN_PROJECT=1
     - PIPENV_IGNORE_VIRTUALENVS=1
-    - LOCAL_DATA_FILE=../validation_data/Hadoop_2k.json
+    - LOCAL_DATA_FILE=validation_data/Hadoop_2k.json
     - LOCAL_RESULTS_FILE=/tmp/local-results.txt
+# https://github.com/spulec/moto/issues/1771#issuecomment-412209380
+before_install:
+  - export BOTO_CONFIG=/dev/null
 install:
-  - "pip install --upgrade pipenv"
-  - "pipenv install"
+  - "pipenv install --dev --deploy"
 script:
   - "pipenv run pytest"
