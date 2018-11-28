@@ -8,6 +8,7 @@ from .storage.es_storage import ESStorage
 from .storage.local_storage import LocalStorage
 from .config import Configuration
 from .model.som_model import SOMModel
+from .model.sompy_model import SOMPYModel
 from .model.model_exception import ModelLoadException, ModelSaveException
 from .model.w2v_model import W2VModel
 
@@ -18,6 +19,7 @@ import datetime
 import time
 import matplotlib
 matplotlib.use("agg")
+
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -49,7 +51,7 @@ class AnomalyDetector():
         if not self.storage:
             raise Exception("Could not use %s storage backend" % self.STORAGE_BACKENDS)
 
-        self.model = SOMModel()
+        self.model = SOMPYModel()
         self.w2v_model = W2VModel()
         try:
             self.model.load(self.config.MODEL_PATH)
@@ -112,7 +114,7 @@ class AnomalyDetector():
         if self.recreate_models or self.update_model:
                 self.model.set(np.random.rand(24, 24, to_put_train.shape[1]))
 
-        self.model.train(to_put_train, 24, self.config.TRAIN_ITERATIONS)
+        self.model.train(to_put_train, 24, self.config.TRAIN_ITERATIONS, self.config.PARALLELISM)
         now = time.time()
 
         _LOGGER.info("Training took %s minutes", ((now-then)/60))
@@ -123,11 +125,8 @@ class AnomalyDetector():
         dist = []
         cnt = 0
         total = len(to_put_train)
-        for i in to_put_train:
-            if not cnt % int(total/10):
-                _LOGGER.info("Anomaly scoring %d/%d" % (cnt, total))
-            dist.append(self.model.get_anomaly_score(i))
-            cnt += 1
+
+        dist = self.model.get_anomaly_score(to_put_train, self.config.PARALLELISM)
 
         self.model.set_metadata((np.mean(dist), np.std(dist), np.max(dist), np.min(dist)))
         try:
@@ -178,8 +177,8 @@ class AnomalyDetector():
             v = self.w2v_model.one_vector(data)
 
             dist = []
-            for i in v:
-                dist.append(self.model.get_anomaly_score(i))
+
+            dist = self.model.get_anomaly_score(v, self.config.PARALLELISM)
 
             f = []
 
