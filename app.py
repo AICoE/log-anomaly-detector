@@ -38,7 +38,7 @@ def _main():
     # store our models in google cloud storage or azure instead of s3 in the future
     if args.modelstore=="s3":
         _LOGGER.info("Model will be stored in s3")
-        anomaly_detector.config.MODEL_BACKUP_SYSTEM="s3"
+        anomaly_detector.config.MODEL_STORE="s3"
 
     if args.mode == 'train':
         _LOGGER.info ("Performing training...")

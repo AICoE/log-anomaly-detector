@@ -230,7 +230,7 @@ class AnomalyDetector():
         
         :return:
         """
-        if self.config.MODEL_BACKUP_SYSTEM == 's3':
+        if self.config.MODEL_STORE == 's3':
             session = boto3.session.Session()
             s3_key = os.getenv("CEPH_KEY")
             s3_secret = os.getenv("CEPH_SECRET")
@@ -242,17 +242,17 @@ class AnomalyDetector():
 
             s3_bucket = os.getenv("CEPH_BUCKET")
             t_timestamp = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-            s3_client.put_object(Bucket=s3_bucket, Key=(self.config.S3_MODEL_UPLOAD_PATH + t_timestamp + "/"))
-            _LOGGER.info("Created bucket: " + self.config.S3_MODEL_UPLOAD_PATH + t_timestamp + "/")
+            s3_client.put_object(Bucket=s3_bucket, Key=(self.config.MODEL_STORE_PATH + t_timestamp + "/"))
+            _LOGGER.info("Created bucket: " + self.config.MODEL_STORE_PATH + t_timestamp + "/")
             s3_client.upload_file(Filename='models/SOM.model', Bucket=s3_bucket,
-                                  Key=(self.config.S3_MODEL_UPLOAD_PATH + t_timestamp + '/SOM.model'))
+                                  Key=(self.config.MODEL_STORE_PATH + t_timestamp + '/SOM.model'))
             s3_client.upload_file(Filename='models/U-map.png', Bucket=s3_bucket,
-                                  Key=(self.config.S3_MODEL_UPLOAD_PATH + t_timestamp + '/U-map.png'))
+                                  Key=(self.config.MODEL_STORE_PATH + t_timestamp + '/U-map.png'))
             s3_client.upload_file(Filename='models/W2V.model', Bucket=s3_bucket,
-                                  Key=(self.config.S3_MODEL_UPLOAD_PATH + t_timestamp + '/W2V.model'))
+                                  Key=(self.config.MODEL_STORE_PATH + t_timestamp + '/W2V.model'))
             _LOGGER.info("Done uploading models to s3 complete")
         else:
-            _LOGGER.info("Must set MODEL_BACKUP_SYSTEM='s3' to save to s3")
+            _LOGGER.info("Must set MODEL_STORE='s3' to save to s3")
 
 
     def run(self):
