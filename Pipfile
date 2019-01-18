@@ -20,6 +20,7 @@ scikit-learn = "*"
 scipy = "*"
 tqdm = "*"
 prometheus_client = "*"
+boto3 = "*"
 
 
 [requires]

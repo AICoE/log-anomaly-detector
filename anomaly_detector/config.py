@@ -51,6 +51,8 @@ class Configuration():
     MODEL_PATH = ""
     W2V_MODEL_PATH_CALLABLE = join_w2v_model_path
     W2V_MODEL_PATH = ""
+    MODEL_BACKUP_SYSTEM= ""
+    S3_MODEL_UPLOAD_PATH = 'anomaly-detection/models/'
 
     # Number of seconds specifying how far to the past to go to load log entries for training TODO: move to es storage backend
     TRAIN_TIME_SPAN = 900

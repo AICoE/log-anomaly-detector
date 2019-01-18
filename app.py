@@ -31,7 +31,14 @@ def _main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", nargs='?', default="all")
+    parser.add_argument("--modelstore", nargs='?')
+
     args = parser.parse_args()
+    # Allow users to pick storage location we may want to
+    # store our models in google cloud storage or azure instead of s3 in the future
+    if args.modelstore=="s3":
+        _LOGGER.info("Model will be stored in s3")
+        anomaly_detector.config.MODEL_BACKUP_SYSTEM="s3"
 
     if args.mode == 'train':
         _LOGGER.info ("Performing training...")

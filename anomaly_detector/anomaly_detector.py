@@ -18,7 +18,7 @@ import datetime
 import time
 import matplotlib
 matplotlib.use("agg")
-
+import boto3
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -94,6 +94,8 @@ class AnomalyDetector():
 
         try:
             self.w2v_model.save(self.config.W2V_MODEL_PATH)
+
+
         except ModelSaveException as ex:
             _LOGGER.error("Failed to save W2V model: %s" % ex)
             raise
@@ -138,7 +140,7 @@ class AnomalyDetector():
 
         end = time.time()
         _LOGGER.info("Whole Process takes %s minutes", ((end-start)/60))
-
+        self.syncModel()
         TRAINING_COUNT.inc()
         return 0
 
@@ -216,6 +218,42 @@ class AnomalyDetector():
 
         # When we reached # of inference loops, retrain models
         self.recreate_models = True
+
+    def syncModel(self):
+        """
+        Will check if the after training you would like to store models in s3
+        with timestamp. It will follow a particular pattern:
+
+        s3://<bucket_name>/<path>/<timestamp>
+
+        Later after running training you can serve models from a particular timestamp.
+        
+        :return:
+        """
+        if self.config.MODEL_BACKUP_SYSTEM == 's3':
+            session = boto3.session.Session()
+            s3_key = os.getenv("CEPH_KEY")
+            s3_secret = os.getenv("CEPH_SECRET")
+            s3_host = os.getenv("CEPH_HOST")
+            s3_client = session.client(service_name='s3',
+                                       aws_access_key_id=s3_key,
+                                       aws_secret_access_key=s3_secret,
+                                       endpoint_url=s3_host, )
+
+            s3_bucket = os.getenv("CEPH_BUCKET")
+            t_timestamp = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+            s3_client.put_object(Bucket=s3_bucket, Key=(self.config.S3_MODEL_UPLOAD_PATH + t_timestamp + "/"))
+            _LOGGER.info("Created bucket: " + self.config.S3_MODEL_UPLOAD_PATH + t_timestamp + "/")
+            s3_client.upload_file(Filename='models/SOM.model', Bucket=s3_bucket,
+                                  Key=(self.config.S3_MODEL_UPLOAD_PATH + t_timestamp + '/SOM.model'))
+            s3_client.upload_file(Filename='models/U-map.png', Bucket=s3_bucket,
+                                  Key=(self.config.S3_MODEL_UPLOAD_PATH + t_timestamp + '/U-map.png'))
+            s3_client.upload_file(Filename='models/W2V.model', Bucket=s3_bucket,
+                                  Key=(self.config.S3_MODEL_UPLOAD_PATH + t_timestamp + '/W2V.model'))
+            _LOGGER.info("Done uploading models to s3 complete")
+        else:
+            _LOGGER.info("Must set MODEL_BACKUP_SYSTEM='s3' to save to s3")
+
 
     def run(self):
         """Run the main loop."""
