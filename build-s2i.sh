@@ -1,14 +1,14 @@
 #!/bin/sh
-VERSION="0.1-rc1"
+VERSION="0.1-rc2"
 MAINTAINERS="Zak Hassan"
-COMPONENT="anomaly-detection-training"
+COMPONENT="log-anomaly-detection"
 
 #cleaning up the image folder:
 
-DKR_HUB_NAME=quay.io/zmhassan/anomaly-detection-training:$VERSION
-IMAGE_NAME=anomaly-detector-train:$VERSION
+PUBLIC_IMAGE_NAME=quay.io/zmhassan/$COMPONENT:$VERSION
+IMAGE_NAME=$COMPONENT:$VERSION
 
 s2i build . docker.io/centos/python-36-centos7:latest $IMAGE_NAME
 
-docker tag  $IMAGE_NAME $DKR_HUB_NAME
-docker push  $DKR_HUB_NAME
+docker tag  $IMAGE_NAME $PUBLIC_IMAGE_NAME
+docker push  $PUBLIC_IMAGE_NAME

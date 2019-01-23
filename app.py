@@ -36,14 +36,14 @@ def _main():
     args = parser.parse_args()
     # Allow users to pick storage location we may want to
     # store our models in google cloud storage or azure instead of s3 in the future
-    if args.modelstore=="s3" or os.getenv("MODEL_STORE")== "s3":
+    if args.modelstore=="s3" or os.getenv("LAD_MODEL_STORE")== "s3":
         _LOGGER.info("Model will be stored in s3")
         anomaly_detector.config.MODEL_STORE="s3"
 
-    if args.mode == 'train' or os.getenv("MODE") == "train":
+    if args.mode == 'train' or os.getenv("LAD_MODE") == "train":
         _LOGGER.info ("Performing training...")
         anomaly_detector.train()
-    elif args.mode == 'inference' or os.getenv("MODE") == "inference":
+    elif args.mode == 'inference' or os.getenv("LAD_MODE") == "inference":
         _LOGGER.info("Perform inference...")
         anomaly_detector.infer()
     elif args.mode == 'all':
