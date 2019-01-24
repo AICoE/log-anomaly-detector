@@ -232,15 +232,15 @@ class AnomalyDetector():
         """
         if self.config.MODEL_STORE == 's3':
             session = boto3.session.Session()
-            s3_key = os.getenv("CEPH_KEY")
-            s3_secret = os.getenv("CEPH_SECRET")
-            s3_host = os.getenv("CEPH_HOST")
+            s3_key = os.getenv("S3_KEY")
+            s3_secret = os.getenv("S3_SECRET")
+            s3_host = os.getenv("S3_HOST")
             s3_client = session.client(service_name='s3',
                                        aws_access_key_id=s3_key,
                                        aws_secret_access_key=s3_secret,
                                        endpoint_url=s3_host, )
 
-            s3_bucket = os.getenv("CEPH_BUCKET")
+            s3_bucket = os.getenv("S3_BUCKET")
             t_timestamp = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
             s3_client.put_object(Bucket=s3_bucket, Key=(self.config.MODEL_STORE_PATH + t_timestamp + "/"))
             _LOGGER.info("Created bucket: " + self.config.MODEL_STORE_PATH + t_timestamp + "/")
