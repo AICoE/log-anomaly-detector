@@ -7,7 +7,7 @@ import sys
 import logging
 
 from anomaly_detector.config import Configuration
-
+import argparse
 _LOGGER = logging.getLogger()
 _LOGGER.setLevel(logging.INFO)
 
@@ -28,7 +28,29 @@ def _main():
     _LOGGER.info("Starting...")
     config = Configuration(CONFIGURATION_PREFIX)
     anomaly_detector = AnomalyDetector(config)
-    anomaly_detector.run()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mode", nargs='?', default="all")
+    parser.add_argument("--modelstore", nargs='?')
+
+    args = parser.parse_args()
+    # Allow users to pick storage location we may want to
+    # store our models in google cloud storage or azure instead of s3 in the future
+    if args.modelstore=="s3":
+        _LOGGER.info("Model will be stored in s3")
+        anomaly_detector.config.MODEL_STORE="s3"
+
+    if args.mode == 'train':
+        _LOGGER.info ("Performing training...")
+        anomaly_detector.train()
+    elif args.mode == 'inference':
+        _LOGGER.info("Perform inference...")
+        anomaly_detector.infer()
+    elif args.mode == 'all':
+        _LOGGER.info("Perform training and inference in loop...")
+        anomaly_detector.run()
+
+    _LOGGER.info("Job Complete")
 
 
 if __name__ == "__main__":

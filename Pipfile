@@ -21,6 +21,7 @@ scipy = "*"
 tqdm = "*"
 prometheus_client = "*"
 sompy = {editable = true, ref = "76b60ebd6ffd550b0f7faaf632451dfd68827bf7", git = "https://github.com/sevamoo/SOMPY.git"}
+boto3 = "*"
 
 [requires]
 python_version = "3.6"

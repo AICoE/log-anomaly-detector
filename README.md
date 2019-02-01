@@ -6,18 +6,27 @@ Internally it utilizes gensim for its Word2Vec implementation - used to encode t
 
 The execution flow containes of the two main portions (found in any ML application): training and inference.
 
+## Environment variable
+
+Environment variables are loaded from `.env`. `pipenv` will load these automatically. So make sure you execute everything via `pipenv run` or from a `pipenv shell`.
+
+```
+cp .env.example .env`
+```
+
 ## Local Development
 
-You can install and run the application locally by running a standard Python installation using `setup.py`, which will also bring in all the dependencies to your machine.
+You can install and run the application locally by running a standard Python installation using `pipenv`, which will also bring in all the dependencies to your machine.
 
 ```
-python setup.py install
+pipenv install --dev
 ```
 
-then start the application as (don't forget to replace  `...` will all the necessary environment variables)
+
+then start the application via
 
 ```
-LAD_STORAGE_BACKEND="es" ... python app.py
+pipenv run python app.py
 ```
 
 We recommend using containers and as we use source-to-image for deployments to OpenShift, we prefer to do the same for local development. For that you will need to download `s2i` binary from https://github.com/openshift/source-to-image/releases and install `docker`. To build an image with your application, run
