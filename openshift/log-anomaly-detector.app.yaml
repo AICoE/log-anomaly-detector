@@ -102,6 +102,8 @@ objects:
               value: "${TRAIN_ITERATIONS}"
             - name: LAD_TRAIN_UPDATE_MODEL
               value: "${TRAIN_UPDATE_MODEL}"
+            - name: LAD_PARALLELISM
+              value: "${PARALLELISM}"
           #Inference 
             - name: LAD_INFER_TIME_SPAN
               value: "${INFER_TIME_SPAN}"
@@ -129,9 +131,11 @@ objects:
               - mountPath: /opt/app-root/src/${MODEL_DIR}
                 name: model-storage
             resources:
+              requests:
+                cpu: "${PARALLELISM}"
               limits:
                 memory: 2Gi
-                cpu: 2
+                cpu: "${PARALLELISM}"
             ports:
               - containerPort: 8080
         dnsPolicy: ClusterFirst
@@ -189,6 +193,9 @@ parameters:
   - name: TRAIN_UPDATE_MODEL
     description: "True if updating existing model, False if starting new model"
     value: "True"
+  - name: PARALLELISM
+    description: "number of CPUs to use to parallelize training"
+    value: 2
 #Inference 
   - name: INFER_TIME_SPAN
     descripton: "Timespan for inference loop in seconds"  
