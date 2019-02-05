@@ -16,7 +16,7 @@ _LOGGER = logging.getLogger(__name__)
 class SOMModel(BaseModel):
     """Self-Organizing Map model implementation."""
 
-    def train(self, inp, map_size, iterations):
+    def train(self, inp, map_size, iterations, parallelism):
         """Train the SOM model."""
         if self.model is None:
             self.model = np.random.rand(map_size, map_size, inp.shape[1])  # Generate a 24x24 node feature of color data
@@ -70,7 +70,7 @@ class SOMModel(BaseModel):
         fig.colorbar(cax)
         fig.savefig(os.path.join(dest, 'U-map.png'))
 
-    def get_anomaly_score(self, log):
+    def get_anomaly_score(self, log, parallelism):
         """Compute a distance of a log entry to elements of SOM."""
         # convert log into vector using same word2vec model (here just going to grab from existing)
         dist_smallest = np.inf

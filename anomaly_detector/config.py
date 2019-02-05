@@ -57,15 +57,17 @@ class Configuration():
     # Number of seconds specifying how far to the past to go to load log entries for training TODO: move to es storage backend
     TRAIN_TIME_SPAN = 900
     # Maximum number of entries for training loaded from backend storage
-    TRAIN_MAX_ENTRIES = 10000
+    TRAIN_MAX_ENTRIES = 315448
     # Number of SOM training iterations TODO: move to model config
-    TRAIN_ITERATIONS = 4500
+    TRAIN_ITERATIONS = 315448
     # If true, re-traing the models
     TRAIN_UPDATE_MODEL = False
     # Set the window size for word2Vec training
     TRAIN_WINDOW = 5
     # Set the length of the encoded log vectors
     TRAIN_VECTOR_LENGTH = 25
+    #number of jobs to use to parallelize the training, should match cpu resource limit
+    PARALLELISM = 2
 
     # Threshold used to decide whether an entry is an anomaly
     INFER_ANOMALY_THRESHOLD = 3.1
@@ -74,7 +76,7 @@ class Configuration():
     # Number of inferences before retraining the models
     INFER_LOOPS = 10
     # Maximum number of entries to be loaded for inference
-    INFER_MAX_ENTRIES = 10000
+    INFER_MAX_ENTRIES = 78862
 
     prefix = "LAD"
 
