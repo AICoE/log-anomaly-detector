@@ -3,7 +3,6 @@
 
 import os
 import distutils
-
 import logging
 
 _LOGGER = logging.getLogger(__name__)
@@ -37,9 +36,6 @@ class Configuration():
     # One of the storage backends available in storage/ dir
     STORAGE_BACKEND = "local"
     # Location of local data
-    LOCAL_DATA_FILE = os.environ['LOCAL_DATA_FILE']
-    # Name of local results data
-    LOCAL_RESULTS_FILE = os.environ['LOCAL_RESULTS_FILE']
     # A directory where trained models will be stored
     MODEL_DIR = "./models/"
     MODE_DIR_CALLABLE = check_or_create_model_dir
@@ -53,7 +49,6 @@ class Configuration():
     W2V_MODEL_PATH = ""
     MODEL_STORE= ""
     MODEL_STORE_PATH = 'anomaly-detection/models/'
-
     # Number of seconds specifying how far to the past to go to load log entries for training TODO: move to es storage backend
     TRAIN_TIME_SPAN = 900
     # Maximum number of entries for training loaded from backend storage
@@ -77,6 +72,16 @@ class Configuration():
     INFER_LOOPS = 10
     # Maximum number of entries to be loaded for inference
     INFER_MAX_ENTRIES = 78862
+
+    # S3 credentials for storing model up to s3 post training.
+    S3_KEY = ""
+    S3_SECRET = ""
+    S3_HOST = ""
+    S3_BUCKET = ""
+    # local test dataset
+    LS_INPUT_PATH = ""
+    # Name of local results data
+    LS_OUTPUT_PATH =""
 
     prefix = "LAD"
 

@@ -231,22 +231,17 @@ class AnomalyDetector():
         """
         if self.config.MODEL_STORE == 's3':
             session = boto3.session.Session()
-            s3_key = os.getenv("CEPH_KEY")
-            s3_secret = os.getenv("CEPH_SECRET")
-            s3_host = os.getenv("CEPH_HOST")
             s3_client = session.client(service_name='s3',
-                                       aws_access_key_id=s3_key,
-                                       aws_secret_access_key=s3_secret,
-                                       endpoint_url=s3_host, )
+                                       aws_access_key_id=self.config.S3_KEY,
+                                       aws_secret_access_key=self.config.S3_SECRET,
+                                       endpoint_url=self.config.S3_HOST, )
 
-            s3_bucket = os.getenv("CEPH_BUCKET")
+            s3_bucket = self.config.S3_BUCKET
             t_timestamp = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
             s3_client.put_object(Bucket=s3_bucket, Key=(self.config.MODEL_STORE_PATH + t_timestamp + "/"))
             _LOGGER.info("Created bucket: " + self.config.MODEL_STORE_PATH + t_timestamp + "/")
             s3_client.upload_file(Filename='models/SOM.model', Bucket=s3_bucket,
                                   Key=(self.config.MODEL_STORE_PATH + t_timestamp + '/SOM.model'))
-            s3_client.upload_file(Filename='models/U-map.png', Bucket=s3_bucket,
-                                  Key=(self.config.MODEL_STORE_PATH + t_timestamp + '/U-map.png'))
             s3_client.upload_file(Filename='models/W2V.model', Bucket=s3_bucket,
                                   Key=(self.config.MODEL_STORE_PATH + t_timestamp + '/W2V.model'))
             _LOGGER.info("Done uploading models to s3 complete")
