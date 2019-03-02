@@ -1,0 +1,130 @@
+/* Edit Icon */
+.editIcon{
+    padding-left: 6px;
+    opacity: 0.2;
+    cursor: pointer;
+}
+
+.img-thumb {
+    width:80px;
+    height:80px;
+}
+
+/* Add pointer icon */
+.pointer{
+    cursor: pointer;
+}
+
+/* Input Field */
+.inputField{
+    padding-top: 3px;
+}
+.fader{
+    -webkit-animation: fadein 1s; /* Safari, Chrome and Opera > 12.1 */
+    -moz-animation: fadein 1s; /* Firefox < 16 */
+    -ms-animation: fadein 1s; /* Internet Explorer */
+    -o-animation: fadein 1s; /* Opera < 12.1 */
+    animation: fadein 1s;
+}
+@keyframes fadein {
+    from {
+        opacity:0;
+    }
+    to {
+        opacity:1;
+    }
+}
+
+/* animation for message */
+.fade-leave {
+    opacity: 1;
+}
+
+.fade-leave.fade-leave-active {
+    opacity: 0;
+    transition: opacity 1s ease-in;
+}
+
+.fade-enter {
+    opacity: 0;
+}
+
+.fade-enter.fade-enter-active {
+    opacity: 1;
+    transition: opacity 1s ease-in;
+
+}.fade-height {
+     transition: height .5s ease-in-out;
+ }
+
+.cards {
+    margin: 0 auto;
+    float: none;
+    margin-bottom: 10px;
+}
+
+/* css hacks to undo the container styling the react-boostrap navbar is wrapped in */
+
+.navbar > .container {
+    padding-right: unset;
+    padding-left: unset;
+    margin-right: unset;
+    margin-left: unset;
+    width: auto;
+}
+
+.navbar-brand {
+    margin-left: 20px !important;
+}
+
+.container > .navbar-collapse {
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
+.container > .navbar-header {
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
+/* Flex code */
+.aligner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.aligner-item {
+    align-items: stretch;
+}
+
+.config-save-spinner{
+    padding-left: 5px;
+}
+
+.wordwrapper{
+    word-wrap: break-word;
+}
+
+.autowidth{
+    width: auto;
+}
+
+.m-r-8{
+    margin-right: 8px;
+}
+
+.no-padding{
+    padding: 0;
+}
+
+.pf-blue{
+    color: #0088ce;
+}
+
+.cart-nav-count{
+    margin: 10px;
+    font-size: 12px;
+    font-weight: bold;
+}
+

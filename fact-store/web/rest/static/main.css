@@ -1,0 +1,44 @@
+.navbar > .container {
+  padding-right: unset;
+  padding-left: unset;
+  margin-right: unset;
+  margin-left: unset;
+  width: auto;
+}
+
+.navbar-brand {
+  margin-left: 20px !important;
+}
+
+.container > .navbar-collapse {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.container > .navbar-header {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.fade-leave {
+  opacity: 1;
+}
+
+.fade-leave.fade-leave-active {
+  opacity: 0;
+  transition: opacity 1s ease-in;
+}
+
+.fade-enter {
+  opacity: 0;
+}
+
+.fade-enter.fade-enter-active {
+  opacity: 1;
+  transition: opacity 1s ease-in;
+
+}
+
+.fade-height {
+  transition: height .5s ease-in-out;
+}
