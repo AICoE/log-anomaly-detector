@@ -9,6 +9,7 @@ pylint = "*"
 pydocstyle = "*"
 "pep8" = "*"
 pytest = "*"
+pytest-cov = "*"
 
 [packages]
 "elasticsearch5" = "*"
