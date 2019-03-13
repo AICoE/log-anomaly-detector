@@ -1,7 +1,0 @@
-elasticsearch2==2.5.0
-numpy==1.15.1
-
-
-
-
-
