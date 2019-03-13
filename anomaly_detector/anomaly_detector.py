@@ -7,7 +7,6 @@ from prometheus_client import start_http_server, Gauge, Counter
 from .storage.es_storage import ESStorage
 from .storage.local_storage import LocalStorage
 from .config import Configuration
-from .model.som_model import SOMModel
 from .model.sompy_model import SOMPYModel
 from .model.model_exception import ModelLoadException, ModelSaveException
 from .model.w2v_model import W2VModel
@@ -123,10 +122,6 @@ class AnomalyDetector():
         _LOGGER.info('Saving U-map')
         self.model.save_visualisation(self.config.MODEL_DIR)
         _LOGGER.info("Generating Baseline Metrics")
-
-        dist = []
-        cnt = 0
-        total = len(to_put_train)
 
         dist = self.model.get_anomaly_score(to_put_train, self.config.PARALLELISM)
 
