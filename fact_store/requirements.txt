@@ -1,4 +1,0 @@
-Flask==0.12.4
-fastparquet
-s3fs
-git+https://github.com/jaybaird/python-bloomfilter
