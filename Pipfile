@@ -23,6 +23,10 @@ tqdm = "*"
 prometheus_client = "*"
 sompy = {editable = true, ref = "76b60ebd6ffd550b0f7faaf632451dfd68827bf7", git = "https://github.com/sevamoo/SOMPY.git"}
 boto3 = "*"
+Flask = "*"
+fastparquet = "*"
+s3fs = "*"
+pybloom = {editable = true, ref = "2bbe01ad49965bf759e31781e6820408068862ac", git = "https://github.com/jaybaird/python-bloomfilter.git"}
 
 [requires]
 python_version = "3.6"

@@ -32,7 +32,7 @@ class Configuration():
 
     If the name contains _CALLABLE suffix, it is called after the environment variables are loaded
     """
-
+    FACT_STORE_URL = ""
     # One of the storage backends available in storage/ dir
     STORAGE_BACKEND = "local"
     # Location of local data
