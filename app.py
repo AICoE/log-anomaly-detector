@@ -1,51 +1,44 @@
-"""
-Log Anomaly Detector
-"""
-
-import sys
-import logging
-import os
-import argparse
+""" Log Anomaly Detector"""
+import click
 from anomaly_detector.anomaly_detector import AnomalyDetector
 from anomaly_detector.config import Configuration
-_LOGGER = logging.getLogger()
-_LOGGER.setLevel(logging.INFO)
-
-# create a logging format
-FORMATTER = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-SH = logging.StreamHandler(sys.stdout)
-SH.setFormatter(FORMATTER)
-_LOGGER.addHandler(SH)
-
-W2V_LOGGER = logging.getLogger('gensim.models')
-W2V_LOGGER.setLevel(logging.ERROR)
 
 CONFIGURATION_PREFIX = "LAD"
 
+@click.group()
+def cli():
+    """Cli for log anomaly detector """
+    click.echo("starting up log anomaly detectory")
 
-def _main():
-    _LOGGER.info("Starting...")
-    config = Configuration(CONFIGURATION_PREFIX)
+
+
+@cli.command('run')
+@click.option("--job-type",default="all",
+              help="select either 'train', 'inference', 'all' "+
+                   "by default it runs train and infer in loop")
+@click.option("--config-yaml", default=".env_config.yaml",
+              help="configuration file used to configure service")
+def run(job_type, config_yaml):
+    """ Performs machine learning model generation
+    with input log data"""
+    click.echo("Starting...")
+    config = Configuration(prefix=CONFIGURATION_PREFIX,
+                           config_yaml=config_yaml)
     anomaly_detector = AnomalyDetector(config)
+    click.echo('Created jobtype {}'.format(job_type))
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", nargs='?', default="all")
-    parser.add_argument("--modelstore", nargs='?')
 
-    args = parser.parse_args()
-    if args.mode == 'train' or os.getenv("LAD_MODE") == "train":
-        _LOGGER.info("Performing training...")
+    if job_type == 'train':
+        click.echo("Performing training...")
         anomaly_detector.train()
-    elif args.mode == 'inference' or os.getenv("LAD_MODE") == "inference":
-        _LOGGER.info("Perform inference...")
+    elif job_type == 'inference':
+        click.echo("Perform inference...")
         anomaly_detector.infer()
-    elif args.mode == 'all':
-        _LOGGER.info("Perform training and inference in loop...")
+    elif job_type == 'all':
+        click.echo("Perform training and inference in loop...")
         anomaly_detector.run()
 
-    _LOGGER.info("Job Complete")
 
 
 if __name__ == "__main__":
-    _main()
+   cli(auto_envvar_prefix='LAD')

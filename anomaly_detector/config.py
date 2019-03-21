@@ -4,6 +4,7 @@
 import os
 import distutils
 import logging
+import yaml
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,8 +24,17 @@ def check_or_create_model_dir(config):
     if not os.path.exists(config.MODEL_DIR):
         os.mkdir(config.MODEL_DIR)
 
+class Borg(object):
+    __shared_state = {}
 
-class Configuration():
+    def __init__(self):
+        self.__dict__ = self.__shared_state
+
+    def __str__(self):
+        return self.state
+
+
+class Configuration(Borg):
     """
     Configuration object.
     
@@ -85,12 +95,25 @@ class Configuration():
 
     prefix = "LAD"
 
-    def __init__(self, prefix=None):
+    def __init__(self, prefix=None, config_yaml=None):
         """Initialize configuration."""
-        self.storage = None
-        if prefix:
-            self.prefix = prefix
-        self.load()
+        if config_yaml is not None:
+            # TODO: Open YAML File and load the configurations in here.
+            with open(config_yaml) as f:
+                yaml_data = yaml.load(f, Loader=yaml.FullLoader)
+                for prop in self.__class__.__dict__.keys():
+                    attr = getattr(self, prop)
+                    if prop.isupper() and prop.endswith("_CALLABLE") \
+                            and callable(attr):
+                        attr()
+                    elif prop.isupper() and prop in list(yaml_data.keys()):
+                        self.set_property(prop, yaml_data[prop])
+                        # self.__setattr__(prop, yaml_data[prop])
+        else:
+            self.storage = None
+            if prefix:
+                self.prefix = prefix
+            self.load()
 
     def load(self):
         """Load the configuration."""
@@ -104,21 +127,28 @@ class Configuration():
                 continue
             env = "%s_%s" % (self.prefix, prop)
             val = os.environ.get(env)
-            typ = type(getattr(self, prop))
-            if val:
-                _LOGGER.info("Loading %s from environment as %s" % (env, typ))
-                if typ is int:
-                    setattr(self, prop, int(val))
-                elif typ is float:
-                    setattr(self, prop, float(val))
-                elif typ is str:
-                    setattr(self, prop, str(val))
-                elif typ is bool:
-                    setattr(self, prop, bool(distutils.util.strtobool(val)))
-                else:
-                    raise Exception("Incorrect type for %s (%s) loaded from env %s" % (prop, typ, env))
+            self.set_property(prop, val)
 
         for prop in self.__class__.__dict__.keys():
             attr = getattr(self, prop)
-            if prop.isupper() and prop.endswith("_CALLABLE") and callable(attr):
+            if prop.isupper() and prop.endswith("_CALLABLE") \
+                    and callable(attr):
                 attr()
+
+    def set_property(self,  prop, val):
+        typ = type(getattr(self, prop))
+        if val:
+
+            if typ is int:
+                setattr(self, prop, int(val))
+            elif typ is float:
+                setattr(self, prop, float(val))
+            elif typ is str:
+                setattr(self, prop, str(val))
+            elif typ is bool:
+                if type(val) is bool:
+                    setattr(self, prop, val)
+                else:
+                    setattr(self, prop, bool(distutils.util.strtobool(val)))
+            else:
+                raise Exception("Incorrect type for %s (%s) loaded " % (prop, typ))

@@ -1,13 +1,13 @@
 """ Setup.py for packaging log-anomaly-detector as library """
 from setuptools import setup
 
-REQUIRED_PKG = ["elasticsearch5", "gensim", "matplotlib", "numpy",
+REQUIRED_PKG = [ "Click" ,"elasticsearch5", "gensim", "matplotlib", "numpy",
                 "pandas", "prometheus_client", "boto3", "Flask", "fastparquet",
                 "scikit-learn", "scipy", "tqdm", "s3fs",
-                "sompy", "pybloom"]
+                "sompy", "pybloom", "pyyaml"]
 
 setup(
-    name='lad-anomaly-detector',
+    name='scorpio',
     version='0.0.1',
     packages=['fact_store',
               'anomaly_detector',
@@ -24,7 +24,6 @@ setup(
     ),
     python_requires=">3.5",
     url='https://github.com/AICoE/log-anomaly-detector',
-    license='',
     author='AiOps',
     author_email='zak.hassan@redhat.com',
     description='Log anomaly detector for streaming logs',
@@ -34,5 +33,8 @@ setup(
         'git+https://github.com/jaybaird/python-bloomfilter.git' +
         '@2bbe01ad49965bf759e31781e6820408068862ac'
     ],
-    install_requires=REQUIRED_PKG
-)
+    install_requires=REQUIRED_PKG,
+    entry_points='''
+        [console_scripts]
+        scorpio=app:cli
+    ''')
