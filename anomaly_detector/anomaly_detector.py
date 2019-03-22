@@ -282,7 +282,7 @@ class AnomalyDetector():
             s3_client.put_object(Bucket=s3_bucket,
                                  Key=(self.config.MODEL_STORE_PATH +
                                       t_timestamp + "/"))
-            _LOGGER.info("Created bucket: " +
+            _LOGGER.debug("Created bucket: " +
                          self.config.MODEL_STORE_PATH +
                          t_timestamp + "/")
             s3_client.upload_file(Filename='models/SOM.model',
@@ -294,9 +294,9 @@ class AnomalyDetector():
                                   Bucket=s3_bucket,
                                   Key=(self.config.MODEL_STORE_PATH +
                                        t_timestamp + '/W2V.model'))
-            _LOGGER.info("Done uploading models to s3 complete")
+            _LOGGER.debug("Done uploading models to s3 complete")
         else:
-            _LOGGER.info("Must set MODEL_STORE='s3' to save to s3")
+            _LOGGER.debug("Must set MODEL_STORE='s3' to save to s3")
 
     def run(self):
         """Run the main loop."""
