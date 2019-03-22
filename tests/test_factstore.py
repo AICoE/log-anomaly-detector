@@ -1,57 +1,51 @@
-from fact_store.app import FactStore
+import uuid
+from fact_store.fact_store_api import FactStore
+from fact_store.model import EventModel, FeedbackModel
 
-METADATA_FILE = "factstore.parquet"
 
-
-def test_duplicate_input():
+def test_events_inserted():
     """
-    Validating if user gives us duplicate input and check if input is in
-    the set, let Bloom filter data structure to check without looping
-    through dataset for duplicates
+    If users do not provide a connection string. It will by default store the
+    data in sqlite. We can then validate that the values we stored are correct.
+    We also check that the values are 3 elements inserted will =3
+    :return:
+    """
+    fs = FactStore(True)
+    # TODO: Delete all rows currently in the store.
+    fs.session.query(EventModel).delete()
+    fs.write_event(predict_id="a2b35c5b-016d-4e2c-8ec5-87d1b962b2f8",
+                   message="kssksjs",
+                   score=3.1, anomaly_status=True)
+    fs.write_event(predict_id="18bd090d-ae27-4b19-a0db-ed5f589b4e2e",
+                   message="JSJSJS",
+                   score=2.2,
+                   anomaly_status=False)
+    fs.write_event(predict_id="74a6b1bd-efea-4e7b-87a9-8f7330885160",
+                   message="sjsjsjsj",
+                   score=8.3,
+                   anomaly_status=True)
+    items = fs.session.query(EventModel).all()
+    assert len(items) is 3
 
-    We will attempt to simulate a user inputing duplicate ids
-
-    Inserting : id = f5eb1d86
-    Inserting : id = f5eb1d86
-
-    Should result in function returning False
+def test_feedback_inserted():
+    """
+    This function tests that fact_store create sqlite db
+    and stores as a safe default for testing feedback gets
+    tracked.
 
     :return:
     """
-    fs = FactStore(feedback_metadata=METADATA_FILE)
-    fs.write_feedback("f5eb1d86", "Yes")
-    assert fs.write_feedback("f5eb1d86", "Yes") is False
-
-
-def test_nonduplicate_input():
-    """
-    Validating if user gives us not in the set. Let Bloom filter data
-    structure to check without looping through dataset
-    for duplicates
-
-    We will attempt to simulate a user inputing duplicate ids
-
-    Inserting : id = a12345A
-    Inserting : id = bcderrZ
-
-    Should result in function returning True when it has successfully inserted
-    into the bloom filter.
-
-    :return:
-    """
-    fs = FactStore(feedback_metadata=METADATA_FILE)
-    fs.write_feedback("a12345A", "Yes")
-    assert fs.write_feedback("bcderrZ", "Yes") is True
-
-
-def test_reading_input():
-    """
-    Testing after the tests above write to file that the
-    right values exist in the file.
-    :return:
-    """
-    fs = FactStore(feedback_metadata=METADATA_FILE)
-    df = fs.readall_feedback()
-    assert df.id[0] == "f5eb1d86"
-    assert df.id[1] == "a12345A"
-    assert df.id[2] == "bcderrZ"
+    fs = FactStore(True)
+    # TODO: Delete all rows currently in the store.
+    fs.session.query(FeedbackModel).delete()
+    fs.write_feedback(predict_id="a2b35c5b-016d-4e2c-8ec5-87d1b962b2f8",
+                      notes="222JSJSJJS",
+                      anomaly_status=True)
+    fs.write_feedback(predict_id="18bd090d-ae27-4b19-a0db-ed5f589b4e2e",
+                      notes="SSJJSJS",
+                      anomaly_status=True)
+    fs.write_feedback(predict_id="74a6b1bd-efea-4e7b-87a9-8f7330885160",
+                      notes="AJJSJS",
+                      anomaly_status=False)
+    items = fs.readall_feedback()
+    assert len(items) is 3

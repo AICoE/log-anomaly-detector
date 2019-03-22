@@ -24,11 +24,12 @@ prometheus-client = "==0.6.0"
 sompy = {editable = true, ref = "76b60ebd6ffd550b0f7faaf632451dfd68827bf7", git = "https://github.com/sevamoo/SOMPY.git"}
 boto3 = "==1.9.115"
 Flask = "==1.0.2"
-fastparquet = "==0.2.1"
-s3fs = "==0.2.0"
 pybloom = {editable = true, ref = "2bbe01ad49965bf759e31781e6820408068862ac", git = "https://github.com/jaybaird/python-bloomfilter.git"}
 Click = "==7.0"
 pyyaml = "==5.1"
+Flask-SQLAlchemy = "==2.3.2"
+PyMySQL = "==0.9.3"
+
 
 [requires]
 python_version = "3.6"

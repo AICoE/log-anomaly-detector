@@ -2,15 +2,17 @@
 <html lang="en">
 <head>
 
-  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/patternfly/3.24.0/css/patternfly.min.css">
-  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/patternfly/3.24.0/css/patternfly-additions.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/patternfly/3.24.0/css/patternfly.min.css" rel="stylesheet"
+          type="text/css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/patternfly/3.24.0/css/patternfly-additions.min.css"
+          rel="stylesheet" type="text/css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 
     <!-- JQUERY CDN -->
     <script
-            src="https://code.jquery.com/jquery-3.2.1.min.js"
+            crossorigin="anonymous"
             integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-            crossorigin="anonymous"></script>
+            src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
     <meta content="#000000" name="theme-color">
@@ -23,7 +25,7 @@
             <div id="topmenu">
                 <div class="navbar-header">
                     <a class="navbar-brand" href="/">
-                    <h1>Fact Store</h1></a>
+                        <h1>Fact Store</h1></a>
                 </div>
                 <div class="navbar-collapse collapse">
                     <ul class="navbar-nav navbar-primary nav navbar-nav">
@@ -33,140 +35,173 @@
                     </ul>
                 </div>
             </div>
-        </nav><span></span>
+        </nav>
+        <span></span>
 
         <div class="col col-cards-pf container-cards-pf fader">
-          <div class="cards col-xs-10 col-md-8">
-            <div id="notifications"></div>
-          </div>
+            <div class="cards col-xs-10 col-md-8">
+                <div id="notifications"></div>
+            </div>
         </div>
 
         <div class="container">
-        <div class="col col-cards-pf container-cards-pf fader">
-            <div class="cards col-xs-10 col-md-8">
-                <div class="card-pf card-pf-accented" id="user-feedback-panel">
-                    <h2 class="card-pf-title">  <i class="fas fa-exchange-alt"></i> User Feedback</h2>
-                    <div class="card-pf-footer">
-                        <form class="form-horizontal" role="form">
-                            <p class="fields-status-pf">All fields are required.</p>
-                            <div class="form-group">
-                                <label class="col-sm-2 control-label">Anomaly ID</label>
-                                <div class="col-sm-8">
-                                    <div class="input-group-btn">
-                                        <input type="text" class="form-control" id="lad_id" name="lad_id" value="{{ id }}">
+            <div class="col col-cards-pf container-cards-pf fader">
+                <div class="cards col-xs-10 col-md-8">
+                    <div class="card-pf card-pf-accented" id="user-feedback-panel">
+                        <h2 class="card-pf-title"><i class="fas fa-exchange-alt"></i> User Feedback</h2>
+                        <div class="card-pf-footer">
+                            <form class="form-horizontal" role="form">
+                                <p class="fields-status-pf">All fields are required.</p>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">Anomaly ID</label>
+                                    <div class="col-sm-8">
+                                        <div class="input-group-btn">
+                                            <input class="form-control" id="lad_id" name="lad_id" type="text"
+                                                   value="{{ id }}">
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="col-sm-2 control-label" for="is_false_anomaly">Is False</label>
-                                <div class="col-sm-8">
-                                    <div class="input-group-btn">
-                                        <i class="fas fa-thumbs-up"></i>
-                                        <!--  -->
-                                        <select class="form-control" id="is_false_anomaly">
-                                            <option>Yes</option>
-                                            <option>No</option>
-                                        </select>
-                                        <!-- -->
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label" for="is_anomaly">Anomaly</label>
+                                    <div class="col-sm-8">
+                                        <div class="input-group-btn">
+                                            <i class="fas fa-thumbs-up"></i>
+                                            <!--  -->
+                                            <select class="form-control" id="is_anomaly">
+                                                <option>True</option>
+                                                <option>False</option>
+                                            </select>
+                                            <!-- -->
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="form-group">
-                                <div class="col-sm-offset-2 col-sm-10">
-                                    <button class="btn btn-primary" type="submit" onclick="submitFeedback()">Submit Feedback</button>
-                                </div>
-                            </div>
-                        </form>
 
+                                <!-- Notes (start) -->
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label" for="notes">Notes</label>
+                                    <div class="input-group-btn">
+                                        <textarea class="form-control" id="notes" rows="5"></textarea>
+                                    </div>
+                                </div>
+                                <!-- Notes (end) -->
+
+                                <div class="form-group">
+                                    <div class="col-sm-offset-2 col-sm-10">
+                                        <button class="btn btn-primary" onclick="submitFeedback()" type="submit">Submit
+                                            Feedback
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+
+                        </div>
+                    </div>
+
+                    <!-- CONFIRM (Start) -->
+                    <div class="alert alert-success" id="success-message" role="alert" style="display:none;">
+                        <h4 class="alert-heading">Thank you for your feedback!</h4>
+                        <hr>
+                        <p>We are automatically labelling this anomaly as false and you should not see this false
+                            anomaly again.</p>
+
+                        <p class="mb-0">If you have any questions you can contact the maintainers in the AiOps team</p>
+                    </div>
+
+                    <!-- CONFIRM (END)   -->
+                    <!-- CONFIRM (Start) -->
+                    <div class="alert alert-danger" id="error-message" role="alert" style="display:none;">
+                        <h4 class="alert-heading">There was an error that happened your feedback is important to
+                            us. </h4>
+                        <hr>
+                        <p>Please send us an email at zak.hassan@redhat.com</p>
+                        The error we got from the backend is:
+                        <p class="mb-0" id="msg-embed"></p>
                     </div>
                 </div>
-
-                <!-- CONFIRM (Start) -->
-                <div class="alert alert-success" role="alert" id="success-message" style="display:none;">
-                    <h4 class="alert-heading">Thank you for your feedback!</h4>
-                    <hr>
-                    <p>We are automatically labelling this anomaly as false and you should not see this false anomaly again.</p>
-
-                    <p class="mb-0">If you have any questions you can contact the maintainers in the AiOps team</p>
-                </div>
-
-                <!-- CONFIRM (END)   -->
-
-            </div>
-        </div><!-- react-empty: 40 -->
+            </div><!-- react-empty: 40 -->
 
         </div>
         <!-- E -->
     </div>
 </div>
 <script>
-var showNotification = function(msg) {
-  var html = '<div class="alert alert-warning alert-dismissable">' +
-    '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-    '<span class="pficon pficon-close"></span>' +
-    '</button><span class="pficon pficon-warning-triangle-o"></span>' + msg + '</div>';
+    var showNotification = function (msg) {
+        var html = '<div class="alert alert-warning alert-dismissable">' +
+            '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+            '<span class="pficon pficon-close"></span>' +
+            '</button><span class="pficon pficon-warning-triangle-o"></span>' + msg + '</div>';
 
-  $('#notifications').append(html);
-};
+        $('#notifications').append(html);
+    };
 
-var clearNotifications = function() {
-  $('#notifications').empty();
-};
+    var clearNotifications = function () {
+        $('#notifications').empty();
+    };
 
-var clearTable = function() {
-  $('#table1').empty();
-};
+    var clearTable = function () {
+        $('#table1').empty();
+    };
 
-$('form').submit(false);
+    $('form').submit(false);
 
-var submitFeedback= function(){
+    var submitFeedback = function () {
 
-     var lad_id= $("#lad_id").val();
-      var is_false_anomaly= $("#is_false_anomaly").val();
+        var lad_id = $("#lad_id").val();
+        var is_anomaly = $("#is_anomaly").val();
+        var notes = $("#notes").val();
 
-$.get( "/api/feedback", { lad_id: lad_id, false_anomaly: is_false_anomaly } ).done(function( data ) {
-    //alert( "Data Loaded: " + data );
-    $("#user-feedback-panel").hide()
-        $("#success-message").show()
+       $.ajax({
+            type: "POST",
+            url: "/api/feedback",
+            data: JSON.stringify({
+                    lad_id: lad_id,
+                    is_anomaly: is_anomaly,
+                    notes: notes}),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function(data){
+                    $("#user-feedback-panel").hide();
+                    $("#success-message").show();
+                },
+                failure: function(errMsg) {
+                    showNotification("Warning: empty ratings response, please try again or check the predictor service "+ errMsg);
+                }
+            })
 
-
-  });
-
-
-};
-
-var displayReport= function(){
-  clearTable();
-  clearNotifications();
-  var userId= $("#userRating").val();
-
-  $.ajax("/api/predictor/"+userId)
-    .done(function(data) {
-      if (data == "") {
-        showNotification("Warning: empty ratings response, please try again or check the predictor service");
-      }
-      else {
-        var conf={ columns: data.columns,
-          data: data.dataSet,
-          dom: "t",
-          order: [[ 0, 'asc' ]],
-          pfConfig: {
-            filterCaseInsensitive: true,
-            paginationSelector: "#pagination1",
-            colvisMenuSelector: '.table-view-pf-colvis-menu'
-          },
         };
-        var table= $("#table1").DataTable(conf);
-      }
-    })
-    .fail(function() {
-      showNotification("Warning: bad response from html-server, please check the server logs");
-    });
-};
+
+    var displayReport = function () {
+        clearTable();
+        clearNotifications();
+        var userId = $("#userRating").val();
+
+        $.ajax("/api/predictor/" + userId)
+            .done(function (data) {
+                if (data == "") {
+                    showNotification("Warning: empty ratings response, please try again or check the predictor service");
+                } else {
+                    var conf = {
+                        columns: data.columns,
+                        data: data.dataSet,
+                        dom: "t",
+                        order: [[0, 'asc']],
+                        pfConfig: {
+                            filterCaseInsensitive: true,
+                            paginationSelector: "#pagination1",
+                            colvisMenuSelector: '.table-view-pf-colvis-menu'
+                        },
+                    };
+                    var table = $("#table1").DataTable(conf);
+                }
+            })
+            .fail(function () {
+                showNotification("Warning: bad response from html-server, please check the server logs");
+            });
+    };
 </script>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/patternfly/3.24.0/js/patternfly.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/patternfly/3.24.0/js/patternfly.min.js"></script>
 </body>
 </html>
