@@ -1,11 +1,8 @@
 import logging
 from flask import Flask, request, render_template, jsonify, make_response
 from fact_store.fact_store_api import FactStore
-app = Flask(__name__)
 
 app = Flask(__name__, static_folder="static")
-
-
 
 
 @app.route("/")
@@ -31,9 +28,6 @@ def feedback():
         false predictions this model provided."""
     try:
         content = request.json
-        # id = request.args.get('lad_id')
-        # anomaly = bool(request.args.get('is_anomaly'))
-        # notes = request.args.get('notes')
         logging.info("id: {} ".format(content['lad_id']))
         logging.info("anomaly: {} ".format(content['is_anomaly']))
         logging.info("notes: {} ".format(content['notes']))
@@ -45,9 +39,10 @@ def feedback():
         fs = FactStore()
 
         # Note id is the prediction id that is found in the email.
-        if fs.write_feedback(predict_id=content['lad_id'],
-                          notes=content['notes'],
-                          anomaly_status=bool(content['is_anomaly'])) is False:
+        if fs.write_feedback(
+                predict_id=content['lad_id'],
+                notes=content['notes'],
+                anomaly_status=bool(content['is_anomaly'])) is False:
             raise Exception('Predict ID must be unique. This anomaly' +
                             ' feedback  has been reported before')
     except Exception as e:

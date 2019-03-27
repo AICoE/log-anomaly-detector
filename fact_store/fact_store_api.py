@@ -37,22 +37,24 @@ class FactStore(object):
         :return:
         """
 
-
         event = EventModel(message=message,
-                               score=score,
-                               predict_id=predict_id,
-                               anomaly_status=anomaly_status)
+                           score=score,
+                           predict_id=predict_id,
+                           anomaly_status=anomaly_status)
         self.session.add(event)
         self.session.commit()
-        print("Event ID: {}  recorded in events_store".format(event.predict_id))
+        print("Event ID: {}  recorded in events_store"
+              .format(event.predict_id))
 
     def write_feedback(self, predict_id, notes, anomaly_status):
         """
         Service for storage of metadata in parquet.
          Also inserts id into bloom filter for quick lookup
 
-        :param id: predict Id where the anomaly details are stored
-        :param anomaly: is this anomaly correctly reported or false.
+        :param predict_id: predict Id where the anomaly details are stored
+        :param notes: notes to provide more detail on why this is false
+               flagged anomaly
+        :param anomaly_status: is this anomaly correctly reported or false.
         :return:
         """
         # Adding id to bloom filter so we don't have to
