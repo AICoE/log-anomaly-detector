@@ -1,6 +1,6 @@
 import logging
 from flask import Flask, request, render_template, jsonify, make_response
-from fact_store.fact_store_api import FactStore
+from anomaly_detector.fact_store.fact_store_api import FactStore
 
 app = Flask(__name__, static_folder="static")
 

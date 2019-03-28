@@ -1,6 +1,6 @@
 """ Test cases for validating fact store persistence """
-from fact_store.fact_store_api import FactStore
-from fact_store.model import EventModel, FeedbackModel
+from anomaly_detector.fact_store.fact_store_api import FactStore
+from anomaly_detector.fact_store.model import EventModel, FeedbackModel
 
 
 def test_events_inserted():

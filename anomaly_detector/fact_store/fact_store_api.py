@@ -1,5 +1,5 @@
 import os
-from .model import EventModel, FeedbackModel, Base
+from anomaly_detector.fact_store.model import EventModel, FeedbackModel, Base
 from pybloom import BloomFilter
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
