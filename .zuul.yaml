@@ -1,0 +1,9 @@
+---
+- project:
+    check:
+      jobs:
+        - "thoth-coala"
+        - "thoth-pytest"
+    kebechet-auto-gate:
+      jobs:
+        - "thoth-coala"
