@@ -1,18 +1,20 @@
 """ Setup.py for packaging log-anomaly-detector as library """
 from setuptools import setup
 
-REQUIRED_PKG = [ "Click" ,"elasticsearch5", "gensim", "matplotlib", "numpy",
+REQUIRED_PKG = ["Click", "elasticsearch5", "gensim", "matplotlib", "numpy",
                 "pandas", "prometheus_client", "boto3", "Flask", "fastparquet",
-                "scikit-learn", "scipy", "tqdm", "s3fs",
-                "sompy", "pybloom", "pyyaml"]
+                "scikit-learn", "scipy", "tqdm" , "Flask-SQLAlchemy ",
+                "PyMySQL", "sompy", "pybloom", "pyyaml"]
 
 setup(
-    name='scorpio',
+    name='aiops_log_anomaly_detector',
     version='0.0.1',
-    packages=['fact_store',
+    packages=[
               'anomaly_detector',
+              'anomaly_detector.fact_store',
               'anomaly_detector.model',
               'anomaly_detector.types',
+              'anomaly_detector.exception',
               'anomaly_detector.events',
               'anomaly_detector.storage'],
     zip_safe=False,
