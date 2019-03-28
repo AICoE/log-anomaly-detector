@@ -4,31 +4,31 @@ verify_ssl = true
 name = "pypi"
 
 [dev-packages]
-pylint = "==2.3.1"
-"flake8" = "==3.7.7"
-pydocstyle = "==3.0.0"
-"pep8" = "==1.7.1"
-pytest = "==4.3.1"
-pytest-cov = "==2.6.1"
+pylint = "*"
+"flake8" = "*"
+pydocstyle = "*"
+"pep8" = "*"
+pytest = "*"
+pytest-cov = "*"
 
 [packages]
-"elasticsearch5" = "==5.5.5"
-gensim = "==3.7.1"
-matplotlib = "==3.0.3"
-numpy = "==1.16.2"
-pandas = "==0.24.2"
-scikit-learn = "==0.20.3"
-scipy = "==1.2.1"
-tqdm = "==4.31.1"
-prometheus-client = "==0.6.0"
+"elasticsearch5" = "*"
+gensim = "*"
+matplotlib = "*"
+numpy = "*"
+pandas = "*"
+scikit-learn = "*"
+scipy = "*"
+tqdm = "*"
+prometheus-client = "*"
 sompy = {editable = true, ref = "76b60ebd6ffd550b0f7faaf632451dfd68827bf7", git = "https://github.com/sevamoo/SOMPY.git"}
-boto3 = "==1.9.115"
-Flask = "==1.0.2"
+boto3 = "*"
+Flask = "*"
 pybloom = {editable = true, ref = "2bbe01ad49965bf759e31781e6820408068862ac", git = "https://github.com/jaybaird/python-bloomfilter.git"}
-Click = "==7.0"
-pyyaml = "==5.1"
-Flask-SQLAlchemy = "==2.3.2"
-PyMySQL = "==0.9.3"
+Click = "*"
+pyyaml = "*"
+Flask-SQLAlchemy = "*"
+PyMySQL = "*"
 
 
 [requires]
