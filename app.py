@@ -1,17 +1,17 @@
-""" Log Anomaly Detector"""
+""" Log Anomaly Detector """
 import click
+
 from anomaly_detector.anomaly_detector import AnomalyDetector
 from anomaly_detector.config import Configuration
-from fact_store.app import app
+from anomaly_detector.fact_store.app import app
 
 CONFIGURATION_PREFIX = "LAD"
+
 
 @click.group()
 def cli():
     """Cli for log anomaly detector """
     click.echo("starting up log anomaly detectory")
-
-
 
 
 @cli.command('ui')
@@ -20,13 +20,14 @@ def cli():
 @click.option("--port", default=5001,
               help="Select the port number you would like to run the web ui ")
 def ui(debug, port):
+    """Starts web ui for user feedback system"""
     click.echo("Starting UI...")
     app.run(debug=debug, port=port, host="0.0.0.0")
 
 
 @cli.command('run')
-@click.option("--job-type",default="all",
-              help="select either 'train', 'inference', 'all' "+
+@click.option("--job-type", default="all",
+              help="select either 'train', 'inference', 'all' " +
                    "by default it runs train and infer in loop")
 @click.option("--config-yaml", default=".env_config.yaml",
               help="configuration file used to configure service")
@@ -51,4 +52,4 @@ def run(job_type, config_yaml):
 
 
 if __name__ == "__main__":
-   cli(auto_envvar_prefix='LAD')
+    cli(auto_envvar_prefix='LAD')
