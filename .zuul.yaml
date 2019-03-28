@@ -3,7 +3,6 @@
     check:
       jobs:
         - "thoth-coala"
-        - "thoth-pylint"
     kebechet-auto-gate:
       jobs:
         - "thoth-coala"
