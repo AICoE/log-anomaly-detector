@@ -7,6 +7,7 @@ import os
 import numpy as np
 import logging
 import matplotlib
+
 matplotlib.use("agg")
 from matplotlib import pyplot as plt
 
@@ -22,7 +23,7 @@ class SOMModel(BaseModel):
             self.model = np.random.rand(map_size, map_size, inp.shape[1])  # Generate a 24x24 node feature of color data
 
         for iters in range(iterations):
-            if not iters % int(iterations/10):
+            if not iters % int(iterations / 10):
                 _LOGGER.info("SOM training iteration %d/%d" % (iters, iterations))
             rand_num = np.random.randint(inp.shape[0])
             current_vector = inp[rand_num, :]  # Select a Random Document Vector From the training data
@@ -33,7 +34,7 @@ class SOMModel(BaseModel):
 
             for i in range(self.model.shape[0]):
                 for j in range(self.model.shape[1]):
-                    dist = np.linalg.norm(current_vector-self.model[i][j])
+                    dist = np.linalg.norm(current_vector - self.model[i][j])
                     if dist < bmu:
                         bmu = dist
                         bmu_loc = (i, j)
@@ -44,10 +45,11 @@ class SOMModel(BaseModel):
                     current_x = bmu_loc[0] + x
                     current_y = bmu_loc[1] + y
                     if 0 <= current_x < 24 and 0 <= current_y < 24:
-                        self.model[current_x][current_y] = self.model[current_x][current_y]\
-                                                           + (self.alph(iterations, iters)) \
-                                                           * self.neihborhood(np.array(bmu_loc), np.array([current_x, current_y])) \
-                                                           * (current_vector - self.model[current_x][current_y])
+                        self.model[current_x][current_y] = self.model[current_x][current_y] + (
+                            self.alph(iterations, iters)
+                        ) * self.neihborhood(np.array(bmu_loc), np.array([current_x, current_y])) * (
+                            current_vector - self.model[current_x][current_y]
+                        )
 
     def save_visualisation(self, dest):
         """Create and save a png image of the SOM."""
@@ -58,17 +60,17 @@ class SOMModel(BaseModel):
             for y in range(self.model.shape[1]):
                 spot = self.model[x][y]
                 try:
-                    for i in range(-1,2):
-                        for j in range(-1,2):
-                            new[x][y] += np.linalg.norm(spot - self.model[x+i][y+j])
+                    for i in range(-1, 2):
+                        for j in range(-1, 2):
+                            new[x][y] += np.linalg.norm(spot - self.model[x + i][y + j])
                 except IndexError:
                     pass
 
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        cax = ax.matshow(new, interpolation='nearest')
+        cax = ax.matshow(new, interpolation="nearest")
         fig.colorbar(cax)
-        fig.savefig(os.path.join(dest, 'U-map.png'))
+        fig.savefig(os.path.join(dest, "U-map.png"))
 
     def get_anomaly_score(self, log, parallelism):
         """Compute a distance of a log entry to elements of SOM."""
@@ -76,7 +78,7 @@ class SOMModel(BaseModel):
         dist_smallest = np.inf
         for x in range(self.model.shape[0]):
             for y in range(self.model.shape[1]):
-                dist = np.linalg.norm(self.model[x][y]-log)  # cosine(som[x][y],log)#np.linalg.norm(som[x][y]-log)
+                dist = np.linalg.norm(self.model[x][y] - log)  # cosine(som[x][y],log)#np.linalg.norm(som[x][y]-log)
                 if dist < dist_smallest:
                     dist_smallest = dist
 
@@ -87,9 +89,11 @@ class SOMModel(BaseModel):
         if T == 0:
             return 0
 
-        return (T-t)/T
+        return (T - t) / T
 
     @classmethod  # TODO: make method private
-    def neihborhood(cls, bmu_location, node_location):  # Neighborhood function, dictates the maganitude of the update as we move away from the BMU
-        dist = np.linalg.norm(bmu_location-node_location)
-        return np.exp(-1.0*(dist/2))
+    def neihborhood(
+        cls, bmu_location, node_location
+    ):  # Neighborhood function, dictates the maganitude of the update as we move away from the BMU
+        dist = np.linalg.norm(bmu_location - node_location)
+        return np.exp(-1.0 * (dist / 2))

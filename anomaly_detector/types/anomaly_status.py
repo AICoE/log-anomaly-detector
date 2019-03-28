@@ -12,7 +12,6 @@ class Anomaly_Status(Enum):
     FALSE = 0
     CORRECT = 1
 
-
     def to_str(self):
         return pprint.pformat(self.value)
 
@@ -24,12 +23,5 @@ class Anomaly_Status(Enum):
             return False
         return self.__dict__ == other.__dict__
 
-
     def __ne__(self, other):
         return not self == other
-
-
-
-
-
-

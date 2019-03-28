@@ -1,173 +1,173 @@
 apiVersion: v1
 kind: Template
 metadata:
-  name: log-anomaly-detector-${NAME}
+  name: "log-anomaly-detector-${NAME}"
   annotations:
     discription: "Anomaly Detection descripton"
 objects:
-- kind: PersistentVolumeClaim
-  apiVersion: v1
-  metadata:
-    name: log-anomaly-detector-${NAME}
-    labels:
-      app: log-anomaly-detector-${NAME}
-  spec:
-    storageClassName: ${STORAGE_CLASS}
-    accessModes:
-      - ReadWriteOnce
-    resources:
-      requests:
-        storage: 1Gi
-- kind: ImageStream
-  apiVersion: image.openshift.io/v1
-  metadata:
-    name: log-anomaly-detector-${NAME}
-    labels:
-      app: log-anomaly-detector-${NAME}
-  spec:
-    lookupPolicy:
-      local: true
-- kind: BuildConfig
-  apiVersion: build.openshift.io/v1
-  metadata:
-    labels:
-      app: log-anomaly-detector-${NAME}
-    name: log-anomaly-detector-${NAME}
-  spec:
-    triggers:
-      - generic:
-          secret: abef1035f7e8528b
-        type: Generic
-      - github:
-          secret: 104e14d978977712
-        type: GitHub
-      - imageChange: {}
-        type: ImageChange
-      - type: ConfigChange
-    source:
-      git:
-        ref: master
-        uri: 'https://github.com/AICoE/log-anomaly-detector'
-      type: Git    
-    strategy:
-      sourceStrategy:
-        from:
-          kind: ImageStreamTag
-          name: 'python:3.6'
-          namespace: openshift
-      type: Source
-    output:
-      to:
-        kind: ImageStreamTag
-        name: 'log-anomaly-detector-${NAME}:latest'
-- kind: DeploymentConfig
-  apiVersion: apps.openshift.io/v1
-  metadata:
-    labels:
-      app: log-anomaly-detector-${NAME}
-    name: log-anomaly-detector-${NAME}
-  spec:
-    replicas: 1
-    selector:
-      deploymentconfig: log-anomaly-detector-${NAME}
-    strategy:
-      type: Recreate
-    template:
-      metadata:
-        labels:
-          app: log-anomaly-detector-${NAME}
-          deploymentconfig: log-anomaly-detector-${NAME}
-      spec:
-        volumes: 
-          - persistentVolumeClaim:
-              claimName: log-anomaly-detector-${NAME}
-            name: model-storage
-        containers:
-          - env:
-            #Model storage
-            - name: LAD_STORAGE_BACKEND
-              value: "${STORAGE_BACKEND}"
-            - name: LAD_MODEL_DIR
-              value: "${MODEL_DIR}"
-            - name: LAD_MODEL_FILE
-              value: "${MODEL_FILE}"
-            - name: LAD_W2V_MODEL_FILE
-              value: "${W2V_MODEL_FILE}"
-          #Training
-            - name: LAD_TRAIN_TIME_SPAN
-              value: "${TRAIN_TIME_SPAN}"
-            - name: LAD_TRAIN_MAX_ENTRIES
-              value: "${TRAIN_MAX_ENTRIES}" 
-            - name: LAD_TRAIN_ITERATIONS
-              value: "${TRAIN_ITERATIONS}"
-            - name: LAD_TRAIN_UPDATE_MODEL
-              value: "${TRAIN_UPDATE_MODEL}"
-            - name: LAD_PARALLELISM
-              value: "${PARALLELISM}"
-          #Inference 
-            - name: LAD_INFER_TIME_SPAN
-              value: "${INFER_TIME_SPAN}"
-            - name: LAD_INFER_MAX_ENTRIES
-              value: "${INFER_MAX_ENTRIES}"
-            - name: LAD_INFER_LOOPS
-              value: "${INFER_LOOPS}"
-            - name: LAD_INFER_ANOMALY_THRESHOLD
-              value: "${INFER_ANOMALY_THRESHOLD}"
-          #ES Storage Backend
-            - name: LAD_ES_ENDPOINT
-              value: "${ES_ENDPOINT}"
-            - name: LAD_ES_INPUT_INDEX
-              value: "${ES_INPUT_INDEX}"
-            - name: LAD_ES_TARGET_INDEX
-              value: "${ES_TARGET_INDEX}"
-            - name: LAD_ES_QUERY
-              value: "${ES_QUERY}"
-            - name: LAD_ES_CERT_DIR
-              value: "${ES_CERT_DIR}"
-            image: log-anomaly-detector:latest-${NAME}
-            imagePullPolicy: Always
-            name: log-anomaly-detector-${NAME}
-            volumeMounts: 
-              - mountPath: /opt/app-root/src/${MODEL_DIR}
-                name: model-storage
-            resources:
-              requests:
-                cpu: "${PARALLELISM}"
-              limits:
-                memory: 2Gi
-                cpu: "${PARALLELISM}"
-            ports:
-              - containerPort: 8080
-        dnsPolicy: ClusterFirst
-        restartPolicy: Always
-        schedulerName: default-scheduler
-        securityContext: {}
-        terminationGracePeriodSeconds: 30
-    test: false
-    triggers:
-      - type: ConfigChange
-      - type: ImageChange
-        imageChangeParams:
-          automatic: true
-          containerNames:
-          - log-anomaly-detector-${NAME}
+  - kind: PersistentVolumeClaim
+    apiVersion: v1
+    metadata:
+      name: "log-anomaly-detector-${NAME}"
+      labels:
+        app: "log-anomaly-detector-${NAME}"
+    spec:
+      storageClassName: "${STORAGE_CLASS}"
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+  - kind: ImageStream
+    apiVersion: image.openshift.io/v1
+    metadata:
+      name: log-anomaly-detector-${NAME}
+      labels:
+        app: log-anomaly-detector-${NAME}
+    spec:
+      lookupPolicy:
+        local: true
+  - kind: BuildConfig
+    apiVersion: build.openshift.io/v1
+    metadata:
+      labels:
+        app: log-anomaly-detector-${NAME}
+      name: log-anomaly-detector-${NAME}
+    spec:
+      triggers:
+        - generic:
+            secret: abef1035f7e8528b
+          type: Generic
+        - github:
+            secret: 104e14d978977712
+          type: GitHub
+        - imageChange: {}
+          type: ImageChange
+        - type: ConfigChange
+      source:
+        git:
+          ref: master
+          uri: 'https://github.com/AICoE/log-anomaly-detector'
+        type: Git
+      strategy:
+        sourceStrategy:
           from:
-            kind: "ImageStreamTag"
-            name: "log-anomaly-detector-${NAME}:latest"
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: log-anomaly-detector-${NAME}      
-  spec:
-    selector:                  
-      app: log-anomaly-detector-${NAME}
-    ports:
-    - port: 8080
-      targetPort: 8080
+            kind: ImageStreamTag
+            name: 'python:3.6'
+            namespace: openshift
+        type: Source
+      output:
+        to:
+          kind: ImageStreamTag
+          name: 'log-anomaly-detector-${NAME}:latest'
+  - kind: DeploymentConfig
+    apiVersion: apps.openshift.io/v1
+    metadata:
+      labels:
+        app: log-anomaly-detector-${NAME}
+      name: log-anomaly-detector-${NAME}
+    spec:
+      replicas: 1
+      selector:
+        deploymentconfig: log-anomaly-detector-${NAME}
+      strategy:
+        type: Recreate
+      template:
+        metadata:
+          labels:
+            app: log-anomaly-detector-${NAME}
+            deploymentconfig: log-anomaly-detector-${NAME}
+        spec:
+          volumes:
+            - persistentVolumeClaim:
+                claimName: log-anomaly-detector-${NAME}
+              name: model-storage
+          containers:
+            - env:
+                # Model storage
+                - name: LAD_STORAGE_BACKEND
+                  value: "${STORAGE_BACKEND}"
+                - name: LAD_MODEL_DIR
+                  value: "${MODEL_DIR}"
+                - name: LAD_MODEL_FILE
+                  value: "${MODEL_FILE}"
+                - name: LAD_W2V_MODEL_FILE
+                  value: "${W2V_MODEL_FILE}"
+                # Training
+                - name: LAD_TRAIN_TIME_SPAN
+                  value: "${TRAIN_TIME_SPAN}"
+                - name: LAD_TRAIN_MAX_ENTRIES
+                  value: "${TRAIN_MAX_ENTRIES}"
+                - name: LAD_TRAIN_ITERATIONS
+                  value: "${TRAIN_ITERATIONS}"
+                - name: LAD_TRAIN_UPDATE_MODEL
+                  value: "${TRAIN_UPDATE_MODEL}"
+                - name: LAD_PARALLELISM
+                  value: "${PARALLELISM}"
+                # Inference
+                - name: LAD_INFER_TIME_SPAN
+                  value: "${INFER_TIME_SPAN}"
+                - name: LAD_INFER_MAX_ENTRIES
+                  value: "${INFER_MAX_ENTRIES}"
+                - name: LAD_INFER_LOOPS
+                  value: "${INFER_LOOPS}"
+                - name: LAD_INFER_ANOMALY_THRESHOLD
+                  value: "${INFER_ANOMALY_THRESHOLD}"
+                # ES Storage Backend
+                - name: LAD_ES_ENDPOINT
+                  value: "${ES_ENDPOINT}"
+                - name: LAD_ES_INPUT_INDEX
+                  value: "${ES_INPUT_INDEX}"
+                - name: LAD_ES_TARGET_INDEX
+                  value: "${ES_TARGET_INDEX}"
+                - name: LAD_ES_QUERY
+                  value: "${ES_QUERY}"
+                - name: LAD_ES_CERT_DIR
+                  value: "${ES_CERT_DIR}"
+              image: "log-anomaly-detector:latest-${NAME}"
+              imagePullPolicy: Always
+              name: "log-anomaly-detector-${NAME}"
+              volumeMounts:
+                - mountPath: "/opt/app-root/src/${MODEL_DIR}"
+                  name: model-storage
+              resources:
+                requests:
+                  cpu: "${PARALLELISM}"
+                limits:
+                  memory: 2Gi
+                  cpu: "${PARALLELISM}"
+              ports:
+                - containerPort: 8080
+          dnsPolicy: ClusterFirst
+          restartPolicy: Always
+          schedulerName: default-scheduler
+          securityContext: {}
+          terminationGracePeriodSeconds: 30
+      test: false
+      triggers:
+        - type: ConfigChange
+        - type: ImageChange
+          imageChangeParams:
+            automatic: true
+            containerNames:
+              - "log-anomaly-detector-${NAME}"
+            from:
+              kind: "ImageStreamTag"
+              name: "log-anomaly-detector-${NAME}:latest"
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: "log-anomaly-detector-${NAME}"
+    spec:
+      selector:
+        app: "log-anomaly-detector-${NAME}"
+      ports:
+        - port: 8080
+          targetPort: 8080
 parameters:
   - name: NAME
     required: true
-#Model storage
+  # Model storage
   - name: STORAGE_BACKEND
     description: "Name of the storage backend to be used for loading training and inference data ('local' or 'es')"
     value: es
@@ -180,15 +180,15 @@ parameters:
   - name: W2V_MODEL_FILE
     descripton: "Name of the file for stored word2vec model"
     value: W2V.model
-#Training
+  # Training
   - name: TRAIN_TIME_SPAN
     descripton: "Timespan for training data set in seconds"
     value: "36000"
   - name: TRAIN_MAX_ENTRIES
     descripton: "Maximum number of log entries in training data set"
-    value: "10000" 
+    value: "10000"
   - name: TRAIN_ITERATIONS
-    descripton: "Number of iterations of SOM training"  
+    descripton: "Number of iterations of SOM training"
     value: "15000"
   - name: TRAIN_UPDATE_MODEL
     description: "True if updating existing model, False if starting new model"
@@ -196,20 +196,20 @@ parameters:
   - name: PARALLELISM
     description: "number of CPUs to use to parallelize training"
     value: 2
-#Inference 
+  # Inference
   - name: INFER_TIME_SPAN
-    descripton: "Timespan for inference loop in seconds"  
+    descripton: "Timespan for inference loop in seconds"
     value: "60"
   - name: INFER_MAX_ENTRIES
-    descripton: "Maximum number of logs to be pulled on each inference loop"  
+    descripton: "Maximum number of logs to be pulled on each inference loop"
     value: "3000"
   - name: INFER_LOOPS
-    descripton: "Number of inference iterations between retraining the model"  
+    descripton: "Number of inference iterations between retraining the model"
     value: "1500"
   - name: INFER_ANOMALY_THRESHOLD
-    descripton: "Threshold for marking a log entry an anomaly"  
+    descripton: "Threshold for marking a log entry an anomaly"
     value: "3.1"
-#ES Storage Backend
+  # ES Storage Backend
   - name: ES_ENDPOINT
     descripton: "Elasticsearch endpoint to pull log data from for training"
     value: ""
@@ -217,7 +217,7 @@ parameters:
     descripton: "Name of Elasticsearch index to pull log data from for training and inference"
     value: logstash-
   - name: ES_TARGET_INDEX
-    descripton: "Name of Elasticsearch index to push anomlay detection results to"  
+    descripton: "Name of Elasticsearch index to push anomlay detection results to"
     value: log-anomaly-detector-
   - name: ES_QUERY
     descripton: "Query to use for search in ElasticSearch"
@@ -225,6 +225,6 @@ parameters:
   - name: ES_CERT_DIR
     description: "A directory containing cert and key used for logging into ES"
     value: ""
-#OpenShift
+  # OpenShift
   - name: STORAGE_CLASS
     value: ceph-dyn-datahub-paas

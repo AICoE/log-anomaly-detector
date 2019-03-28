@@ -24,6 +24,7 @@ def check_or_create_model_dir(config):
     if not os.path.exists(config.MODEL_DIR):
         os.mkdir(config.MODEL_DIR)
 
+
 class Borg(object):
     __shared_state = {}
 
@@ -42,6 +43,7 @@ class Configuration(Borg):
 
     If the name contains _CALLABLE suffix, it is called after the environment variables are loaded
     """
+
     FACT_STORE_URL = ""
     # One of the storage backends available in storage/ dir
     STORAGE_BACKEND = "local"
@@ -57,8 +59,8 @@ class Configuration(Borg):
     MODEL_PATH = ""
     W2V_MODEL_PATH_CALLABLE = join_w2v_model_path
     W2V_MODEL_PATH = ""
-    MODEL_STORE= ""
-    MODEL_STORE_PATH = 'anomaly-detection/models/'
+    MODEL_STORE = ""
+    MODEL_STORE_PATH = "anomaly-detection/models/"
     # Number of seconds specifying how far to the past to go to load log entries for training TODO: move to es storage backend
     TRAIN_TIME_SPAN = 900
     # Maximum number of entries for training loaded from backend storage
@@ -71,7 +73,7 @@ class Configuration(Borg):
     TRAIN_WINDOW = 5
     # Set the length of the encoded log vectors
     TRAIN_VECTOR_LENGTH = 25
-    #number of jobs to use to parallelize the training, should match cpu resource limit
+    # number of jobs to use to parallelize the training, should match cpu resource limit
     PARALLELISM = 2
 
     # Threshold used to decide whether an entry is an anomaly
@@ -91,7 +93,7 @@ class Configuration(Borg):
     # local test dataset
     LS_INPUT_PATH = ""
     # Name of local results data
-    LS_OUTPUT_PATH =""
+    LS_OUTPUT_PATH = ""
 
     prefix = "LAD"
 
@@ -103,8 +105,7 @@ class Configuration(Borg):
                 yaml_data = yaml.load(f, Loader=yaml.FullLoader)
                 for prop in self.__class__.__dict__.keys():
                     attr = getattr(self, prop)
-                    if prop.isupper() and prop.endswith("_CALLABLE") \
-                            and callable(attr):
+                    if prop.isupper() and prop.endswith("_CALLABLE") and callable(attr):
                         attr()
                     elif prop.isupper() and prop in list(yaml_data.keys()):
                         self.set_property(prop, yaml_data[prop])
@@ -131,11 +132,10 @@ class Configuration(Borg):
 
         for prop in self.__class__.__dict__.keys():
             attr = getattr(self, prop)
-            if prop.isupper() and prop.endswith("_CALLABLE") \
-                    and callable(attr):
+            if prop.isupper() and prop.endswith("_CALLABLE") and callable(attr):
                 attr()
 
-    def set_property(self,  prop, val):
+    def set_property(self, prop, val):
         typ = type(getattr(self, prop))
         if val:
 

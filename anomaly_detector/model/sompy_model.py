@@ -1,4 +1,3 @@
-
 from .base_model import BaseModel
 
 import os
@@ -9,15 +8,15 @@ from multiprocessing import Pool
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class SOMPYModel(BaseModel):
-    "SOMPY alternative SOM implementation with parallelization"
+    """SOMPY alternative SOM implementation with parallelization."""
 
     def train(self, inp, map_size, iterations, parallelism):
         mapsize = [map_size, map_size]
         som = sompy.SOMFactory.build(inp, mapsize)
         som.train(n_job=parallelism)
-        self.model = som.codebook.matrix.reshape([map_size,map_size, inp.shape[1]])
-
+        self.model = som.codebook.matrix.reshape([map_size, map_size, inp.shape[1]])
 
     def get_anomaly_score(self, logs, parallelism):
 

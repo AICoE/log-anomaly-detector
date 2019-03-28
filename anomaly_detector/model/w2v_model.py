@@ -41,13 +41,13 @@ class W2VModel(BaseModel):
 
         new_data = []
 
-        for i in range(len(transforms['message'])):
+        for i in range(len(transforms["message"])):
             logc = np.array(0)
             for _, c in transforms.items():
                 if c.item(i):
                     logc = np.append(logc, c[i])
                 else:
-                    logc = np.append(logc, [0,0,0,0,0])
+                    logc = np.append(logc, [0, 0, 0, 0, 0])
             new_data.append(logc)
 
         return np.array(new_data, ndmin=2)

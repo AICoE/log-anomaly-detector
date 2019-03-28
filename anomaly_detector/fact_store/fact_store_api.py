@@ -13,10 +13,11 @@ class FactStore(object):
     anomaly-detection
 
     """
+
     f = BloomFilter(capacity=1000, error_rate=0.001)
 
-    def __init__(self, autocreate=True): #  'sqlite:///:memory:'
-        engine = create_engine(os.getenv("SQL_CONNECT", 'sqlite:////tmp/test.db'), echo=True)
+    def __init__(self, autocreate=True):  #  'sqlite:///:memory:'
+        engine = create_engine(os.getenv("SQL_CONNECT", "sqlite:////tmp/test.db"), echo=True)
         try:
             if autocreate is True:
                 print("Creating tables")
@@ -37,14 +38,10 @@ class FactStore(object):
         :return:
         """
 
-        event = EventModel(message=message,
-                           score=score,
-                           predict_id=predict_id,
-                           anomaly_status=anomaly_status)
+        event = EventModel(message=message, score=score, predict_id=predict_id, anomaly_status=anomaly_status)
         self.session.add(event)
         self.session.commit()
-        print("Event ID: {}  recorded in events_store"
-              .format(event.predict_id))
+        print("Event ID: {}  recorded in events_store".format(event.predict_id))
 
     def write_feedback(self, predict_id, notes, anomaly_status):
         """
@@ -60,9 +57,7 @@ class FactStore(object):
         # Adding id to bloom filter so we don't have to
         # hit the database every time
         if self.f.add(predict_id) is False:
-            feedback = FeedbackModel(predict_id=predict_id,
-                                     notes=notes,
-                                     reported_anomaly_status=anomaly_status)
+            feedback = FeedbackModel(predict_id=predict_id, notes=notes, reported_anomaly_status=anomaly_status)
             self.session.add(feedback)
             self.session.commit()
             print("Persisted ID: {} recorded in FStore".format(feedback.id))
@@ -82,6 +77,3 @@ class FactStore(object):
 
     def is_not_anomaly(self, _id):
         return _id in self.f
-
-
-
