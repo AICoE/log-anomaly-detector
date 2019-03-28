@@ -6,7 +6,6 @@ import datetime
 import logging
 import os
 import time
-
 import matplotlib
 import numpy as np
 from prometheus_client import start_http_server, Gauge, Counter
