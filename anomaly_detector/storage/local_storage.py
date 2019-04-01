@@ -33,16 +33,16 @@ class LocalStorage(Storage):
                     data.append(json.loads(line))
                 except ValueError as ex:
                     _LOGGER.error("Parsing failed (%s), assuming plain text" % ex)
-                    data.append({'_source': {'message': str(line)}})
+                    data.append({"_source": {"message": str(line)}})
                 cnt += 1
                 if cnt >= number_of_entries:
                     break
 
             # only use _source sub-dict
-            data = [x['_source'] for x in data]
+            data = [x["_source"] for x in data]
             data_set = json_normalize(data)
         else:
-            with open(self.config.LS_INPUT_PATH, 'r') as fp:
+            with open(self.config.LS_INPUT_PATH, "r") as fp:
                 data = json.load(fp)
 
             data_set = json_normalize(data)
@@ -59,11 +59,11 @@ class LocalStorage(Storage):
     def store_results(self, data):
         """Store results."""
         if len(self.config.LS_OUTPUT_PATH) > 0:
-            with open(self.config.LS_OUTPUT_PATH, 'a') as fp:
+            with open(self.config.LS_OUTPUT_PATH, "a") as fp:
                 json.dump(data, fp)
         else:
             for item in data:
-                _LOGGER.info("Anomaly: %d, Anmaly score: %f" % (item['anomaly'], item['anomaly_score']))
+                _LOGGER.info("Anomaly: %d, Anmaly score: %f" % (item["anomaly"], item["anomaly_score"]))
 
     @classmethod
     def _stdin(cls):
@@ -74,4 +74,3 @@ class LocalStorage(Storage):
             stripped = line.strip()
             if len(stripped):
                 yield line.strip()
-

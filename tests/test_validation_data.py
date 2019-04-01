@@ -4,11 +4,13 @@ from anomaly_detector.config import Configuration
 
 CONFIGURATION_PREFIX = "LAD"
 
+
 @pytest.fixture()
 def detector():
     config = Configuration(CONFIGURATION_PREFIX)
     anomaly_detector = AnomalyDetector(config)
     return anomaly_detector
+
 
 def test_end2endtraining(detector):
     """

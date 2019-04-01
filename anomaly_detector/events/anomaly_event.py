@@ -3,14 +3,8 @@ from ..exception.exceptions import factStoreEnvVarNotSetException
 import requests
 
 
-
-class AnomalyEvent():
-    def __init__(self,
-                 predict_id,
-                 message,
-                 score,
-                 anomaly_status,
-                 fact_evt_url):
+class AnomalyEvent:
+    def __init__(self, predict_id, message, score, anomaly_status, fact_evt_url):
         """
         Anomaly Events communicates with the fact-store to get
         query metadata about machine learning anomaly be flagged
@@ -34,9 +28,6 @@ class AnomalyEvent():
         self.score = score
         self.anomaly_status = anomaly_status
         self.FACT_STORE_URL = fact_evt_url
-
-
-
 
     def isEvtFalseAnomaly(self):
         """
@@ -62,21 +53,18 @@ class AnomalyEvent():
         # FactStore for false anomalies.
         # And just wants what the algorithm predicts
 
-
-        r = requests.post(url=self.FACT_STORE_URL,
-                          json=self.to_dict())
+        r = requests.post(url=self.FACT_STORE_URL, json=self.to_dict())
         data = r.json()
-        print("Recording anomaly-event: {} {} {} {}".
-              format(str(self.predict_id),
-                     self.message,
-                     self.score,
-                     self.anomaly_status
-                     ))
-        print("data['false_anomaly'] is {} ".format(data['false_anomaly']))
+        print(
+            "Recording anomaly-event: {} {} {} {}".format(
+                str(self.predict_id), self.message, self.score, self.anomaly_status
+            )
+        )
+        print("data['false_anomaly'] is {} ".format(data["false_anomaly"]))
         # TODO: You should throw an exception
         #  if you get a value that other then 'false' or 'true'
-        
-        if data['false_anomaly'] is False:
+
+        if data["false_anomaly"] is False:
             return Anomaly_Status.FALSE.value
         else:
             return Anomaly_Status.CORRECT.value
@@ -87,5 +75,5 @@ class AnomalyEvent():
             "predict_id": self.predict_id,
             "message": self.message,
             "score": self.score,
-            "anomaly_status": self.anomaly_status
+            "anomaly_status": self.anomaly_status,
         }

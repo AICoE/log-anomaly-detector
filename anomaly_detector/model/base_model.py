@@ -6,7 +6,7 @@ from sklearn.externals import joblib
 import os
 
 
-class BaseModel():
+class BaseModel:
     """Base class for model implementations."""
 
     def __init__(self):
@@ -24,15 +24,12 @@ class BaseModel():
         except Exception as ex:
             raise ModelLoadException("Could not load a model: %s" % ex)
 
-        self.model = loaded_model['model']
-        self.metadata = loaded_model['metadata']
+        self.model = loaded_model["model"]
+        self.metadata = loaded_model["metadata"]
 
     def save(self, dest):
         """Save a model to disk."""
-        saved_model = {
-                       'model': self.model,
-                       'metadata': self.metadata
-                      }
+        saved_model = {"model": self.model, "metadata": self.metadata}
 
         try:
             joblib.dump(saved_model, dest)
