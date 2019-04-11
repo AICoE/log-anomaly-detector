@@ -27,6 +27,25 @@ python app.py ui --port 8080 --debug True
 
 ```
 
+### Deploy mysql test instance on openshift:
+```bash
+oc new-app \
+    -e MYSQL_USER=<USER> \
+    -e MYSQL_PASSWORD=<MYSQL_PASSWORD> \
+    -e MYSQL_ROOT_PASSWORD=<MYSQL_ROOT_PASSWORD> \
+    -e MYSQL_DATABASE=<MYSQL_DATABASE> \
+    openshift/mysql-56-centos7
+    
+ oc rsh <pod>
+ 
+ 
+ mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -h $HOSTNAME $MYSQL_DATABASE
+ 
+
+mysql>
+
+```
+
 ### MYSQL Creating schema and user
 ```sql
 
