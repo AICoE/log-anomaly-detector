@@ -92,6 +92,21 @@ class Configuration(Borg):
     # Name of local results data
     LS_OUTPUT_PATH = ""
 
+    # ElasticSearch endpoint URL
+    ES_ENDPOINT = ""
+    # Path to a directory where cert and key (es.crt and es.key) are stored for authentication
+    ES_CERT_DIR = ""
+    # If True, connect using ssl
+    ES_USE_SSL = True
+    # If True, verify SSL certificates
+    ES_VERIFY_CERTS = False
+    # ElasticSearch index name where results will be pushed to
+    ES_TARGET_INDEX = ""
+    # ElasticSearch index name where log entries will be pulled from
+    ES_INPUT_INDEX = ""
+    # JSON representing a query passed to ElasticSearch to match the data
+    ES_QUERY = ""
+
     prefix = "LAD"
 
     def __init__(self, prefix=None, config_yaml=None):
