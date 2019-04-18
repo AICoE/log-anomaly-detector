@@ -2,19 +2,73 @@
 
 This repository contains the prototype for a Log Anomaly Detector (LAD) which can be deployed on Openshift. It supports multiple backends for data loading and uses Self-Organizing Maps to track differences and find anomalies in the log stream.
 
+This application leverages both a Word2Vec implementation and a self organizing map to address this unsupervised natural language learning problem. We also have a user feedback subsystem, called Fact-Store, which maintains false positives flagged by users. This allows for the system to better learn how to avoid false positives in the future.
+
 Internally it utilizes gensim for its Word2Vec implementation - used to encode the natural language portion of our logs, and an implementation of SOM, but it is possible to extend by other anomaly detection algorithms.
 
-The execution flow containes of the two main portions (found in any ML application): training and inference.
+The execution flow contain's the two main portions (found in any ML application): training and inference.
 
-## Environment variable
+# Use Case
 
-Environment variables are loaded from `.env`. `pipenv` will load these automatically. So make sure you execute everything via `pipenv run` or from a `pipenv shell`.
+The use case for this system is to assist in root cause analysis of logs. Instead of developers having to go through many lines of logs this system will flag the log lines that are anomalies that need to be looked at. We also bundle a secondary subsystem called a fact_store which will allow for human feedback on accuracy of model prediction by disabling false anomalies that where reported from notifying users.
+
+## Language Encoding
+This application requires that we take log messages, which are variable length character strings, and convert them into a fixed length vector representation that can be consumed by machine learning algorithms. There are a number of ways to do this, but here we use Word2Vec(https://en.wikipedia.org/wiki/Word2vec) as implemented by the gensim python package, which has shown a great ability to convert words into numerical vectors in such a way that much of their semantic meaning is retained.
+
+## Configurations
+
+
+
+You have 2 options when configuring the application.
+
+1. Environment variables
+2. Yaml
+
+| Config Field            | Defaults                                                                                                                                                                                         | Description                                                                                                                                                                                                                                                                                                                                               |
+|-------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| FACT_STORE_EVENTS_URL   | “”                                                                                                                                                                                               | Sends events to fact-store                                                                                                                                                                                                                                                                                                                                |
+| STORAGE_BACKEND         | ‘Local’{REQUIRED}Scorpio run --job-type train --data-source s3:// Scorpio run --job-type train --data-source kafka:// Scorpio run --job-type train --data-source file:// Consider removing this… | The location where data is stored                                                                                                                                                                                                                                                                                                                         |
+| MODEL_DIR               | ‘./models/’’{OPTIONAL}                                                                                                                                                                           | Dictates the name of the folder used to store models generated. Useful if a user, doesn’t want to overwrite existing models.                                                                                                                                                                                                                              |
+| MODEL_FILE              | {OPTIONAL} Defaults are SOMModel, W2VModel                                                                                                                                                       | Name of file where models are stored                                                                                                                                                                                                                                                                                                                      |
+| W2V_MODEL_PATH          | {OPTIONAL}                                                                                                                                                                                       | File that is used for the word 2 vec model filename                                                                                                                                                                                                                                                                                                       |
+| TRAIN_TIME_SPAN         | Default: 900                                                                                                                                                                                     | Amount of time in seconds that you pulled the logs from elasticsearch. This parameter allows users to decide the time window from now to TRAIN_TIME_SPAN for which batch inference will run.                                                                                                                                                              |
+| TRAIN_MAX_ENTRIES       | Default: 30000                                                                                                                                                                                   | Maximum number of log messages read in from ElasticSearch during training                                                                                                                                                                                                                                                                                 |
+| TRAIN_ITERATIONS        | Default: Training Data Batch Size                                                                                                                                                                | Parameter used to train the SOM model. Defines the number of training examples used to train the model                                                                                                                                                                                                                                                    |
+| TRAIN_UPDATE_MODEL      | Defaults: False {OPTIONAL if you’ve done your training and you just want inference}                                                                                                              | If set to True, a pre-existing model is loaded for re-training. Otherwise, a new model is initialized.                                                                                                                                                                                                                                                    |
+| TRAIN_WINDOW            | Default: 5                                                                                                                                                                                       | [HYPER_PARAMETER] This is a hyper parameter used by the Word2Vec to dictate the number of words behind and in front of the target word during training.,Users may want to tweek this parameter.                                                                                                                                                           |
+| TRAIN_VECTOR_LENGTH     | Default: 25                                                                                                                                                                                      | [HYPER_PARAMETER] This is a hyper-parameter used by the,word2vec implementation to dictate the length of the feature vector generated from the log data for further processing by the SOM anomaly detection. Optimal feature length often can’t be known a priori,so users may want to tune this parameter based on their specific data set and use-case. |
+| PARALLELISM             | Default: 2                                                                                                                                                                                       | Used to past through to SOMPy package. Number of jobs that can be parallelized                                                                                                                                                                                                                                                                            |
+| INFER_ANOMALY_THRESHOLD | Default: 3.1                                                                                                                                                                                     | This value dictates how many standard deviations away from the mean a particular log anomaly value has to be before it will be classified as an anomaly.,If a user would like their system to be more strict they should increase this value. A value of 0 will classify all entries as anomalies.                                                        |
+| INFER_TIME_SPAN         | Default: 60 seconds                                                                                                                                                                              | The time in seconds that each inference batch represents. A value of 60 will pull the last 60 seconds of logs into the system for inference.                                                                                                                                                                                                              |
+| INFER_LOOPS             | Default: 10                                                                                                                                                                                      | Number of inference steps before retraining.                                                                                                                                                                                                                                                                                                              |
+| INFER_MAX_ENTRIES       | Default: 78862                                                                                                                                                                                   | Maximum number of log messages read in from ElasticSearch during inference                                                                                                                                                                                                                                                                                |
+| LS_INPUT_PATH           | None                                                                                                                                                                                             | Input data path. If your pulling data from elasticsearch then we accept urls. This is the path where log data is pulled in.                                                                                                                                                                                                                               |
+| LS_OUTPUT_PATH          | None                                                                                                                                                                                             | Output data path. If your pulling data from elasticsearch then we accept urls. This is the path where log data is pulled in.                                                                                                                                                                                                                              |
+| SQL_CONNECT             | sqlite://tmp/test.db                                                                                                                                                                             | Used to connect fact_store ui to database to store metadata. Not if you are running in openshift you can deploy mysql as a durable storage for that see mysql section.                                                                                                                                                                                    |
+
+
+If you are testing locally you can do the following:
+
+- Environment variables are loaded from `.env`. `pipenv` will load these automatically. So make sure you execute everything via `pipenv run` or from a `pipenv shell`.
+
+Configuration is currently done via environment variables. All the variables have prefix `LAD_` to distinguish them from the rest.
+
+Global application configuration options are defined and documented in `anomaly_detector/config.py`.
+
+There are specific configuration variables for each storage backend, so consult configuration classes in `anomaly_detector/storage/` directory for those.
+
 
 ```
 cp .env.example .env`
 ```
 
-## Local Development
+You may also use a config yaml file by passing it in via the following command:
+```
+python app.py run  --config-yaml env_config.yaml
+```
+
+When using the CLI you can run it outside of kubernetes and pass in `--job-type` which will default to train and inference. If you would like to override that in openshift you can passing a command and also arguments to that command. Template will be provided to utilize this.
+
 
 You can install and run the application locally by running a standard Python installation using `pipenv`, which will also bring in all the dependencies to your machine.
 
@@ -26,8 +80,9 @@ pipenv install --dev
 then start the application via
 
 ```
-pipenv run python app.py
+pipenv run python app.py run --job-type train --config-yaml env_config.yaml
 ```
+
 
 We recommend using containers and as we use source-to-image for deployments to OpenShift, we prefer to do the same for local development. For that you will need to download `s2i` binary from https://github.com/openshift/source-to-image/releases and install `docker`. To build an image with your application, run
 
@@ -61,17 +116,10 @@ oc process -f openshift/log-anomaly-detector.app.yaml LAD_STORAGE_BACKEND="es" .
 This will deploy and trigger image build which in turn will deploy and start the application.
 
 
-## Configuraiton
-
-Configuration is currently done via environment variables. All the variables have prefix `LAD_` to distinguish them from the rest. 
-
-Global application configuration options are defined and documented in `anomaly_detector/config.py`.
-
-There are specific configuration variables for each storage backend, so consult configuration classes in `anomaly_detector/storage/` directory for those.
 
 ## More Details
 
-### Training 
+### Training
 
 `anomaly_detector.train()` retrieves data from backend storage, converts it into vector representation using Gensim Word2Vec and stores the W2V model to disk. Next step is Self-Oragnizing Map training, once the model is trained, it is also stored to disk for furter use in `infer()`.
 
@@ -81,7 +129,7 @@ There are specific configuration variables for each storage backend, so consult 
 
 ### Word2Vec
 
-We are using Word2Vec in this application in order to vectorize the natural language elements of our log data. We have decided to use Word2Vec(https://en.wikipedia.org/wiki/Word2vec) because it has shown a great ability to convert text data into numerical vectors in such a way that much of their semantic meaning is retained. We have also decided to use the gensim package's verison of Word2Vec for this project. 
+We are using Word2Vec in this application in order to vectorize the natural language elements of our log data. We have decided to use Word2Vec(https://en.wikipedia.org/wiki/Word2vec) because it has shown a great ability to convert text data into numerical vectors in such a way that much of their semantic meaning is retained. We have also decided to use the gensim package's verison of Word2Vec for this project.
 
 
 ### SOM
@@ -92,7 +140,7 @@ SOM, or Kohonon maps, are a type of unsupervised learning algorithm that "produc
 
 In short, we intialize a graph of some user-specified fixed dimensions, in our default case 24x24, where each node is an object of the same dimensions as our training data. We then iterate through each training example over the graph and find the node that is closest (here using L2 distance) to that trainng example. We then update the value of that node and the neighboring nodes. This process will generate a map that resembels the space of our training samples.
 
-Once the map is trained, we can take a new example, measure its distance to each node on the map and determine how "close"/"similar" it is to our training data. This distance metric is how we quantify the spectrum from normal to anomalous and how we generate our anomaly scores. 
+Once the map is trained, we can take a new example, measure its distance to each node on the map and determine how "close"/"similar" it is to our training data. This distance metric is how we quantify the spectrum from normal to anomalous and how we generate our anomaly scores.
 
 ### Storage
 
