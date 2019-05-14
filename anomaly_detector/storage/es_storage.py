@@ -1,5 +1,4 @@
-"""
-"""
+"""ElasticSearch Storage interface."""
 
 import datetime
 import pandas

@@ -1,5 +1,4 @@
-"""
-"""
+"""Anomaly Detector main logic."""
 import boto3
 import uuid
 import datetime
@@ -34,8 +33,7 @@ ANOMALY_COUNT = Counter("anomaly_count", "Number of anomalies found")
 
 
 class AnomalyDetector:
-    """Implements training and inference of Self-Organizing Map
-     to detect anomalies in logs."""
+    """Implement training and inference of Self Organizing Map to detect anomalies in logs."""
 
     STORAGE_BACKENDS = [LocalStorage, ESStorage]
 
@@ -72,6 +70,7 @@ class AnomalyDetector:
             self.recreate_models = True
 
     def _load_data(self, time_span, max_entries):
+        """Loading data from storage into pandas dataframe for processing."""
         data, raw = self.storage.retrieve(time_span, max_entries)
 
         if len(data) == 0:
@@ -118,8 +117,6 @@ class AnomalyDetector:
         now = time.time()
 
         _LOGGER.info("Training took %s minutes", ((now - then) / 60))
-        _LOGGER.info("Saving U-map")
-        self.model.save_visualisation(self.config.MODEL_DIR)
         _LOGGER.info("Generating Baseline Metrics")
 
         dist = self.model.get_anomaly_score(to_put_train, self.config.PARALLELISM)
@@ -193,7 +190,7 @@ class AnomalyDetector:
                     try:
                         val = AnomalyEvent(
                             s["predict_id"], s["message"], dist[i], True, self.config.FACT_STORE_URL
-                        ).isEvtFalseAnomaly()
+                        ).is_event_false()
                         s["anomaly"] = val
                     except factStoreEnvVarNotSetException as f_ex:
                         _LOGGER.info("Fact Store Env Var is not set")
@@ -222,9 +219,8 @@ class AnomalyDetector:
         self.recreate_models = True
 
     def syncModel(self):
-        """
-        Will check if the after training you would like to
-        store models in s3 with timestamp.
+        """Store models in s3 with timestamp.
+
         It will follow a particular pattern:
             s3://<bucket_name>/<path>/<timestamp>
         Later after running training you can serve models

@@ -1,3 +1,4 @@
+"""Generates filebased dataset for training."""
 import json
 import numpy as np
 import random
@@ -18,11 +19,7 @@ DEFALULT_QUERY = {
 
 
 def get_data_from_es(endpoint, index, service, num=20, time=2, query=DEFALULT_QUERY):
-    """
-	This function pulls data from a user defined Elasticsearch endpoint, index and service.
-	It also allows the user to dictate the number entires pulled and the timeframe in seconds.
-	"""
-
+    """Get data from elasticsearch using index name."""
     es = Elasticsearch(endpoint, timeout=30)
     query["size"] = num
     query["filter"]["range"]["@timestamp"]["gte"] = "now-" + str(time) + "s"
@@ -32,11 +29,7 @@ def get_data_from_es(endpoint, index, service, num=20, time=2, query=DEFALULT_QU
 
 
 def create_anomlous_entires(string, entropy):
-    """
-	This function takes a string and randomly replaces characters with random characters.
-	The parameter 'entropy' is a value between 0 and 1 that dictates what percent of the string is changed.
-	"""
-
+    """Take a string and randomly replaces characters with random characters."""
     string_length = len(string)
 
     if entropy > 1:
@@ -51,6 +44,7 @@ def create_anomlous_entires(string, entropy):
 
 
 def main():
+    """Main method for loading in elasticsearch data."""
     random.seed(42)
     data = get_data_from_es(ENDPOINT, INDEX, SERVICE, num=80000, time=6000000)
     logs = data["hits"]["hits"]

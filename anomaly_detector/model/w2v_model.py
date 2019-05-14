@@ -1,5 +1,4 @@
-"""
-"""
+"""Word 2 vector model."""
 
 import numpy as np
 from gensim.models import Word2Vec

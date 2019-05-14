@@ -1,15 +1,13 @@
-"""
-"""
+"""SOM model."""
 
 from .base_model import BaseModel
-
+from matplotlib import pyplot as plt
 import os
 import numpy as np
 import logging
 import matplotlib
 
 matplotlib.use("agg")
-from matplotlib import pyplot as plt
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -20,15 +18,18 @@ class SOMModel(BaseModel):
     def train(self, inp, map_size, iterations, parallelism):
         """Train the SOM model."""
         if self.model is None:
-            self.model = np.random.rand(map_size, map_size, inp.shape[1])  # Generate a 24x24 node feature of color data
+            # Generate a 24x24 node feature of color data
+            self.model = np.random.rand(map_size, map_size, inp.shape[1])
 
         for iters in range(iterations):
             if not iters % int(iterations / 10):
                 _LOGGER.info("SOM training iteration %d/%d" % (iters, iterations))
             rand_num = np.random.randint(inp.shape[0])
-            current_vector = inp[rand_num, :]  # Select a Random Document Vector From the training data
+            # Select a Random Document Vector From the training data
+            current_vector = inp[rand_num, :]
 
-            # Traverse the map and calculating Euclidian Distance from each node to find best matching unit (BMU)
+            # Traverse the map and calculating Euclidian Distance
+            # from each node to find best matching unit (BMU)
             bmu = np.inf
             bmu_loc = (0, 0)
 
@@ -53,7 +54,8 @@ class SOMModel(BaseModel):
 
     def save_visualisation(self, dest):
         """Create and save a png image of the SOM."""
-        # Since Data is no longer representable in 2 or 3 dimensions we will display a matrix of distances from adjecent vectors
+        # Since Data is no longer representable in 2 or 3 dimensions we will display a matrix
+        # of distances from adjecent vectors
         new = np.zeros((24, 24))
 
         for x in range(self.model.shape[0]):
@@ -78,22 +80,25 @@ class SOMModel(BaseModel):
         dist_smallest = np.inf
         for x in range(self.model.shape[0]):
             for y in range(self.model.shape[1]):
-                dist = np.linalg.norm(self.model[x][y] - log)  # cosine(som[x][y],log)#np.linalg.norm(som[x][y]-log)
+                # cosine(som[x][y],log)#np.linalg.norm(som[x][y]-log)
+                dist = np.linalg.norm(self.model[x][y] - log)
                 if dist < dist_smallest:
                     dist_smallest = dist
 
         return dist_smallest
 
-    @classmethod  # TODO: make method private
-    def alph(cls, T, t):  # Learning Rate, Deacrease as we move through the iterations
+    # TODO: make method private
+    @classmethod
+    def alph(cls, T, t):
+        """Learning Rate, Deacrease as we move through the iterations."""
         if T == 0:
             return 0
 
         return (T - t) / T
 
-    @classmethod  # TODO: make method private
-    def neihborhood(
-        cls, bmu_location, node_location
-    ):  # Neighborhood function, dictates the maganitude of the update as we move away from the BMU
+    # TODO: make method private
+    @classmethod
+    def neihborhood(cls, bmu_location, node_location):
+        """Neighborhood function, dictates the maganitude of the update as we move away from the BMU."""
         dist = np.linalg.norm(bmu_location - node_location)
         return np.exp(-1.0 * (dist / 2))
