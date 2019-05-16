@@ -1,5 +1,4 @@
-"""
-"""
+"""Configuration setting class."""
 
 import os
 import distutils
@@ -26,23 +25,21 @@ def check_or_create_model_dir(config):
 
 
 class Borg(object):
+    """Borg aka monostate is a class that has shared state."""
+
     __shared_state = {}
 
     def __init__(self):
+        """Setting up dictionary to be equal to shared state."""
         self.__dict__ = self.__shared_state
 
     def __str__(self):
+        """When we print the string we want to get the shared state."""
         return self.state
 
 
 class Configuration(Borg):
-    """
-    Configuration object.
-    
-    Properties which names are all caps are used for configuration of the application.
-
-    If the name contains _CALLABLE suffix, it is called after the environment variables are loaded
-    """
+    """Main configuration class which is contains the config values."""
 
     FACT_STORE_URL = ""
     # One of the storage backends available in storage/ dir
@@ -61,7 +58,7 @@ class Configuration(Borg):
     W2V_MODEL_PATH = ""
     MODEL_STORE = ""
     MODEL_STORE_PATH = "anomaly-detection/models/"
-    # Number of seconds specifying how far to the past to go to load log entries for training TODO: move to es storage backend
+    # Number of seconds specifying how far to the past to go to load log entries for training
     TRAIN_TIME_SPAN = 900
     # Maximum number of entries for training loaded from backend storage
     TRAIN_MAX_ENTRIES = 315448
@@ -78,7 +75,7 @@ class Configuration(Borg):
 
     # Threshold used to decide whether an entry is an anomaly
     INFER_ANOMALY_THRESHOLD = 3.1
-    # Number of seconds specifying how far in the past to go to load log entries for inference TODO: move to es storage backend
+    # Number of seconds specifying how far in the past to go to load log entries for inference
     INFER_TIME_SPAN = 60
     # Number of inferences before retraining the models
     INFER_LOOPS = 10
@@ -136,6 +133,7 @@ class Configuration(Borg):
                 attr()
 
     def set_property(self, prop, val):
+        """Set the correct datatype."""
         typ = type(getattr(self, prop))
         if val:
 

@@ -1,6 +1,4 @@
-"""
-"""
-
+"""Base model class."""
 from .model_exception import ModelLoadException, ModelSaveException
 from sklearn.externals import joblib
 import os

@@ -1,15 +1,10 @@
-""" Test cases for validating fact store persistence """
+"""Test cases for validating fact store persistence."""
 from anomaly_detector.fact_store.fact_store_api import FactStore
 from anomaly_detector.fact_store.model import EventModel, FeedbackModel
 
 
 def test_events_inserted():
-    """
-    If users do not provide a connection string. It will by default store the
-    data in sqlite. We can then validate that the values we stored are correct.
-    We also check that the values are 3 elements inserted will =3
-    :return:
-    """
+    """Test inserting feedback into the fact_store."""
     fact_store = FactStore(True)
     fact_store.session.query(EventModel).delete()
     fact_store.write_event(
@@ -26,13 +21,7 @@ def test_events_inserted():
 
 
 def test_feedback_inserted():
-    """
-    This function tests that fact_store create sqlite db
-    and stores as a safe default for testing feedback gets
-    tracked.
-
-    :return:
-    """
+    """Test inserting events into the fact_store."""
     fact_store = FactStore(True)
     fact_store.session.query(FeedbackModel).delete()
     fact_store.write_feedback(
