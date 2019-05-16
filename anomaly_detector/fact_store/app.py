@@ -1,3 +1,4 @@
+"""Fact Store main rest interface."""
 import logging
 from flask import Flask, request, render_template, jsonify, make_response
 from anomaly_detector.fact_store.fact_store_api import FactStore
@@ -7,6 +8,7 @@ app = Flask(__name__, static_folder="static")
 
 @app.route("/")
 def index():
+    """Render main html page for fact_store."""
     _id = request.args.get("lad_id")
     if _id is None:
         return render_template("index.html")
@@ -15,8 +17,7 @@ def index():
 
 @app.route("/api/metadata", methods=["GET"])
 def metadata():
-    """ Service to provide list of false anomalies to be relabeled
-        during ml training run"""
+    """Service to provide list of false anomalies to be relabeled during ml training run."""
     fs = FactStore()
     df = fs.readall_feedback()
     return jsonify({"feedback": df})
@@ -24,8 +25,7 @@ def metadata():
 
 @app.route("/api/feedback", methods=["POST"])
 def feedback():
-    """ Feedback Service to provide user input on which
-        false predictions this model provided."""
+    """Feedback Service to provide user input on which false predictions this model provided."""
     try:
         content = request.json
         logging.info("id: {} ".format(content["lad_id"]))
@@ -34,7 +34,8 @@ def feedback():
 
         if not content["lad_id"] or not content["is_anomaly"]:
             raise Exception(
-                "This service requires that you provide the id" + ", anomaly=True|False and notes are optional "
+                "This service requires that you provide the id" +
+                ", anomaly=True|False and notes are optional "
             )
 
         fs = FactStore()
@@ -60,6 +61,7 @@ def feedback():
 
 @app.route("/api/anomaly_event", methods=["POST"])
 def false_anomaly():
+    """Tag false anomalies in database."""
     content = request.get_json()
     fs = FactStore()
     id = content["predict_id"]

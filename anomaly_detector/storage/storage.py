@@ -1,5 +1,4 @@
-"""
-"""
+"""Storage abstract class."""
 
 from abc import abstractmethod, ABCMeta
 
@@ -36,6 +35,7 @@ class Storage(object):
 
     @classmethod
     def _preprocess(cls, data):
+        """Provide preprocessing for the data before running it through W2V and SOM."""
         def to_str(x):
             """Convert all non-str lists to string lists for Word2Vec."""
             ret = " ".join([str(y) for y in x]) if isinstance(x, list) else str(x)

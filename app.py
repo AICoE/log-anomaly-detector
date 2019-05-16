@@ -1,16 +1,15 @@
-""" Log Anomaly Detector """
-import click
-
+"""Log Anomaly Detector."""
 from anomaly_detector.anomaly_detector import AnomalyDetector
 from anomaly_detector.config import Configuration
 from anomaly_detector.fact_store.app import app
+import click
 
 CONFIGURATION_PREFIX = "LAD"
 
 
 @click.group()
 def cli():
-    """Cli for log anomaly detector """
+    """Cli bootstrap method."""
     click.echo("starting up log anomaly detectory")
 
 
@@ -18,7 +17,7 @@ def cli():
 @click.option("--debug", default=False, help="Sets flask in debug mode to true")
 @click.option("--port", default=5001, help="Select the port number you would like to run the web ui ")
 def ui(debug, port):
-    """Starts web ui for user feedback system"""
+    """Start web ui for user feedback system."""
     click.echo("Starting UI...")
     app.run(debug=debug, port=port, host="0.0.0.0")
 
@@ -27,12 +26,11 @@ def ui(debug, port):
 @click.option(
     "--job-type",
     default="all",
-    help="select either 'train', 'inference', 'all' " + "by default it runs train and infer in loop",
-)
+    help="select either 'train', 'inference', 'all' by default it runs train and infer in loop",)
 @click.option("--config-yaml", default=".env_config.yaml", help="configuration file used to configure service")
+# Initializing click function.
 def run(job_type, config_yaml):
-    """ Performs machine learning model generation
-    with input log data"""
+    """Perform machine learning model generation with input log data."""
     click.echo("Starting...")
     config = Configuration(prefix=CONFIGURATION_PREFIX, config_yaml=config_yaml)
     anomaly_detector = AnomalyDetector(config)

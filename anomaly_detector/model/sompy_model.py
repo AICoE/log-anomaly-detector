@@ -1,3 +1,4 @@
+"""SOMPY model."""
 from .base_model import BaseModel
 
 import os
@@ -13,21 +14,19 @@ class SOMPYModel(BaseModel):
     """SOMPY alternative SOM implementation with parallelization."""
 
     def train(self, inp, map_size, iterations, parallelism):
+        """Train the SOM model."""
         mapsize = [map_size, map_size]
         som = sompy.SOMFactory.build(inp, mapsize)
         som.train(n_job=parallelism)
         self.model = som.codebook.matrix.reshape([map_size, map_size, inp.shape[1]])
 
     def get_anomaly_score(self, logs, parallelism):
-
+        """Get Anomaly Score."""
         pool = Pool(parallelism)
         dist = pool.map(self.calculate_anomaly_score, logs)
         pool.close()
         pool.join()
         return dist
-
-    def save_visualisation(self, dest):
-        return None
 
     def calculate_anomaly_score(self, log):
         """Compute a distance of a log entry to elements of SOM."""

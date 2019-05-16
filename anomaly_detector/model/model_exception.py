@@ -1,5 +1,4 @@
-"""
-"""
+"""Model exception class."""
 
 
 class ModelLoadException(Exception):
