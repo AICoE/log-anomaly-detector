@@ -1,5 +1,8 @@
 """ Setup.py for packaging log-anomaly-detector as library """
-from setuptools import setup
+from setuptools import setup, find_packages
+
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
 REQUIRED_PKG = [
     "Click",
@@ -22,29 +25,24 @@ REQUIRED_PKG = [
 ]
 
 setup(
-    name="aiops_log_anomaly_detector",
-    version="0.0.1",
-    packages=[
-        "anomaly_detector",
-        "anomaly_detector.fact_store",
-        "anomaly_detector.model",
-        "anomaly_detector.types",
-        "anomaly_detector.exception",
-        "anomaly_detector.events",
-        "anomaly_detector.storage",
-    ],
+    name="scorpio",
+    version="0.0.1-rc1",
+    packages=find_packages(),
+    setup_requires=["pytest-runner"],
+    tests_require=["pytest"],
     zip_safe=False,
     classifiers=(
-        "Dev Status :: 1 - Alpha",
-        "Intended Audience :: DevOps",
+        "Development Status :: 1 - Planning",
         "Natural Language :: English",
-        "Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.6",
     ),
     python_requires=">3.5",
     url="https://github.com/AICoE/log-anomaly-detector",
-    author="AiOps",
+    author="Zak Hassan",
     author_email="zak.hassan@redhat.com",
     description="Log anomaly detector for streaming logs",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     dependency_links=[
         "git+https://github.com/sevamoo/SOMPY.git" + "@76b60ebd6ffd550b0f7faaf632451dfd68827bf7",
         "git+https://github.com/jaybaird/python-bloomfilter.git" + "@2bbe01ad49965bf759e31781e6820408068862ac",

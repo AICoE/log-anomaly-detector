@@ -9,7 +9,8 @@ CONFIGURATION_PREFIX = "LAD"
 @pytest.fixture()
 def detector():
     """Initialize configurations before testing."""
-    config = Configuration(CONFIGURATION_PREFIX)
+    # prefix=None, config_yaml=None):
+    config = Configuration(prefix=CONFIGURATION_PREFIX, config_yaml=".env_config.yaml")
     anomaly_detector = AnomalyDetector(config)
     return anomaly_detector
 
