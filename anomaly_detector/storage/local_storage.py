@@ -21,7 +21,7 @@ class LocalStorage(Storage):
         """Initialize local storage backend."""
         self.config = configuration
 
-    def retrieve(self, time_range, number_of_entries):
+    def retrieve(self, time_range, number_of_entries, false_data=None):
         """Retrieve data from local storage."""
         data = []
         _LOGGER.info("Reading from %s" % self.config.LS_INPUT_PATH)
@@ -36,23 +36,19 @@ class LocalStorage(Storage):
                 cnt += 1
                 if cnt >= number_of_entries:
                     break
-
             # only use _source sub-dict
             data = [x["_source"] for x in data]
             data_set = json_normalize(data)
         else:
             with open(self.config.LS_INPUT_PATH, "r") as fp:
                 data = json.load(fp)
-
+                # TODO: Make sure to check for false_data is not Null
+                if false_data is not None:
+                    data.extend(false_data)
             data_set = json_normalize(data)
-
-            if len(data_set) > number_of_entries:
-                data_set = data_set[:-number_of_entries]
         _LOGGER.info("%d logs loaded", len(data_set))
-
         # Prepare data for training/inference
         self._preprocess(data_set)
-
         return data_set, data
 
     def store_results(self, data):

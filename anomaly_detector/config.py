@@ -111,6 +111,8 @@ class Configuration(Borg):
 
     def __init__(self, prefix=None, config_yaml=None):
         """Initialize configuration."""
+        # For backward compatibility
+        self.load_from_env()
         if config_yaml is not None:
             # TODO: Open YAML File and load the configurations in here.
             with open(config_yaml) as f:

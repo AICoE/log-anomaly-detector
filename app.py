@@ -44,7 +44,7 @@ def run(job_type, config_yaml):
         anomaly_detector.infer()
     elif job_type == "all":
         click.echo("Perform training and inference in loop...")
-        anomaly_detector.run()
+        anomaly_detector.run(single_run=True)
 
 
 if __name__ == "__main__":

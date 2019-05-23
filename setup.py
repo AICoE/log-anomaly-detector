@@ -7,12 +7,12 @@ with open("README.md", "r") as fh:
 REQUIRED_PKG = [
     "Click",
     "elasticsearch5",
+    "urllib3==1.21.1",
     "gensim",
     "matplotlib",
     "numpy",
     "pandas",
     "prometheus_client",
-    "boto3",
     "Flask",
     "scikit-learn",
     "scipy",
@@ -20,7 +20,6 @@ REQUIRED_PKG = [
     "Flask-SQLAlchemy",
     "PyMySQL",
     "sompy",
-    "pybloom",
     "pyyaml",
 ]
 
@@ -44,8 +43,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     dependency_links=[
-        "git+https://github.com/sevamoo/SOMPY.git" + "@76b60ebd6ffd550b0f7faaf632451dfd68827bf7",
-        "git+https://github.com/jaybaird/python-bloomfilter.git" + "@2bbe01ad49965bf759e31781e6820408068862ac",
+	"git+https://github.com/sevamoo/SOMPY.git@76b60ebd6ffd550b0f7faaf632451dfd68827bf7#egg=sompy",
     ],
     install_requires=REQUIRED_PKG,
     entry_points="""

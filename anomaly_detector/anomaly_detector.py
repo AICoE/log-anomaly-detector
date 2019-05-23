@@ -1,5 +1,4 @@
 """Anomaly Detector main logic."""
-import boto3
 import uuid
 import datetime
 import logging
@@ -8,7 +7,6 @@ import time
 import matplotlib
 import numpy as np
 from prometheus_client import start_http_server, Gauge, Counter
-
 from .config import Configuration
 from .events.anomaly_event import AnomalyEvent
 from .model.model_exception import ModelLoadException, ModelSaveException
@@ -20,7 +18,6 @@ from .exception.exceptions import factStoreEnvVarNotSetException
 from requests.exceptions import ConnectionError
 
 matplotlib.use("agg")
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -45,6 +42,7 @@ class AnomalyDetector:
         self.update_w2v_model = os.path.isfile(cfg.W2V_MODEL_PATH) and cfg.TRAIN_UPDATE_MODEL
         self.recreate_models = False
 
+        print("Threshold init: {}".format(self.config.INFER_ANOMALY_THRESHOLD))
         for backend in self.STORAGE_BACKENDS:
             if backend.NAME == self.config.STORAGE_BACKEND:
                 _LOGGER.info("Using %s storage backend" % backend.NAME)
@@ -69,9 +67,9 @@ class AnomalyDetector:
             self.update_w2v_model = False
             self.recreate_models = True
 
-    def _load_data(self, time_span, max_entries):
+    def _load_data(self, time_span, max_entries, fp=None):
         """Loading data from storage into pandas dataframe for processing."""
-        data, raw = self.storage.retrieve(time_span, max_entries)
+        data, raw = self.storage.retrieve(time_span, max_entries, fp)
 
         if len(data) == 0:
             _LOGGER.info("There are no logs in last %s seconds", time_span)
@@ -80,10 +78,11 @@ class AnomalyDetector:
         return data, raw
 
     @TRAINING_TIME.time()
-    def train(self):
+    # @profile
+    def train(self, fp=None, node_map=24):
         """Train models for anomaly detection."""
         start = time.time()
-        data, _ = self._load_data(self.config.TRAIN_TIME_SPAN, self.config.TRAIN_MAX_ENTRIES)
+        data, _ = self._load_data(self.config.TRAIN_TIME_SPAN, self.config.TRAIN_MAX_ENTRIES, fp)
         if data is None:
             return 1
         _LOGGER.info("Learning Word2Vec Models and Saving for Inference Step")
@@ -105,21 +104,9 @@ class AnomalyDetector:
         _LOGGER.info("Encoding Text Data")
 
         to_put_train = self.w2v_model.one_vector(data)
-
         _LOGGER.info("Start Training SOM...")
 
-        then = time.time()
-
-        if self.recreate_models or self.update_model:
-            self.model.set(np.random.rand(24, 24, to_put_train.shape[1]))
-
-        self.model.train(to_put_train, 24, self.config.TRAIN_ITERATIONS, self.config.PARALLELISM)
-        now = time.time()
-
-        _LOGGER.info("Training took %s minutes", ((now - then) / 60))
-        _LOGGER.info("Generating Baseline Metrics")
-
-        dist = self.model.get_anomaly_score(to_put_train, self.config.PARALLELISM)
+        dist = self.compute_score(node_map, to_put_train)
 
         self.model.set_metadata((np.mean(dist), np.std(dist), np.max(dist), np.min(dist)))
         try:
@@ -130,9 +117,20 @@ class AnomalyDetector:
 
         end = time.time()
         _LOGGER.info("Whole Process takes %s minutes", ((end - start) / 60))
-        self.syncModel()
         TRAINING_COUNT.inc()
-        return 0
+        return 0, dist
+
+    def compute_score(self, node_map, to_put_train):
+        """Compute score for anomaly for SOM model."""
+        then = time.time()
+        if self.recreate_models or self.update_model:
+            self.model.set(np.random.rand(node_map, node_map, to_put_train.shape[1]))
+        self.model.train(to_put_train, node_map, self.config.TRAIN_ITERATIONS, self.config.PARALLELISM)
+        now = time.time()
+        dist = self.model.get_anomaly_score(to_put_train, self.config.PARALLELISM)
+        _LOGGER.info("Training took %s minutes", ((now - then) / 60))
+        _LOGGER.info("Generating Baseline Metrics")
+        return dist
 
     def infer(self):
         """Perform inference on trained models."""
@@ -198,7 +196,6 @@ class AnomalyDetector:
                     except ConnectionError as e:
                         _LOGGER.info("Fact store is down unable to check")
                         s["anomaly"] = 1
-
                     _LOGGER.warn("Anomaly found (score: %f): %s" % (dist[i], s["message"]))
                 else:
                     s["anomaly"] = 0
@@ -216,60 +213,25 @@ class AnomalyDetector:
                 time.sleep(sleep_time)
 
         # When we reached # of inference loops, retrain models
-        self.recreate_models = True
+        self.recreate_models = False
 
-    def syncModel(self):
-        """Store models in s3 with timestamp.
-
-        It will follow a particular pattern:
-            s3://<bucket_name>/<path>/<timestamp>
-        Later after running training you can serve models
-        from a particular timestamp.
-        :return:
-        """
-        if self.config.MODEL_STORE == "s3":
-            session = boto3.session.Session()
-            s3_client = session.client(
-                service_name="s3",
-                aws_access_key_id=self.config.S3_KEY,
-                aws_secret_access_key=self.config.S3_SECRET,
-                endpoint_url=self.config.S3_HOST,
-            )
-
-            s3_bucket = self.config.S3_BUCKET
-            t_timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            s3_client.put_object(Bucket=s3_bucket, Key=(self.config.MODEL_STORE_PATH + t_timestamp + "/"))
-            _LOGGER.debug("Created bucket: " + self.config.MODEL_STORE_PATH + t_timestamp + "/")
-            s3_client.upload_file(
-                Filename="models/SOM.model",
-                Bucket=s3_bucket,
-                Key=(self.config.MODEL_STORE_PATH + t_timestamp + "/SOM.model"),
-            )
-            s3_client.upload_file(
-                Filename="models/W2V.model",
-                Bucket=s3_bucket,
-                Key=(self.config.MODEL_STORE_PATH + t_timestamp + "/W2V.model"),
-            )
-            _LOGGER.debug("Done uploading models to s3 complete")
-        else:
-            _LOGGER.debug("Must set MODEL_STORE='s3' to save to s3")
-
-    def run(self):
+    def run(self, single_run=False):
         """Run the main loop."""
         start_http_server(8080)
-
-        while True:
+        srun = False
+        fp = None
+        while True and srun is False:
             if self.update_model or self.update_w2v_model or self.recreate_models:
                 try:
-                    self.train()
+                    self.train(fp=fp)
                 except Exception as ex:
                     _LOGGER.error("Training failed: %s" % ex)
                     raise
             else:
                 _LOGGER.info("Models already exists, skipping training")
-
             try:
                 self.infer()
             except Exception as ex:
                 _LOGGER.error("Inference failed: %s" % ex)
                 raise ex
+            srun = single_run

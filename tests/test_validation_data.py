@@ -17,4 +17,5 @@ def detector():
 
 def test_end2endtraining(detector):
     """Test anomaly detection training on public dataset."""
-    assert detector.train() == 0
+    result, dist = detector.train()
+    assert result == 0

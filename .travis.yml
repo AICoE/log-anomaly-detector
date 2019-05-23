@@ -13,4 +13,4 @@ before_install:
 install:
   - "pipenv install --dev --deploy"
 script:
-  - "pipenv run pytest --cov=$PWD"
+  - "pipenv run python setup.py test --addopts -vs"

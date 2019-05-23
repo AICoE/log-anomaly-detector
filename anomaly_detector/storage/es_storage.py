@@ -65,7 +65,7 @@ class ESStorage(Storage):
         index = prefix + date
         return index
 
-    def retrieve(self, time_range: int, number_of_entires: int):
+    def retrieve(self, time_range: int, number_of_entires: int, fp=None):
         """Retrieve data from ES."""
         index_in = self._prep_index_name(self.config.ES_INPUT_INDEX)
 
