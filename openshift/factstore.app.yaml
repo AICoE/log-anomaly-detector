@@ -1,0 +1,102 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: ${NAME}
+objects:
+  - apiVersion: image.openshift.io/v1
+    kind: ImageStream
+    metadata:
+      labels:
+        app: log-anomaly-detector-factstore
+      name: log-anomaly-detector-factstore
+    spec:
+      lookupPolicy:
+        local: true
+  - apiVersion: build.openshift.io/v1
+    kind: BuildConfig
+    metadata:
+      labels:
+        app: log-anomaly-detector-factstore
+      name: log-anomaly-detector-factstore
+    spec:
+      output:
+        to:
+          kind: ImageStreamTag
+          name: log-anomaly-detector-factstore:latest
+      source:
+        git:
+          ref: master
+          uri: https://github.com/AICoE/log-anomaly-detector.git
+        type: Git
+      strategy:
+        sourceStrategy:
+          from:
+            kind: ImageStreamTag
+            name: python:3.6
+            namespace: openshift
+        type: Source
+      triggers:
+        - imageChange: {}
+          type: ImageChange
+        - type: ConfigChange
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: log-anomaly-detector-factstore-svc
+    spec:
+      selector:
+        app: log-anomaly-detector-factstore
+      ports:
+        - protocol: TCP
+          port: 5001
+          targetPort: 5001
+  - apiVersion: apps.openshift.io/v1
+    kind: DeploymentConfig
+    metadata:
+      labels:
+        app: ${NAME}
+      name: ${NAME}
+    spec:
+      replicas: 1
+      selector:
+        deploymentconfig: ${NAME}
+      template:
+        metadata:
+          labels:
+            app: log-anomaly-detector-factstore
+            deploymentconfig: log-anomaly-detector-factstore
+        spec:
+          containers:
+            - name: log-anomaly-detector-factstore
+              image: log-anomaly-detector-factstore:latest
+              command: ["python"]
+              args: ["app.py", "ui"]
+              imagePullPolicy: Always
+              resources:
+                limits:
+                  cpu: 1
+                  memory: 2Gi
+                requests:
+                  cpu: 500m
+                  memory: 500Mi
+          dnsPolicy: ClusterFirst
+          restartPolicy: Always
+          schedulerName: default-scheduler
+          securityContext: {}
+          terminationGracePeriodSeconds: 30
+      test: false
+      triggers:
+        - type: ConfigChange
+        - imageChangeParams:
+            automatic: true
+            containerNames:
+              - log-anomaly-detector-factstore
+            from:
+              kind: ImageStreamTag
+              name: log-anomaly-detector-factstore:latest
+          type: ImageChange
+parameters:
+  - name: SQL_CONNECT
+    value: "mysql+pymysql://admin:admin@mysql-56-centos7/factstore"
+  - name: NAME
+    value: "log-anomaly-detector-factstore"
