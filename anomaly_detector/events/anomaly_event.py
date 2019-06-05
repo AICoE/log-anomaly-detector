@@ -2,6 +2,7 @@
 from ..types.anomaly_status import Anomaly_Status
 from ..exception.exceptions import factStoreEnvVarNotSetException
 import requests
+import logging
 
 
 class AnomalyEvent:
@@ -30,7 +31,7 @@ class AnomalyEvent:
         self.anomaly_status = anomaly_status
         self.FACT_STORE_URL = fact_evt_url
 
-    def is_event_false(self):
+    def record_prediction(self):
         """**summary line** Process Anomaly Events.
 
         **description Stores anomaly into factstore and validates if this anomaly
@@ -52,14 +53,14 @@ class AnomalyEvent:
         # FactStore for false anomalies.
         # And just wants what the algorithm predicts
 
-        r = requests.post(url=self.FACT_STORE_URL, json=self.to_dict())
+        r = requests.post(url=self.FACT_STORE_URL+"/api/anomaly_event", json=self.to_dict())
         data = r.json()
-        print(
+        logging.info(
             "Recording anomaly-event: {} {} {} {}".format(
                 str(self.predict_id), self.message, self.score, self.anomaly_status
             )
         )
-        print("data['false_anomaly'] is {} ".format(data["false_anomaly"]))
+        logging.info("data['false_anomaly'] is {} ".format(data["false_anomaly"]))
         # TODO: You should throw an exception
         #  if you get a value that other then 'false' or 'true'
 

@@ -1,9 +1,10 @@
 """Fact Store API for human feedback in the loop."""
 import os
 from anomaly_detector.fact_store.model import EventModel, FeedbackModel, Base
-
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
+import json
+import logging
 
 
 class FactStore(object):
@@ -14,10 +15,10 @@ class FactStore(object):
         engine = create_engine(os.getenv("SQL_CONNECT", "sqlite:////tmp/test.db"), echo=True)
         try:
             if autocreate is True:
-                print("Creating tables")
+                logging.info("Creating tables")
                 Base.metadata.create_all(engine)
         except Exception as e:
-            print("Exception occurred: {} ".format(e))
+            logging.error("Exception occurred: {} ".format(e))
         Session = sessionmaker(bind=engine)
         self.session = Session()
 
@@ -32,8 +33,9 @@ class FactStore(object):
         """
         event = EventModel(message=message, score=score, predict_id=predict_id, anomaly_status=anomaly_status)
         self.session.add(event)
+        logging.info("Event ID: {}  recorded in events_store".format(event.predict_id))
         self.session.commit()
-        print("Event ID: {}  recorded in events_store".format(event.predict_id))
+        return True
 
     def write_feedback(self, predict_id, notes, anomaly_status):
         """Service for storage of metadata in parquet.
@@ -49,7 +51,7 @@ class FactStore(object):
         feedback = FeedbackModel(predict_id=predict_id, notes=notes, reported_anomaly_status=anomaly_status)
         self.session.add(feedback)
         self.session.commit()
-        print("Persisted ID: {} recorded in FStore".format(feedback.id))
+        logging.info("Persisted ID: {} recorded in FStore".format(feedback.id))
         return True
 
     def readall_feedback(self):
@@ -57,3 +59,13 @@ class FactStore(object):
         feedbacks = self.session.query(FeedbackModel).all()
         list = [f.to_dict() for f in feedbacks]
         return list
+
+    def readall_false_positive(self):
+        """Service for querying datastore of current false anomalies."""
+        items = self.session.query(FeedbackModel).all()
+        messages = set()
+        for i in items:
+            events = self.session.query(EventModel).filter_by(predict_id=i.predict_id)
+            messages.add(events[0].message)
+
+        return list(messages)
