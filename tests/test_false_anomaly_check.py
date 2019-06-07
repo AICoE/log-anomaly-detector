@@ -18,12 +18,12 @@ def detector():
 
 def test_false_positive(detector):
     """Testing False Positives and feeding it into the model."""
-    fp = [{"message": "(root) CMD (/usr/local/bin/monitor-apache-stats.sh >/dev/null 2>&1)"}]
-    fp2 = [{"message": "(root) CMD (/usr/local/bin/monitor-apache-stats.sh >/dev/null 2>&1)"}] * 10000
-    success, dist = detector.train(fp=fp, node_map=2)
+    false_positives = [{"message": "(root) CMD (/usr/local/bin/monitor-apache-stats.sh >/dev/null 2>&1)"}]
+    false_positives2 = [{"message": "(root) CMD (/usr/local/bin/monitor-apache-stats.sh >/dev/null 2>&1)"}] * 10000
+    success, dist = detector.train(false_positives=false_positives, node_map=2)
     logging.info(np.mean(dist), np.std(dist), np.max(dist), np.min(dist))
     freq_one = dist[-1]
-    success, dist = detector.train(fp=fp2, node_map=2)
+    success, dist = detector.train(false_positives=false_positives2, node_map=2)
     logging.info(np.mean(dist), np.std(dist), np.max(dist), np.min(dist))
     freq_two = dist[-1]
     logging.info("FREQ = {}, FREQ_TWO = {}".format(freq_one, freq_two))

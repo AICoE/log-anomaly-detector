@@ -23,6 +23,14 @@ def metadata():
     return jsonify({"feedback": df})
 
 
+@app.route("/api/false_positive", methods=["GET"])
+def false_positive():
+    """Service to provide list of false anomalies to be relabeled during ml training run."""
+    fs = FactStore()
+    df = fs.readall_false_positive()
+    return jsonify({"feedback": df})
+
+
 @app.route("/api/feedback", methods=["POST"])
 def feedback():
     """Feedback Service to provide user input on which false predictions this model provided."""
@@ -42,10 +50,10 @@ def feedback():
 
         # Note id is the prediction id that is found in the email.
         if (
-            fs.write_feedback(
-                predict_id=content["lad_id"], notes=content["notes"], anomaly_status=bool(content["is_anomaly"])
-            )
-            is False
+                fs.write_feedback(
+                    predict_id=content["lad_id"], notes=content["notes"], anomaly_status=bool(content["is_anomaly"])
+                )
+                is False
         ):
             raise Exception("Predict ID must be unique. This anomaly" + " feedback  has been reported before")
     except Exception as e:
@@ -65,12 +73,10 @@ def false_anomaly():
     content = request.get_json()
     fs = FactStore()
     id = content["predict_id"]
-    # Checking bloom filter for if msg was reported
-    anomaly_status = fs.is_not_anomaly(id)
     # Tracking event in fact-store
-    fs.write_event(content["predict_id"], content["message"], content["score"], content["anomaly_status"])
+    res = fs.write_event(content["predict_id"], content["message"], content["score"], content["anomaly_status"])
     # Returning status if this anomaly is real anomaly_status== false
-    return jsonify({"false_anomaly": anomaly_status})
+    return jsonify({"false_anomaly": res})
 
 
 if __name__ == "__main__":

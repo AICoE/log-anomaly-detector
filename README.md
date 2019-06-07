@@ -8,7 +8,7 @@ Internally it utilizes gensim for its Word2Vec implementation - used to encode t
 
 The execution flow contain's the two main portions (found in any ML application): training and inference.
 
-# Use Case
+## Use Case
 
 The use case for this system is to assist in root cause analysis of logs. Instead of developers having to go through many lines of logs this system will flag the log lines that are anomalies that need to be looked at. We also bundle a secondary subsystem called a fact_store which will allow for human feedback on accuracy of model prediction by disabling false anomalies that where reported from notifying users.
 
@@ -83,6 +83,31 @@ then start the application via
 pipenv run python app.py run --job-type train --config-yaml env_config.yaml
 ```
 
+Steps to run locally:
+
+Note: Make sure you set SQL_CONNECT env var to mysql. Preload it with data if you want. Then start fact_store:
+
+```
+python app.py run ui
+```
+Run training and inference
+
+```
+python app.py run --config-yaml .test_env_config_fact_store.yaml
+```
+
+## Feedback Loop And Noise:
+
+The purpose is that we want to increase the occurrences of log lines that are false positives so the SOM model will give it a lower score thus not triggering an false anomaly prediction. We have an additional check in place. I guess we can probably measure how well this performs overtime. W2v and SOM ML Models should learn overtime. This is an example of when we increase the log frequency notice the score decrease: 
+
+**Note:** `FREQ_NOISE` by increasing the frequency of a log line it will result 
+in a reduced anomaly score not breaking the threshold. 
+
+For example:
+
+ ![Anomaly_False_Positive](https://user-images.githubusercontent.com/1269759/58996555-b3b88700-87c6-11e9-8e0d-0bf947e02699.png)
+
+## Source To Image And Containers
 
 We recommend using containers and as we use source-to-image for deployments to OpenShift, we prefer to do the same for local development. For that you will need to download `s2i` binary from https://github.com/openshift/source-to-image/releases and install `docker`. To build an image with your application, run
 
@@ -105,7 +130,12 @@ We provide an OpenShift template for the application, which you can import by
 ```
 oc apply -f openshift/log-anomaly-detector.app.yaml
 ```
+To install fact_store run:
+Note: Make sure you set `FACT_STORE_URL` env var or factstore will be ignored
 
+```
+oc apply -f openshift/openshift/factstore.app.yaml
+```
 and then use OpenShift console to fill in the parameters, or do that from command line directly by calling
 
 

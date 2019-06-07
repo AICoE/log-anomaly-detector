@@ -16,6 +16,7 @@ from .storage.es_storage import ESStorage
 from .storage.local_storage import LocalStorage
 from .exception.exceptions import factStoreEnvVarNotSetException
 from requests.exceptions import ConnectionError
+import requests
 
 matplotlib.use("agg")
 
@@ -42,7 +43,7 @@ class AnomalyDetector:
         self.update_w2v_model = os.path.isfile(cfg.W2V_MODEL_PATH) and cfg.TRAIN_UPDATE_MODEL
         self.recreate_models = False
 
-        print("Threshold init: {}".format(self.config.INFER_ANOMALY_THRESHOLD))
+        _LOGGER.info("Threshold init: {}".format(self.config.INFER_ANOMALY_THRESHOLD))
         for backend in self.STORAGE_BACKENDS:
             if backend.NAME == self.config.STORAGE_BACKEND:
                 _LOGGER.info("Using %s storage backend" % backend.NAME)
@@ -67,9 +68,11 @@ class AnomalyDetector:
             self.update_w2v_model = False
             self.recreate_models = True
 
-    def _load_data(self, time_span, max_entries, fp=None):
+    def _load_data(self, time_span, max_entries, false_positives=None):
         """Loading data from storage into pandas dataframe for processing."""
-        data, raw = self.storage.retrieve(time_span, max_entries, fp)
+        data, raw = self.storage.retrieve(time_range=time_span,
+                                          number_of_entries=max_entries,
+                                          false_data=false_positives)
 
         if len(data) == 0:
             _LOGGER.info("There are no logs in last %s seconds", time_span)
@@ -78,11 +81,12 @@ class AnomalyDetector:
         return data, raw
 
     @TRAINING_TIME.time()
-    # @profile
-    def train(self, fp=None, node_map=24):
+    def train(self, false_positives=None, node_map=24):
         """Train models for anomaly detection."""
         start = time.time()
-        data, _ = self._load_data(self.config.TRAIN_TIME_SPAN, self.config.TRAIN_MAX_ENTRIES, fp)
+        data, _ = self._load_data(self.config.TRAIN_TIME_SPAN, self.config.TRAIN_MAX_ENTRIES, false_positives)
+        if false_positives is not None:
+            _LOGGER.info("COUNT MESSAGES WITH false_positives = {}  DATA = {}".format(len(false_positives), len(data)))
         if data is None:
             return 1
         _LOGGER.info("Learning Word2Vec Models and Saving for Inference Step")
@@ -132,7 +136,7 @@ class AnomalyDetector:
         _LOGGER.info("Generating Baseline Metrics")
         return dist
 
-    def infer(self):
+    def infer(self, false_positives=None):
         """Perform inference on trained models."""
         meta_data = self.model.get_metadata()
 
@@ -180,25 +184,30 @@ class AnomalyDetector:
                 # TODO: This needs to be more general,
                 #       only works for ES incoming logs right now.
                 s = json_logs[i]
+                s["predict_id"] = str(uuid.uuid4())
                 s["anomaly_score"] = dist[i]
+                # Record anomaly event in fact_store and
 
-                if dist[i] > threshold:
+                if dist[i] > threshold and {"message": s["message"]} not in false_positives:
                     ANOMALY_COUNT.inc()
-                    s["predict_id"] = str(uuid.uuid4())
-                    try:
-                        val = AnomalyEvent(
-                            s["predict_id"], s["message"], dist[i], True, self.config.FACT_STORE_URL
-                        ).is_event_false()
-                        s["anomaly"] = val
-                    except factStoreEnvVarNotSetException as f_ex:
-                        _LOGGER.info("Fact Store Env Var is not set")
-                        s["anomaly"] = 1
-                    except ConnectionError as e:
-                        _LOGGER.info("Fact store is down unable to check")
-                        s["anomaly"] = 1
+
+                    s["anomaly"] = 1
                     _LOGGER.warn("Anomaly found (score: %f): %s" % (dist[i], s["message"]))
+
                 else:
                     s["anomaly"] = 0
+                try:
+                    _LOGGER.info("Progress of anomaly events record {} of {} ".format(i, len(data)))
+
+                    AnomalyEvent(
+                        s["predict_id"], s["message"], dist[i], s["anomaly"], self.config.FACT_STORE_URL
+                    ).record_prediction()
+                except factStoreEnvVarNotSetException as f_ex:
+                    _LOGGER.info("Fact Store Env Var is not set")
+
+                except ConnectionError as e:
+                    _LOGGER.info("Fact store is down unable to check")
+
                 f.append(s)
             PROCESSED_MESSAGES.inc(len(f))
             self.storage.store_results(f)
@@ -215,15 +224,31 @@ class AnomalyDetector:
         # When we reached # of inference loops, retrain models
         self.recreate_models = False
 
+    def fetch_false_positives(self):
+        """Fetch false positive from datastore and add noise to training run."""
+        _LOGGER.info("Fetching false positives from fact store")
+        try:
+            r = requests.get(url=self.config.FACT_STORE_URL + "/api/false_positive")
+            data = r.json()
+            false_positives = []
+            for msg in data["feedback"]:
+                noise = [{"message": msg}] * self.config.FREQ_NOISE
+                false_positives.extend(noise)
+            _LOGGER.info("Added noise {} messages ".format(len(false_positives)))
+            return false_positives
+        except Exception as ex:
+            _LOGGER.error("Fact Store is either down or not functioning")
+            return None
+
     def run(self, single_run=False):
         """Run the main loop."""
         start_http_server(8080)
-        srun = False
-        fp = None
-        while True and srun is False:
+        break_out = False
+        false_positives = self.fetch_false_positives()
+        while break_out is False:
             if self.update_model or self.update_w2v_model or self.recreate_models:
                 try:
-                    self.train(fp=fp)
+                    self.train(false_positives=false_positives)
                 except Exception as ex:
                     _LOGGER.error("Training failed: %s" % ex)
                     raise
@@ -234,4 +259,4 @@ class AnomalyDetector:
             except Exception as ex:
                 _LOGGER.error("Inference failed: %s" % ex)
                 raise ex
-            srun = single_run
+            break_out = single_run

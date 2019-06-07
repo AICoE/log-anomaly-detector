@@ -42,6 +42,7 @@ class Configuration(Borg):
     """Main configuration class which is contains the config values."""
 
     FACT_STORE_URL = ""
+    FREQ_NOISE = 1
     # One of the storage backends available in storage/ dir
     STORAGE_BACKEND = "local"
     # Location of local data

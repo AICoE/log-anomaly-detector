@@ -1,0 +1,9 @@
+STORAGE_BACKEND: "local"
+LS_INPUT_PATH: "validation_data/log_anomaly_detector-1000-events.json"
+LS_OUTPUT_PATH: "validation_data/local-results-1.txt"
+INFER_ANOMALY_THRESHOLD: 1.3
+INFER_TIME_SPAN: 1
+INFER_LOOPS: 1
+PARALLELISM: 6
+FREQ_NOISE: 1000
+FACT_STORE_URL: "http://0.0.0.0:5001"
