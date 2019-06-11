@@ -6,7 +6,7 @@ import os
 import time
 import matplotlib
 import numpy as np
-from prometheus_client import start_http_server, Gauge, Counter
+from prometheus_client import start_http_server, Gauge, Counter, Summary
 from .config import Configuration
 from .events.anomaly_event import AnomalyEvent
 from .model.model_exception import ModelLoadException, ModelSaveException
@@ -26,8 +26,10 @@ ANOMALY_THRESHOLD = Gauge("anomaly_threshold", "A threshold for anomaly")
 TRAINING_COUNT = Counter("training_count", "Number of training runs")
 TRAINING_TIME = Gauge("training_time", "Time to train for last training")
 INFERENCE_COUNT = Counter("inference_count", "Number of inference runs")
-PROCESSED_MESSAGES = Counter("inference_processed_count", "Number of log entries processed in inference")
+PROCESSED_MESSAGES = Counter("log_lines_processed", "Number of log entries processed")
 ANOMALY_COUNT = Counter("anomaly_count", "Number of anomalies found")
+# Added these
+FALSE_POSITIVE_METRIC = Counter('false_positive_id_score', 'False positive id and score', ['id', 'message', 'score'])
 
 
 class AnomalyDetector:
@@ -180,7 +182,6 @@ class AnomalyDetector:
             _LOGGER.info("Max anomaly score: %f" % max(dist))
             for i in range(len(data)):
                 _LOGGER.debug("Updating entry %d - dist: %f; mean: %f" % (i, dist[i], mean))
-
                 # TODO: This needs to be more general,
                 #       only works for ES incoming logs right now.
                 s = json_logs[i]
@@ -189,7 +190,8 @@ class AnomalyDetector:
                 # When false positives are passed into inference step
                 # We avoid sending email notifications with false predictions
                 if false_positives is not None:
-                    if {"message": s["message"]} not in false_positives:
+                    if {"message": s["message"]} in false_positives:
+                        FALSE_POSITIVE_METRIC.labels(id=s["predict_id"], message=s["message"], score=dist[i]).inc()
                         _LOGGER.info("False positive was found (score: %f): %s" % (dist[i], s["message"]))
                         continue
 
@@ -260,7 +262,7 @@ class AnomalyDetector:
             else:
                 _LOGGER.info("Models already exists, skipping training")
             try:
-                self.infer()
+                self.infer(false_positives=false_positives)
             except Exception as ex:
                 _LOGGER.error("Inference failed: %s" % ex)
                 raise ex
