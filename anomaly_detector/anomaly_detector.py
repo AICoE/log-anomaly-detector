@@ -70,9 +70,9 @@ class AnomalyDetector:
 
     def _load_data(self, time_span, max_entries, false_positives=None):
         """Loading data from storage into pandas dataframe for processing."""
-        data, raw = self.storage.retrieve(time_range=time_span,
-                                          number_of_entries=max_entries,
-                                          false_data=false_positives)
+        data, raw = self.storage.retrieve(time_span,
+                                          max_entries,
+                                          false_positives)
 
         if len(data) == 0:
             _LOGGER.info("There are no logs in last %s seconds", time_span)
@@ -186,9 +186,14 @@ class AnomalyDetector:
                 s = json_logs[i]
                 s["predict_id"] = str(uuid.uuid4())
                 s["anomaly_score"] = dist[i]
-                # Record anomaly event in fact_store and
+                # When false positives are passed into inference step
+                # We avoid sending email notifications with false predictions
+                if false_positives is not None:
+                    if {"message": s["message"]} not in false_positives:
+                        _LOGGER.info("False positive was found (score: %f): %s" % (dist[i], s["message"]))
+                        continue
 
-                if dist[i] > threshold and {"message": s["message"]} not in false_positives:
+                if dist[i] > threshold:
                     ANOMALY_COUNT.inc()
 
                     s["anomaly"] = 1

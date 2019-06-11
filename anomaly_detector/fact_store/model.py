@@ -11,7 +11,7 @@ class EventModel(Base):
 
     __tablename__ = "events"
     predict_id = Column(String(255), nullable=False, primary_key=True, unique=True)
-    message = Column(String(255), nullable=False)
+    message = Column(String(2000), nullable=False)
     score = Column(Float, nullable=False)
     anomaly_status = Column(Boolean, nullable=False)
     children = relationship("FeedbackModel")
