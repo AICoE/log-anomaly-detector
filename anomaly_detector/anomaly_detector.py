@@ -28,6 +28,7 @@ TRAINING_TIME = Gauge("training_time", "Time to train for last training")
 INFERENCE_COUNT = Counter("inference_count", "Number of inference runs")
 PROCESSED_MESSAGES = Counter("inference_processed_count", "Number of log entries processed in inference")
 ANOMALY_COUNT = Counter("anomaly_count", "Number of anomalies found")
+FALSE_POSITIVE_METRIC = Counter('false_positive_id_score', 'False positive id', ['id'])
 
 
 class AnomalyDetector:
@@ -107,12 +108,13 @@ class AnomalyDetector:
         _LOGGER.info("Training and Saving took %s minutes", ((now - then) / 60))
         _LOGGER.info("Encoding Text Data")
 
-        to_put_train = self.w2v_model.one_vector(data)
+        training_data = self.w2v_model.one_vector(data)
         _LOGGER.info("Start Training SOM...")
 
-        dist = self.compute_score(node_map, to_put_train)
+        anomaly_scores = self.som_training_handler(node_map, training_data)
 
-        self.model.set_metadata((np.mean(dist), np.std(dist), np.max(dist), np.min(dist)))
+        self.model.set_metadata((np.mean(anomaly_scores), np.std(anomaly_scores),
+                                 np.max(anomaly_scores), np.min(anomaly_scores)))
         try:
             self.model.save(self.config.MODEL_PATH)
         except ModelSaveException as ex:
@@ -122,16 +124,16 @@ class AnomalyDetector:
         end = time.time()
         _LOGGER.info("Whole Process takes %s minutes", ((end - start) / 60))
         TRAINING_COUNT.inc()
-        return 0, dist
+        return 0, anomaly_scores
 
-    def compute_score(self, node_map, to_put_train):
+    def som_training_handler(self, node_map, data):
         """Compute score for anomaly for SOM model."""
         then = time.time()
         if self.recreate_models or self.update_model:
-            self.model.set(np.random.rand(node_map, node_map, to_put_train.shape[1]))
-        self.model.train(to_put_train, node_map, self.config.TRAIN_ITERATIONS, self.config.PARALLELISM)
+            self.model.set(np.random.rand(node_map, node_map, data.shape[1]))
+        self.model.train(data, node_map, self.config.TRAIN_ITERATIONS, self.config.PARALLELISM)
         now = time.time()
-        dist = self.model.get_anomaly_score(to_put_train, self.config.PARALLELISM)
+        dist = self.model.get_anomaly_score(data, self.config.PARALLELISM)
         _LOGGER.info("Training took %s minutes", ((now - then) / 60))
         _LOGGER.info("Generating Baseline Metrics")
         return dist
@@ -169,42 +171,43 @@ class AnomalyDetector:
                 _LOGGER.error("Retrain model with log data")
                 exit()
 
-            v = self.w2v_model.one_vector(data)
+            log_vectors = self.w2v_model.one_vector(data)
 
-            dist = []
+            anomaly_scores = self.model.get_anomaly_score(v, self.config.PARALLELISM)
 
-            dist = self.model.get_anomaly_score(v, self.config.PARALLELISM)
+            analysed_logs = []
 
-            f = []
-
-            _LOGGER.info("Max anomaly score: %f" % max(dist))
+            _LOGGER.info("Max anomaly score: %f" % max(anomaly_scores))
             for i in range(len(data)):
-                _LOGGER.debug("Updating entry %d - dist: %f; mean: %f" % (i, dist[i], mean))
+                _LOGGER.debug("Updating entry %d - dist: %f; mean: %f" % (i, anomaly_scores[i], mean))
 
                 # TODO: This needs to be more general,
                 #       only works for ES incoming logs right now.
-                s = json_logs[i]
-                s["predict_id"] = str(uuid.uuid4())
-                s["anomaly_score"] = dist[i]
+                updated_log_record = json_logs[i]
+                updated_log_record["predict_id"] = str(uuid.uuid4())
+                updated_log_record["anomaly_score"] = anomaly_scores[i]
                 # Record anomaly event in fact_store and
                 if false_positives is not None:
-                    if {"message": s["message"]} in false_positives:
-                        _LOGGER.info("False positive was found (score: %f): %s" % (dist[i], s["message"]))
+                    if {"message": updated_log_record["message"]} in false_positives:
+                        _LOGGER.info("False positive was found (score: %f): %s" % (anomaly_scores[i],
+                                                                                   updated_log_record["message"]))
+                        FALSE_POSITIVE_METRIC.labels(id=updated_log_record["predict_id"]).inc()
                         continue
 
-                if dist[i] > threshold:
+                if anomaly_scores[i] > threshold:
                     ANOMALY_COUNT.inc()
 
-                    s["anomaly"] = 1
-                    _LOGGER.warn("Anomaly found (score: %f): %s" % (dist[i], s["message"]))
+                    updated_log_record["anomaly"] = 1
+                    _LOGGER.warn("Anomaly found (score: %f): %s" % (anomaly_scores[i], updated_log_record["message"]))
 
                 else:
-                    s["anomaly"] = 0
+                    updated_log_record["anomaly"] = 0
                 try:
                     _LOGGER.info("Progress of anomaly events record {} of {} ".format(i, len(data)))
 
                     AnomalyEvent(
-                        s["predict_id"], s["message"], dist[i], s["anomaly"], self.config.FACT_STORE_URL
+                        updated_log_record["predict_id"], updated_log_record["message"], anomaly_scores[i],
+                        updated_log_record["anomaly"], self.config.FACT_STORE_URL
                     ).record_prediction()
                 except factStoreEnvVarNotSetException as f_ex:
                     _LOGGER.info("Fact Store Env Var is not set")
@@ -212,9 +215,9 @@ class AnomalyDetector:
                 except ConnectionError as e:
                     _LOGGER.info("Fact store is down unable to check")
 
-                f.append(s)
-            PROCESSED_MESSAGES.inc(len(f))
-            self.storage.store_results(f)
+                analysed_logs.append(updated_log_record)
+            PROCESSED_MESSAGES.inc(len(analysed_logs))
+            self.storage.store_results(analysed_logs)
             # Inference done, increase counter
             infer_loops += 1
             now = time.time()
