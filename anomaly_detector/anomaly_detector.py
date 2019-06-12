@@ -70,9 +70,9 @@ class AnomalyDetector:
 
     def _load_data(self, time_span, max_entries, false_positives=None):
         """Loading data from storage into pandas dataframe for processing."""
-        data, raw = self.storage.retrieve(time_range=time_span,
-                                          number_of_entries=max_entries,
-                                          false_data=false_positives)
+        data, raw = self.storage.retrieve(time_span,
+                                          max_entries,
+                                          false_positives)
 
         if len(data) == 0:
             _LOGGER.info("There are no logs in last %s seconds", time_span)
@@ -255,7 +255,7 @@ class AnomalyDetector:
             else:
                 _LOGGER.info("Models already exists, skipping training")
             try:
-                self.infer()
+                self.infer(false_positives=false_positives)
             except Exception as ex:
                 _LOGGER.error("Inference failed: %s" % ex)
                 raise ex
