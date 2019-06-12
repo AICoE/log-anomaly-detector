@@ -17,7 +17,7 @@ class Storage(object):
         self.config = configuration
 
     @abstractmethod
-    def retrieve(self, time_range, number_of_entires):
+    def retrieve(self, time_range, number_of_entries, false_data):
         """Retrieve data from storage and return them as a pandas dataframe."""
         pass
 
