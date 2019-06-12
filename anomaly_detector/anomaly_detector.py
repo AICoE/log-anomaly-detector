@@ -28,6 +28,7 @@ TRAINING_TIME = Gauge("training_time", "Time to train for last training")
 INFERENCE_COUNT = Counter("inference_count", "Number of inference runs")
 PROCESSED_MESSAGES = Counter("inference_processed_count", "Number of log entries processed in inference")
 ANOMALY_COUNT = Counter("anomaly_count", "Number of anomalies found")
+FALSE_POSITIVE_METRIC = Counter('false_positive_id_score', 'False positive id', ['id'])
 
 
 class AnomalyDetector:
@@ -190,6 +191,7 @@ class AnomalyDetector:
                 if false_positives is not None:
                     if {"message": s["message"]} in false_positives:
                         _LOGGER.info("False positive was found (score: %f): %s" % (dist[i], s["message"]))
+                        FALSE_POSITIVE_METRIC.labels(id=s["predict_id"]).inc()
                         continue
 
                 if dist[i] > threshold:
