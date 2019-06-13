@@ -35,13 +35,13 @@ def run(job_type, config_yaml):
     config = Configuration(prefix=CONFIGURATION_PREFIX, config_yaml=config_yaml)
     anomaly_detector = AnomalyDetector(config)
     click.echo("Created jobtype {}".format(job_type))
+    false_positives = anomaly_detector.fetch_false_positives()
     if job_type == "train":
         click.echo("Performing training...")
-        false_positives = anomaly_detector.fetch_false_positives()
         anomaly_detector.train(false_positives=false_positives)
     elif job_type == "inference":
         click.echo("Perform inference...")
-        anomaly_detector.infer()
+        anomaly_detector.infer(false_positives=false_positives)
     elif job_type == "all":
         click.echo("Perform training and inference in loop...")
         anomaly_detector.run(single_run=True)
