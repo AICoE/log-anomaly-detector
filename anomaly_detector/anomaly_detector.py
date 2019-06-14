@@ -187,6 +187,10 @@ class AnomalyDetector:
                 s["predict_id"] = str(uuid.uuid4())
                 s["anomaly_score"] = dist[i]
                 # Record anomaly event in fact_store and
+                if false_positives is not None:
+                    if {"message": s["message"]} in false_positives:
+                        _LOGGER.info("False positive was found (score: %f): %s" % (dist[i], s["message"]))
+                        continue
 
                 if dist[i] > threshold:
                     ANOMALY_COUNT.inc()
