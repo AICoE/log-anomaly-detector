@@ -65,7 +65,7 @@ class ESStorage(Storage):
         index = prefix + date
         return index
 
-    def retrieve(self, time_range: int, number_of_entires: int, fp=None):
+    def retrieve(self, time_range: int, number_of_entries: int, false_data=None):
         """Retrieve data from ES."""
         index_in = self._prep_index_name(self.config.ES_INPUT_INDEX)
 
@@ -83,12 +83,12 @@ class ESStorage(Storage):
         }
         _LOGGER.info(
             "Reading in max %d log entries in last %d seconds from %s",
-            number_of_entires,
+            number_of_entries,
             time_range,
             self.config.ES_ENDPOINT,
         )
 
-        query["size"] = number_of_entires
+        query["size"] = number_of_entries
         query["query"]["bool"]["must"][1]["range"]["@timestamp"]["gte"] = "now-%ds" % time_range
         query["query"]["bool"]["must"][0]["query_string"]["query"] = self.config.ES_QUERY
 

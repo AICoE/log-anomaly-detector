@@ -188,7 +188,7 @@ class AnomalyDetector:
                 s["anomaly_score"] = dist[i]
                 # Record anomaly event in fact_store and
 
-                if dist[i] > threshold and {"message": s["message"]} not in false_positives:
+                if dist[i] > threshold:
                     ANOMALY_COUNT.inc()
 
                     s["anomaly"] = 1
