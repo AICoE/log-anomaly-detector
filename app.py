@@ -32,8 +32,9 @@ def ui(debug, port):
     default="all",
     help="select either 'train', 'inference', 'all' by default it runs train and infer in loop", )
 @click.option("--config-yaml", default=".env_config.yaml", help="configuration file used to configure service")
+@click.option("--single-run", default=False, help="it will loop infinitely pause at interval if set to true")
 # Initializing click function.
-def run(job_type, config_yaml):
+def run(job_type, config_yaml, single_run):
     """Perform machine learning model generation with input log data."""
     click.echo("Starting...")
     config = Configuration(prefix=CONFIGURATION_PREFIX, config_yaml=config_yaml)
@@ -48,7 +49,7 @@ def run(job_type, config_yaml):
         anomaly_detector.infer(false_positives=false_positives)
     elif job_type == "all":
         click.echo("Perform training and inference in loop...")
-        anomaly_detector.run(single_run=True)
+        anomaly_detector.run(single_run=single_run)
 
 
 if __name__ == "__main__":

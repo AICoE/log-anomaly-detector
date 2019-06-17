@@ -6,7 +6,7 @@ import os
 import time
 import matplotlib
 import numpy as np
-from prometheus_client import start_http_server, Gauge, Counter
+from prometheus_client import start_http_server, Gauge, Counter, Summary
 from .config import Configuration
 from .events.anomaly_event import AnomalyEvent
 from .model.model_exception import ModelLoadException, ModelSaveException
@@ -25,8 +25,8 @@ _LOGGER = logging.getLogger(__name__)
 ANOMALY_THRESHOLD = Gauge("anomaly_threshold", "A threshold for anomaly")
 TRAINING_COUNT = Counter("training_count", "Number of training runs")
 TRAINING_TIME = Gauge("training_time", "Time to train for last training")
-INFERENCE_COUNT = Counter("inference_count", "Number of inference runs")
-PROCESSED_MESSAGES = Counter("inference_processed_count", "Number of log entries processed in inference")
+INFER_LOGS_MESSAGES = Gauge("infer_log_messages", "Number of inference runs")
+INFER_TOTAL_MESSAGES = Summary("inference_processed_count", "Number of log entries processed in inference")
 ANOMALY_COUNT = Counter("anomaly_count", "Number of anomalies found")
 FALSE_POSITIVE_METRIC = Counter('false_positive_id_score', 'False positive id', ['id'])
 
@@ -150,8 +150,9 @@ class AnomalyDetector:
         _LOGGER.info("Models loaded, running %d infer loops" % self.config.INFER_LOOPS)
 
         infer_loops = 0
+        INFER_LOGS_MESSAGES.set(0)
         while infer_loops < self.config.INFER_LOOPS:
-            INFERENCE_COUNT.inc()
+
             then = time.time()
             now = datetime.datetime.now()
 
@@ -179,6 +180,7 @@ class AnomalyDetector:
             f = []
 
             _LOGGER.info("Max anomaly score: %f" % max(dist))
+            INFER_TOTAL_MESSAGES.observe(0)
             for i in range(len(data)):
                 _LOGGER.debug("Updating entry %d - dist: %f; mean: %f" % (i, dist[i], mean))
 
@@ -213,9 +215,9 @@ class AnomalyDetector:
 
                 except ConnectionError as e:
                     _LOGGER.info("Fact store is down unable to check")
-
+                INFER_LOGS_MESSAGES.inc()
                 f.append(s)
-            PROCESSED_MESSAGES.inc(len(f))
+            INFER_TOTAL_MESSAGES.observe(len(f))
             self.storage.store_results(f)
             # Inference done, increase counter
             infer_loops += 1
@@ -229,6 +231,7 @@ class AnomalyDetector:
 
         # When we reached # of inference loops, retrain models
         self.recreate_models = False
+
 
     def fetch_false_positives(self):
         """Fetch false positive from datastore and add noise to training run."""
