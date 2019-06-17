@@ -2,8 +2,10 @@
 import logging
 from flask import Flask, request, render_template, jsonify, make_response
 from anomaly_detector.fact_store.fact_store_api import FactStore
-
+from prometheus_client import start_http_server, Gauge, Counter
 app = Flask(__name__, static_folder="static")
+FEEDBACK_COUNT = Counter("feedback_count", "count of feedback reported", ['anomaly_status'])
+EVENT_COUNT = Counter("event_count", "count of events reported")
 
 
 @app.route("/")
@@ -47,7 +49,7 @@ def feedback():
             )
 
         fs = FactStore()
-
+        FEEDBACK_COUNT.labels(anomaly_status=content["is_anomaly"]).inc()
         # Note id is the prediction id that is found in the email.
         if (
                 fs.write_feedback(
@@ -76,6 +78,7 @@ def false_anomaly():
     # Tracking event in fact-store
     res = fs.write_event(content["predict_id"], content["message"], content["score"], content["anomaly_status"])
     # Returning status if this anomaly is real anomaly_status== false
+    EVENT_COUNT.inc()
     return jsonify({"false_anomaly": res})
 
 

@@ -248,7 +248,6 @@ class AnomalyDetector:
 
     def run(self, single_run=False):
         """Run the main loop."""
-        start_http_server(8080)
         break_out = False
         false_positives = self.fetch_false_positives()
         while break_out is False:

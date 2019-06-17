@@ -2,7 +2,9 @@
 from anomaly_detector.anomaly_detector import AnomalyDetector
 from anomaly_detector.config import Configuration
 from anomaly_detector.fact_store.app import app
+from prometheus_client import start_http_server
 import click
+
 
 CONFIGURATION_PREFIX = "LAD"
 
@@ -19,6 +21,7 @@ def cli():
 def ui(debug, port):
     """Start web ui for user feedback system."""
     click.echo("Starting UI...")
+    start_http_server(8081)
     app.run(debug=debug, port=port, host="0.0.0.0")
 
 
@@ -31,6 +34,7 @@ def ui(debug, port):
 # Initializing click function.
 def run(job_type, config_yaml):
     """Perform machine learning model generation with input log data."""
+    start_http_server(8080)
     click.echo("Starting...")
     config = Configuration(prefix=CONFIGURATION_PREFIX, config_yaml=config_yaml)
     anomaly_detector = AnomalyDetector(config)
