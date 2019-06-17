@@ -10,9 +10,11 @@ CONFIGURATION_PREFIX = "LAD"
 
 
 @click.group()
-def cli():
+@click.option("--metric-port", default=8080, help="sets up metrics to publish ot custom port")
+def cli(metric_port):
     """Cli bootstrap method."""
-    click.echo("starting up log anomaly detectory")
+    start_http_server(metric_port)
+    click.echo("starting up log anomaly detectory with metric_port: {}".format(metric_port))
 
 
 @cli.command("ui")
@@ -21,7 +23,6 @@ def cli():
 def ui(debug, port):
     """Start web ui for user feedback system."""
     click.echo("Starting UI...")
-    start_http_server(8081)
     app.run(debug=debug, port=port, host="0.0.0.0")
 
 
@@ -34,7 +35,6 @@ def ui(debug, port):
 # Initializing click function.
 def run(job_type, config_yaml):
     """Perform machine learning model generation with input log data."""
-    start_http_server(8080)
     click.echo("Starting...")
     config = Configuration(prefix=CONFIGURATION_PREFIX, config_yaml=config_yaml)
     anomaly_detector = AnomalyDetector(config)
