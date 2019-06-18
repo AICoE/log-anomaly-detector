@@ -1,6 +1,6 @@
 """Validates if training was successful."""
 import pytest
-from anomaly_detector.anomaly_detector import AnomalyDetector
+from anomaly_detector.anomaly_detector_facade import AnomalyDetectorFacade
 from anomaly_detector.config import Configuration
 
 CONFIGURATION_PREFIX = "LAD"
@@ -9,9 +9,8 @@ CONFIGURATION_PREFIX = "LAD"
 @pytest.fixture()
 def detector():
     """Initialize configurations before testing."""
-    # prefix=None, config_yaml=None):
     config = Configuration(prefix=CONFIGURATION_PREFIX, config_yaml=".env_config.yaml")
-    anomaly_detector = AnomalyDetector(config)
+    anomaly_detector = AnomalyDetectorFacade(config)
     return anomaly_detector
 
 
