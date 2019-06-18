@@ -1,7 +1,9 @@
 """Log Anomaly Detector."""
-from anomaly_detector.anomaly_detector import AnomalyDetector
 from anomaly_detector.config import Configuration
 from anomaly_detector.fact_store.app import app
+from anomaly_detector.adapters.som_model_adapter import SomModelAdapter
+from anomaly_detector.adapters.som_storage_adapter import SomStorageAdapter
+from anomaly_detector.anomaly_detector_facade import AnomalyDetectorFacade
 import click
 
 CONFIGURATION_PREFIX = "LAD"
@@ -33,15 +35,15 @@ def run(job_type, config_yaml):
     """Perform machine learning model generation with input log data."""
     click.echo("Starting...")
     config = Configuration(prefix=CONFIGURATION_PREFIX, config_yaml=config_yaml)
-    anomaly_detector = AnomalyDetector(config)
+    anomaly_detector = AnomalyDetectorFacade(config)
     click.echo("Created jobtype {}".format(job_type))
-    false_positives = anomaly_detector.fetch_false_positives()
+
     if job_type == "train":
         click.echo("Performing training...")
-        anomaly_detector.train(false_positives=false_positives)
+        anomaly_detector.train()
     elif job_type == "inference":
         click.echo("Perform inference...")
-        anomaly_detector.infer(false_positives=false_positives)
+        anomaly_detector.infer()
     elif job_type == "all":
         click.echo("Perform training and inference in loop...")
         anomaly_detector.run(single_run=True)
