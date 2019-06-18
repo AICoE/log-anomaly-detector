@@ -1,20 +1,18 @@
 """Log Anomaly Detector."""
-import click
-from prometheus_client import start_http_server
-
-
 from anomaly_detector.config import Configuration
 from anomaly_detector.fact_store.app import app
 from anomaly_detector.adapters.som_model_adapter import SomModelAdapter
 from anomaly_detector.adapters.som_storage_adapter import SomStorageAdapter
 from anomaly_detector.anomaly_detector_facade import AnomalyDetectorFacade
+from prometheus_client import start_http_server
 import click
 
 CONFIGURATION_PREFIX = "LAD"
 
 
 @click.group()
-def cli():
+@click.option("--metric-port", default=8080, help="sets up metrics to publish ot custom port")
+def cli(metric_port):
     """Cli bootstrap method."""
     start_http_server(metric_port)
     click.echo("starting up log anomaly detectory with metric_port: {}".format(metric_port))
