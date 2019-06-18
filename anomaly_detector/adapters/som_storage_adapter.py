@@ -6,6 +6,13 @@ from anomaly_detector.config import Configuration
 import requests
 import logging
 import os
+import logging
+
+import requests
+
+from anomaly_detector.adapters.base_storage_adapter import BaseStorageAdapter
+from anomaly_detector.storage.es_storage import ESStorage
+from anomaly_detector.storage.local_storage import LocalStorage
 
 from anomaly_detector.storage.storage_attribute import ESStorageAttribute
 

@@ -1,19 +1,18 @@
 """Som Model Adapter - Working with custom implementation of SOM."""
+import datetime
+import logging
+import os
+import time
+import uuid
+
+import numpy as np
+
 from anomaly_detector.adapters.base_model_adapter import BaseModelAdapter
-from anomaly_detector.adapters.som_storage_adapter import SomStorageAdapter
+from anomaly_detector.events.anomaly_event import AnomalyEvent
+from anomaly_detector.exception.exceptions import factStoreEnvVarNotSetException
 from anomaly_detector.model.model_exception import ModelLoadException, ModelSaveException
 from anomaly_detector.model.sompy_model import SOMPYModel
 from anomaly_detector.model.w2v_model import W2VModel
-from anomaly_detector.config import Configuration
-from anomaly_detector.events.anomaly_event import AnomalyEvent
-from anomaly_detector.exception.exceptions import factStoreEnvVarNotSetException
-
-import numpy as np
-import time
-import os
-import logging
-import datetime
-import uuid
 
 
 class SomModelAdapter(BaseModelAdapter):
