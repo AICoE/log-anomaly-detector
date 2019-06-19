@@ -1,4 +1,8 @@
 """Log Anomaly Detector."""
+import click
+from prometheus_client import start_http_server
+
+
 from anomaly_detector.config import Configuration
 from anomaly_detector.fact_store.app import app
 from anomaly_detector.adapters.som_model_adapter import SomModelAdapter
@@ -12,7 +16,8 @@ CONFIGURATION_PREFIX = "LAD"
 @click.group()
 def cli():
     """Cli bootstrap method."""
-    click.echo("starting up log anomaly detectory")
+    start_http_server(metric_port)
+    click.echo("starting up log anomaly detectory with metric_port: {}".format(metric_port))
 
 
 @cli.command("ui")
@@ -30,8 +35,9 @@ def ui(debug, port):
     default="all",
     help="select either 'train', 'inference', 'all' by default it runs train and infer in loop", )
 @click.option("--config-yaml", default=".env_config.yaml", help="configuration file used to configure service")
+@click.option("--single-run", default=False, help="it will loop infinitely pause at interval if set to true")
 # Initializing click function.
-def run(job_type, config_yaml):
+def run(job_type, config_yaml, single_run):
     """Perform machine learning model generation with input log data."""
     click.echo("Starting...")
     config = Configuration(prefix=CONFIGURATION_PREFIX, config_yaml=config_yaml)
@@ -46,7 +52,7 @@ def run(job_type, config_yaml):
         anomaly_detector.infer()
     elif job_type == "all":
         click.echo("Perform training and inference in loop...")
-        anomaly_detector.run(single_run=True)
+        anomaly_detector.run(single_run=single_run)
 
 
 if __name__ == "__main__":
