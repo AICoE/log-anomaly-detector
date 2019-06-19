@@ -3,7 +3,6 @@ from prometheus_client import start_http_server
 from anomaly_detector.config import Configuration
 from anomaly_detector.fact_store.app import app
 from anomaly_detector.anomaly_detector_facade import AnomalyDetectorFacade
-from prometheus_client import start_http_server
 import click
 
 CONFIGURATION_PREFIX = "LAD"
