@@ -13,9 +13,10 @@ class SomStorageAdapter(BaseStorageAdapter):
 
     STORAGE_BACKENDS = [LocalStorage, ESStorage]
 
-    def __init__(self, config):
+    def __init__(self, config, feedback_strategy):
         """Initialize configuration for for storage interface."""
         self.config = config
+        self.feedback_strategy = feedback_strategy
         for backend in self.STORAGE_BACKENDS:
             if backend.NAME == self.config.STORAGE_BACKEND:
                 logging.info("Using %s storage backend" % backend.NAME)
@@ -24,28 +25,11 @@ class SomStorageAdapter(BaseStorageAdapter):
         if not self.storage:
             raise Exception("Could not use %s storage backend" % self.STORAGE_BACKENDS)
 
-    def fetch_false_positives(self):
-        """Fetch false positive from datastore and add noise to training run."""
-        logging.info("Fetching false positives from fact store")
-        try:
-            r = requests.get(url=self.config.FACT_STORE_URL + "/api/false_positive")
-            data = r.json()
-            false_positives = []
-            for msg in data["feedback"]:
-                noise = [{"message": msg}] * self.config.FREQ_NOISE
-                false_positives.extend(noise)
-            logging.info("Added noise {} messages ".format(len(false_positives)))
-            return false_positives
-        except Exception as ex:
-            logging.error("Fact Store is either down or not functioning")
-            return None
-
     def _load_data(self, time_span, max_entries, false_positives=None):
         """Loading data from storage into pandas dataframe for processing."""
         data, raw = self.storage.retrieve(time_span,
                                           max_entries,
                                           false_positives)
-
         if len(data) == 0:
             logging.info("There are no logs in last %s seconds", time_span)
             return None, None
@@ -56,11 +40,9 @@ class SomStorageAdapter(BaseStorageAdapter):
                                      max_entry,
                                      false_positive)
 
-    def load_data(self, config_type, false_positives=None):
+    def load_data(self, config_type):
         """Load data from storage class depending on training vs inference."""
-        false_data = false_positives
-        if false_data is None:
-            false_data = self.fetch_false_positives()
+        false_data = self.feedback_strategy.execute()
         if config_type == "train":
             return self.retrieve_data(self.config.TRAIN_TIME_SPAN, self.config.TRAIN_MAX_ENTRIES,
                                       false_data)

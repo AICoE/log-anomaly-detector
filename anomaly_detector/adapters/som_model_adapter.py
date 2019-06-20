@@ -60,9 +60,9 @@ class SomModelAdapter(BaseModelAdapter):
                 raise ex
             break_out = single_run
 
-    def train(self, node_map=24, false_positives=None):
+    def train(self, node_map=24):
         """Train models for anomaly detection."""
-        data, _ = self.storage_adapter.load_data(config_type="train", false_positives=false_positives)
+        data, _ = self.storage_adapter.load_data(config_type="train")
         then = time.time()
         self.prepare_w2v_model(data)
         now = time.time()
@@ -103,7 +103,7 @@ class SomModelAdapter(BaseModelAdapter):
         dist = self.model.get_anomaly_score(to_put_train, self.config.PARALLELISM)
         return dist
 
-    def infer(self, false_positives=None):
+    def infer(self):
         """Perform inference on trained models."""
         mean, threshold = self.set_threshold()
 
@@ -112,7 +112,7 @@ class SomModelAdapter(BaseModelAdapter):
             then = time.time()
             now = datetime.datetime.now()
             # Get data for inference
-            data, json_logs = self.storage_adapter.load_data(config_type="infer", false_positives=false_positives)
+            data, json_logs = self.storage_adapter.load_data(config_type="infer")
             if data is None:
                 time.sleep(5)
                 continue
@@ -123,7 +123,7 @@ class SomModelAdapter(BaseModelAdapter):
                 logging.error("Word2Vec model fields incompatible")
                 logging.error("Retrain model with log data")
                 exit()
-            f = self.prediction_builder(data, false_positives, json_logs, threshold)
+            f = self.prediction_builder(data, json_logs, threshold)
             self.storage_adapter.persist_data(f)
             # Inference done, increase counter
             infer_loops += 1
@@ -139,8 +139,9 @@ class SomModelAdapter(BaseModelAdapter):
         self.recreate_models = False
         return 0
 
-    def prediction_builder(self, data, false_positives, json_logs, threshold):
+    def prediction_builder(self, data, json_logs, threshold):
         """Prediction from data provided and if it hits threshold it flags it an anomaly."""
+        false_positives = self.storage_adapter.feedback_strategy.execute()
         dist = self.process_anomaly_score(data)
         f = []
         logging.info("Max anomaly score: %f" % max(dist))
