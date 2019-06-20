@@ -1,4 +1,5 @@
 """Anomaly Detector Facade - Acts as a gateway and abstracts the complexity."""
+from anomaly_detector.adapters.feedback_strategy import FeedbackStrategy
 from anomaly_detector.adapters.som_model_adapter import SomModelAdapter
 from anomaly_detector.adapters.som_storage_adapter import SomStorageAdapter
 from anomaly_detector.config import Configuration
