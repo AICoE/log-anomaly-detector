@@ -25,27 +25,13 @@ class LocalStorage(Storage):
         """Retrieve data from local storage."""
         data = []
         _LOGGER.info("Reading from %s" % self.config.LS_INPUT_PATH)
-        if self.config.LS_INPUT_PATH == "-":
-            cnt = 0
-            for line in self._stdin():
-                try:
-                    data.append(json.loads(line))
-                except ValueError as ex:
-                    _LOGGER.error("Parsing failed (%s), assuming plain text" % ex)
-                    data.append({"_source": {"message": str(line)}})
-                cnt += 1
-                if cnt >= number_of_entries:
-                    break
-            # only use _source sub-dict
-            data = [x["_source"] for x in data]
-            data_set = json_normalize(data)
-        else:
-            with open(self.config.LS_INPUT_PATH, "r") as fp:
-                data = json.load(fp)
-                # TODO: Make sure to check for false_data is not Null
-                if false_data is not None:
-                    data.extend(false_data)
-            data_set = json_normalize(data)
+
+        with open(self.config.LS_INPUT_PATH, "r") as fp:
+            data = json.load(fp)
+            # TODO: Make sure to check for false_data is not Null
+            if false_data is not None:
+                data.extend(false_data)
+        data_set = json_normalize(data)
         _LOGGER.info("%d logs loaded", len(data_set))
         # Prepare data for training/inference
         self._preprocess(data_set)
