@@ -2,27 +2,26 @@
 from anomaly_detector.adapters.base_storage_adapter import BaseStorageAdapter
 from anomaly_detector.storage.es_storage import ESStorage
 from anomaly_detector.storage.local_storage import LocalStorage
-from anomaly_detector.config import Configuration
 import requests
 import logging
-import os
 
 
 class SomStorageAdapter(BaseStorageAdapter):
     """Custom storage interface for dealing with som model."""
 
-    STORAGE_BACKENDS = [LocalStorage, ESStorage]
-
     def __init__(self, config):
         """Initialize configuration for for storage interface."""
         self.config = config
-        for backend in self.STORAGE_BACKENDS:
-            if backend.NAME == self.config.STORAGE_BACKEND:
-                logging.info("Using %s storage backend" % backend.NAME)
-                self.storage = backend(config)
-                break
-        if not self.storage:
-            raise Exception("Could not use %s storage backend" % self.STORAGE_BACKENDS)
+        self.storage = self.factory(self.config.STORAGE_BACKEND)
+
+    def factory(self, type):
+        """Factory for creating storage provider."""
+        if type == LocalStorage.NAME:
+            return LocalStorage(self.config)
+        elif type == ESStorage.NAME:
+            return ESStorage(self.config)
+        else:
+            raise Exception("Could not use {} storage backend".format(type))
 
     def fetch_false_positives(self):
         """Fetch false positive from datastore and add noise to training run."""
@@ -52,9 +51,12 @@ class SomStorageAdapter(BaseStorageAdapter):
 
     def retrieve_data(self, timespan, max_entry, false_positive):
         """Fetch data from storage system."""
-        return self.storage.retrieve(timespan,
-                                     max_entry,
-                                     false_positive)
+        data, raw = self.storage.retrieve(timespan,
+                                                max_entry,
+                                                false_positive)
+        if data.empty == True:
+            logging.info("There are no logs in last %s seconds", timespan)
+            return None, None
 
     def load_data(self, config_type, false_positives=None):
         """Load data from storage class depending on training vs inference."""

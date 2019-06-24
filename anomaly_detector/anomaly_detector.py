@@ -14,7 +14,7 @@ from .model.sompy_model import SOMPYModel
 from .model.w2v_model import W2VModel
 from .storage.es_storage import ESStorage
 from .storage.local_storage import LocalStorage
-from .exception.exceptions import factStoreEnvVarNotSetException
+from .exception.exceptions import FactStoreOffline
 from requests.exceptions import ConnectionError
 import requests
 
@@ -208,7 +208,7 @@ class AnomalyDetector:
                     AnomalyEvent(
                         s["predict_id"], s["message"], dist[i], s["anomaly"], self.config.FACT_STORE_URL
                     ).record_prediction()
-                except factStoreEnvVarNotSetException as f_ex:
+                except FactStoreOffline as f_ex:
                     _LOGGER.info("Fact Store Env Var is not set")
 
                 except ConnectionError as e:
