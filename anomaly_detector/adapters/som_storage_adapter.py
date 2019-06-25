@@ -27,20 +27,16 @@ class SomStorageAdapter(BaseStorageAdapter):
         if not self.storage:
             raise Exception("Could not use %s storage backend" % self.STORAGE_BACKENDS)
 
-    def _load_data(self, time_span, max_entries, false_positives=None):
-        """Loading data from storage into pandas dataframe for processing."""
-        data, raw = self.storage.retrieve(time_span,
-                                          max_entries,
-                                          false_positives)
-        if len(data) == 0:
-            logging.info("There are no logs in last %s seconds", time_span)
-            return None, None
-
     def retrieve_data(self, timespan, max_entry, false_positive):
         """Fetch data from storage system."""
-        return self.storage.retrieve(ESStorageAttribute(timespan,
-                                                        max_entry,
-                                                        false_positive))
+        data, raw = self.storage.retrieve(ESStorageAttribute(timespan,
+                                                             max_entry,
+                                                             false_positive))
+        if len(data) == 0:
+            logging.info("There are no logs in last %s seconds", timespan)
+            return None, None
+        else:
+            return data, raw
 
     def load_data(self, config_type):
         """Load data from storage class depending on training vs inference."""
