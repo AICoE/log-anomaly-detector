@@ -1,30 +1,26 @@
 """Storage abstract class."""
 
-from abc import abstractmethod, ABCMeta
+from abc import ABCMeta, abstractmethod
 
 import re
 
 
-class Storage(object):
+class Storage(metaclass=ABCMeta):
     """Base class for storage implementations."""
-
-    __metaclass__ = ABCMeta
-
-    NAME = "empty"
 
     def __init__(self, configuration):
         """Initialize storage."""
         self.config = configuration
 
     @abstractmethod
-    def retrieve(self, time_range, number_of_entries, false_data):
+    def retrieve(self, storage_attribute):
         """Retrieve data from storage and return them as a pandas dataframe."""
-        pass
+        raise NotImplementedError("Please implement the <retrieve method>")
 
     @abstractmethod
     def store_results(self, entries):
         """Store results back to storage backend."""
-        pass
+        raise NotImplementedError("Please implement the <store_results method>")
 
     @classmethod
     def _clean_message(cls, line):
