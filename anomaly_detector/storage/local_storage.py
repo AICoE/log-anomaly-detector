@@ -45,13 +45,3 @@ class LocalStorage(Storage):
         else:
             for item in data:
                 _LOGGER.info("Anomaly: %d, Anmaly score: %f" % (item["anomaly"], item["anomaly_score"]))
-
-    @classmethod
-    def _stdin(cls):
-        while True:
-            line = sys.stdin.readline()
-            if not line:
-                continue
-            stripped = line.strip()
-            if len(stripped):
-                yield line.strip()
