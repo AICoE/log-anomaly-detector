@@ -73,3 +73,7 @@ class SomStorageAdapter(BaseStorageAdapter):
     def persist_data(self, df):
         """Abstraction around storage persistence class."""
         self.storage.store_results(df)
+
+    def __getattr__(self, name):
+        """Delegate all methods from config as a passthrough proxy into configurations."""
+        return getattr(self.config, name)
