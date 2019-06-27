@@ -1,5 +1,5 @@
 """Local Storage."""
-
+from anomaly_detector.storage.storage_attribute import DefaultStorageAttribute
 from pandas.io.json import json_normalize
 import json
 import sys
@@ -21,7 +21,7 @@ class LocalStorage(Storage):
         """Initialize local storage backend."""
         self.config = configuration
 
-    def retrieve(self, time_range, number_of_entries, false_data=None):
+    def retrieve(self, storage_attribute: DefaultStorageAttribute):
         """Retrieve data from local storage."""
         data = []
         _LOGGER.info("Reading from %s" % self.config.LS_INPUT_PATH)
@@ -29,8 +29,8 @@ class LocalStorage(Storage):
         with open(self.config.LS_INPUT_PATH, "r") as fp:
             data = json.load(fp)
             # TODO: Make sure to check for false_data is not Null
-            if false_data is not None:
-                data.extend(false_data)
+            if storage_attribute.false_data is not None:
+                data.extend(storage_attribute.false_data)
         data_set = json_normalize(data)
         _LOGGER.info("%d logs loaded", len(data_set))
         # Prepare data for training/inference

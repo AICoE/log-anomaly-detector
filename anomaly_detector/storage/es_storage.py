@@ -1,5 +1,5 @@
 """ElasticSearch Storage interface."""
-
+from anomaly_detector.storage.storage_attribute import ESStorageAttribute
 import datetime
 import pandas
 from pandas.io.json import json_normalize
@@ -7,7 +7,6 @@ from elasticsearch5 import Elasticsearch, helpers
 import json
 import os
 import urllib3
-
 from .storage import Storage
 from ..config import Configuration
 
@@ -65,7 +64,7 @@ class ESStorage(Storage):
         index = prefix + date
         return index
 
-    def retrieve(self, time_range: int, number_of_entries: int, false_data=None):
+    def retrieve(self, storage_attribute: ESStorageAttribute):
         """Retrieve data from ES."""
         index_in = self._prep_index_name(self.config.ES_INPUT_INDEX)
 
@@ -83,13 +82,13 @@ class ESStorage(Storage):
         }
         _LOGGER.info(
             "Reading in max %d log entries in last %d seconds from %s",
-            number_of_entries,
-            time_range,
+            storage_attribute.number_of_entries,
+            storage_attribute.time_range,
             self.config.ES_ENDPOINT,
         )
 
-        query["size"] = number_of_entries
-        query["query"]["bool"]["must"][1]["range"]["@timestamp"]["gte"] = "now-%ds" % time_range
+        query["size"] = storage_attribute.number_of_entries
+        query["query"]["bool"]["must"][1]["range"]["@timestamp"]["gte"] = "now-%ds" % storage_attribute.time_range
         query["query"]["bool"]["must"][0]["query_string"]["query"] = self.config.ES_QUERY
 
         es_data = self.es.search(index_in, body=json.dumps(query))
@@ -99,7 +98,7 @@ class ESStorage(Storage):
         es_data = [x["_source"] for x in es_data["hits"]["hits"]]
         es_data_normalized = pandas.DataFrame(json_normalize(es_data)["message"])
 
-        _LOGGER.info("%d logs loaded in from last %d seconds", len(es_data_normalized), time_range)
+        _LOGGER.info("%d logs loaded in from last %d seconds", len(es_data_normalized), storage_attribute.time_range)
 
         self._preprocess(es_data_normalized)
 

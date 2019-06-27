@@ -7,6 +7,8 @@ import requests
 import logging
 import os
 
+from anomaly_detector.storage.storage_attribute import ESStorageAttribute
+
 
 class SomStorageAdapter(BaseStorageAdapter):
     """Custom storage interface for dealing with som model."""
@@ -36,9 +38,9 @@ class SomStorageAdapter(BaseStorageAdapter):
 
     def retrieve_data(self, timespan, max_entry, false_positive):
         """Fetch data from storage system."""
-        return self.storage.retrieve(timespan,
-                                     max_entry,
-                                     false_positive)
+        return self.storage.retrieve(ESStorageAttribute(timespan,
+                                                        max_entry,
+                                                        false_positive))
 
     def load_data(self, config_type):
         """Load data from storage class depending on training vs inference."""
