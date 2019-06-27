@@ -22,20 +22,20 @@ class SomModelAdapter(BaseModelAdapter):
     def __init__(self, storage_adapter):
         """Init storage provider which provides config and storage interface with storage systems."""
         self.storage_adapter = storage_adapter
-        self.config = self.storage_adapter.config
-        self.update_model = os.path.isfile(self.config.MODEL_PATH) and self.config.TRAIN_UPDATE_MODEL
-        self.update_w2v_model = os.path.isfile(self.config.W2V_MODEL_PATH) and self.config.TRAIN_UPDATE_MODEL
+        update_model = self.storage_adapter.TRAIN_UPDATE_MODEL
+        self.update_model = os.path.isfile(self.storage_adapter.MODEL_PATH) and update_model
+        self.update_w2v_model = os.path.isfile(self.storage_adapter.W2V_MODEL_PATH) and update_model
         self.recreate_models = False
         self.model = SOMPYModel()
         self.w2v_model = W2VModel()
         try:
-            self.model.load(self.config.MODEL_PATH)
+            self.model.load(self.storage_adapter.MODEL_PATH)
         except ModelLoadException as ex:
             logging.error("Failed to load SOM model: %s" % ex)
             self.update_model = False
             self.recreate_models = True
         try:
-            self.w2v_model.load(self.config.W2V_MODEL_PATH)
+            self.w2v_model.load(self.storage_adapter.W2V_MODEL_PATH)
         except ModelLoadException as ex:
             logging.error("Failed to load W2V model: %s" % ex)
             self.update_w2v_model = False
@@ -70,7 +70,7 @@ class SomModelAdapter(BaseModelAdapter):
         dist = self.compute_score(node_map, data)
         self.model.set_metadata((np.mean(dist), np.std(dist), np.max(dist), np.min(dist)))
         try:
-            self.model.save(self.config.MODEL_PATH)
+            self.model.save(self.storage_adapter.MODEL_PATH)
         except ModelSaveException as ex:
             logging.error("Failed to save SOM model: %s" % ex)
             raise
@@ -83,9 +83,9 @@ class SomModelAdapter(BaseModelAdapter):
         if not self.recreate_models and self.update_w2v_model:
             self.w2v_model.update(data)
         else:
-            self.w2v_model.create(data, self.config.TRAIN_VECTOR_LENGTH, self.config.TRAIN_WINDOW)
+            self.w2v_model.create(data, self.storage_adapter.TRAIN_VECTOR_LENGTH, self.storage_adapter.TRAIN_WINDOW)
         try:
-            self.w2v_model.save(self.config.W2V_MODEL_PATH)
+            self.w2v_model.save(self.storage_adapter.W2V_MODEL_PATH)
         except ModelSaveException as ex:
             logging.error("Failed to save W2V model: %s" % ex)
             raise
@@ -97,10 +97,11 @@ class SomModelAdapter(BaseModelAdapter):
         then = time.time()
         if self.recreate_models or self.update_model:
             self.model.set(np.random.rand(node_map, node_map, to_put_train.shape[1]))
-        self.model.train(to_put_train, node_map, self.config.TRAIN_ITERATIONS, self.config.PARALLELISM)
+        self.model.train(to_put_train, node_map, self.storage_adapter.TRAIN_ITERATIONS,
+                         self.storage_adapter.PARALLELISM)
         now = time.time()
         logging.info("Training took %s minutes", ((now - then) / 60))
-        dist = self.model.get_anomaly_score(to_put_train, self.config.PARALLELISM)
+        dist = self.model.get_anomaly_score(to_put_train, self.storage_adapter.PARALLELISM)
         return dist
 
     def infer(self):
@@ -108,7 +109,7 @@ class SomModelAdapter(BaseModelAdapter):
         mean, threshold = self.set_threshold()
 
         infer_loops = 0
-        while infer_loops < self.config.INFER_LOOPS:
+        while infer_loops < self.storage_adapter.INFER_LOOPS:
             then = time.time()
             now = datetime.datetime.now()
             # Get data for inference
@@ -116,7 +117,7 @@ class SomModelAdapter(BaseModelAdapter):
             if data is None:
                 time.sleep(5)
                 continue
-            logging.info("%d logs loaded from the last %d seconds", len(data), self.config.INFER_TIME_SPAN)
+            logging.info("%d logs loaded from the last %d seconds", len(data), self.storage_adapter.INFER_TIME_SPAN)
             try:
                 self.w2v_model.update(data)
             except KeyError:
@@ -131,7 +132,7 @@ class SomModelAdapter(BaseModelAdapter):
             logging.info("Analyzed one minute of data in %s seconds", (now - then))
             logging.info("waiting for next minute to start...")
             logging.info("press ctrl+c to stop process")
-            sleep_time = self.config.INFER_TIME_SPAN - (now - then)
+            sleep_time = self.storage_adapter.INFER_TIME_SPAN - (now - then)
             if sleep_time > 0:
                 time.sleep(sleep_time)
 
@@ -164,7 +165,7 @@ class SomModelAdapter(BaseModelAdapter):
                 logging.info("Progress of anomaly events record {} of {} ".format(i, len(data)))
 
                 AnomalyEvent(
-                    s["predict_id"], s["message"], dist[i], s["anomaly"], self.config.FACT_STORE_URL
+                    s["predict_id"], s["message"], dist[i], s["anomaly"], self.storage_adapter.FACT_STORE_URL
                 ).record_prediction()
             except factStoreEnvVarNotSetException as f_ex:
                 logging.info("Fact Store Env Var is not set")
@@ -178,7 +179,7 @@ class SomModelAdapter(BaseModelAdapter):
         """Generate scores from some. To be used for inference."""
         v = self.w2v_model.one_vector(data)
         dist = []
-        dist = self.model.get_anomaly_score(v, self.config.PARALLELISM)
+        dist = self.model.get_anomaly_score(v, self.storage_adapter.PARALLELISM)
         return dist
 
     def set_threshold(self):
@@ -186,7 +187,7 @@ class SomModelAdapter(BaseModelAdapter):
         meta_data = self.model.get_metadata()
         stdd = meta_data[1]
         mean = meta_data[0]
-        threshold = self.config.INFER_ANOMALY_THRESHOLD * stdd + mean
+        threshold = self.storage_adapter.INFER_ANOMALY_THRESHOLD * stdd + mean
         logging.info("threshold for anomaly is of %f" % threshold)
-        logging.info("Models loaded, running %d infer loops" % self.config.INFER_LOOPS)
+        logging.info("Models loaded, running %d infer loops" % self.storage_adapter.INFER_LOOPS)
         return mean, threshold
