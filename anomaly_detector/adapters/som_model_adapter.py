@@ -1,18 +1,19 @@
 """Som Model Adapter - Working with custom implementation of SOM."""
-import datetime
-import logging
-import os
-import time
-import uuid
-
-import numpy as np
-
 from anomaly_detector.adapters.base_model_adapter import BaseModelAdapter
-from anomaly_detector.events.anomaly_event import AnomalyEvent
-from anomaly_detector.exception.exceptions import factStoreEnvVarNotSetException
+from anomaly_detector.adapters.som_storage_adapter import SomStorageAdapter
 from anomaly_detector.model.model_exception import ModelLoadException, ModelSaveException
 from anomaly_detector.model.sompy_model import SOMPYModel
 from anomaly_detector.model.w2v_model import W2VModel
+from anomaly_detector.config import Configuration
+from anomaly_detector.events.anomaly_event import AnomalyEvent
+from anomaly_detector.exception.exceptions import factStoreEnvVarNotSetException
+from anomaly_detector.decorator.utils import latency_logger
+import numpy as np
+import time
+import os
+import logging
+import datetime
+import uuid
 
 
 class SomModelAdapter(BaseModelAdapter):
@@ -40,6 +41,7 @@ class SomModelAdapter(BaseModelAdapter):
             self.update_w2v_model = False
             self.recreate_models = True
 
+    @latency_logger(name="SomModelAdapter")
     def run(self, single_run=False):
         """Run the main loop."""
         break_out = False
@@ -59,13 +61,11 @@ class SomModelAdapter(BaseModelAdapter):
                 raise ex
             break_out = single_run
 
+    @latency_logger(name="SomModelAdapter")
     def train(self, node_map=24):
         """Train models for anomaly detection."""
         data, _ = self.storage_adapter.load_data(config_type="train")
-        then = time.time()
         self.prepare_w2v_model(data)
-        now = time.time()
-        logging.info("Training and Saving took %s minutes", ((now - then) / 60))
         dist = self.compute_score(node_map, data)
         self.model.set_metadata((np.mean(dist), np.std(dist), np.max(dist), np.min(dist)))
         try:
@@ -73,10 +73,9 @@ class SomModelAdapter(BaseModelAdapter):
         except ModelSaveException as ex:
             logging.error("Failed to save SOM model: %s" % ex)
             raise
-        end = time.time()
-        logging.info("Whole Process takes %s minutes", ((end - then) / 60))
         return 0, dist
 
+    @latency_logger(name="SomModelAdapter")
     def prepare_w2v_model(self, data):
         """w2v needs to be updated with new data as it turns log lines into vector representation for SOM."""
         if not self.recreate_models and self.update_w2v_model:
@@ -89,20 +88,22 @@ class SomModelAdapter(BaseModelAdapter):
             logging.error("Failed to save W2V model: %s" % ex)
             raise
 
+    @latency_logger(name="SomModelAdapter")
     def compute_score(self, node_map=None, data=None):
         """Compute score for anomaly for SOM model."""
         to_put_train = self.w2v_model.one_vector(data)
         # If node_map is none then we assume it is calculating score for inference
-        then = time.time()
         if self.recreate_models or self.update_model:
             self.model.set(np.random.rand(node_map, node_map, to_put_train.shape[1]))
         self.model.train(to_put_train, node_map, self.storage_adapter.TRAIN_ITERATIONS,
                          self.storage_adapter.PARALLELISM)
-        now = time.time()
-        logging.info("Training took %s minutes", ((now - then) / 60))
+        dist = self.model.get_anomaly_score(to_put_train, self.storage_adapter.PARALLELISM)
+        self.model.train(to_put_train, node_map, self.storage_adapter.TRAIN_ITERATIONS,
+                         self.storage_adapter.PARALLELISM)
         dist = self.model.get_anomaly_score(to_put_train, self.storage_adapter.PARALLELISM)
         return dist
 
+    @latency_logger(name="SomModelAdapter")
     def infer(self):
         """Perform inference on trained models."""
         mean, threshold = self.set_threshold()
@@ -128,7 +129,6 @@ class SomModelAdapter(BaseModelAdapter):
             # Inference done, increase counter
             infer_loops += 1
             now = time.time()
-            logging.info("Analyzed one minute of data in %s seconds", (now - then))
             logging.info("waiting for next minute to start...")
             logging.info("press ctrl+c to stop process")
             sleep_time = self.storage_adapter.INFER_TIME_SPAN - (now - then)
@@ -139,6 +139,7 @@ class SomModelAdapter(BaseModelAdapter):
         self.recreate_models = False
         return 0
 
+    @latency_logger(name="SomModelAdapter")
     def prediction_builder(self, data, json_logs, threshold):
         """Prediction from data provided and if it hits threshold it flags it an anomaly."""
         false_positives = self.storage_adapter.feedback_strategy.execute()
@@ -174,6 +175,7 @@ class SomModelAdapter(BaseModelAdapter):
             f.append(s)
         return f
 
+    @latency_logger(name="SomModelAdapter")
     def process_anomaly_score(self, data):
         """Generate scores from some. To be used for inference."""
         v = self.w2v_model.one_vector(data)
