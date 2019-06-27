@@ -12,7 +12,7 @@ class FactStore(object):
 
     def __init__(self, autocreate=True):
         """We initialize our sqlalchemy connection and setup the database."""
-        engine = create_engine(os.getenv("SQL_CONNECT", "sqlite:////tmp/test.db"), echo=True)
+        engine = create_engine(os.getenv("SQL_CONNECT", "sqlite://"), echo=True)
         try:
             if autocreate is True:
                 logging.info("Creating tables")
