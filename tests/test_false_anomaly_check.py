@@ -1,10 +1,11 @@
 """Test if SOM can learn from false positives."""
 import logging
-import numpy as np
 import pytest
-from anomaly_detector.anomaly_detector_facade import AnomalyDetectorFacade
 from anomaly_detector.adapters.feedback_strategy import FeedbackStrategy
+from anomaly_detector.adapters.som_model_adapter import SomModelAdapter
+from anomaly_detector.adapters.som_storage_adapter import SomStorageAdapter
 from anomaly_detector.config import Configuration
+from anomaly_detector.jobs.tasks import SomTrainCommand
 
 FREQ_NUM = 10000
 NODE_MAP = 2
@@ -15,7 +16,6 @@ LOG_MSG = "(root) CMD (/usr/local/bin/monitor-apache-stats.sh >/dev/null 2>&1)"
 def config():
     """Provide default configurations to load yaml instead of env var."""
     config = Configuration(config_yaml=".test_env_config.yaml")
-
     return config
 
 
@@ -29,8 +29,10 @@ def test_false_positive(config):
 
 def get_score(config, node_map, feedback):
     """Simple utility function for injecting custom mock function into Detector."""
-    detector1 = AnomalyDetectorFacade(config, FeedbackStrategy(config, fn=feedback))
-    success, dist = detector1.train(node_map)
-    logging.info(np.mean(dist), np.std(dist), np.max(dist), np.min(dist))
+    feedback_strategy = FeedbackStrategy(config, fn=feedback)
+    storage_adapter = SomStorageAdapter(config=config, feedback_strategy=feedback_strategy)
+    model_adapter = SomModelAdapter(storage_adapter=storage_adapter)
+    tc = SomTrainCommand(node_map=node_map, model_adapter=model_adapter)
+    success, dist = tc.execute()
     freq_one = dist[-1]
     return freq_one

@@ -1,9 +1,10 @@
 """Anomaly Detector Facade - Acts as a gateway and abstracts the complexity."""
-from anomaly_detector.adapters.feedback_strategy import FeedbackStrategy
 from anomaly_detector.adapters.som_model_adapter import SomModelAdapter
 from anomaly_detector.adapters.som_storage_adapter import SomStorageAdapter
-from anomaly_detector.config import Configuration
 from anomaly_detector.adapters.feedback_strategy import FeedbackStrategy
+from anomaly_detector.jobs.tasks import TaskQueue, SomTrainCommand, SomInferCommand
+from prometheus_client import start_http_server
+import time
 
 
 class AnomalyDetectorFacade:
@@ -15,15 +16,30 @@ class AnomalyDetectorFacade:
             feedback_strategy = FeedbackStrategy(config=config)
         storage_adapter = SomStorageAdapter(config, feedback_strategy)
         self.__model_adapter = SomModelAdapter(storage_adapter)
+        self.mgr = TaskQueue()
 
     def run(self, single_run=False):
         """Abstraction around model adapter run method."""
-        self.__model_adapter.run(single_run=single_run)
+        start_http_server(8081)
+        break_out = False
+        while break_out is False:
+            train = SomTrainCommand(model_adapter=self.__model_adapter)
+            infer = SomInferCommand(model_adapter=self.__model_adapter)
+            self.mgr.add_steps(train)
+            self.mgr.add_steps(infer)
+            self.mgr.execute_steps()
+            print("log::facade::run")
+            time.sleep(5)
+            break_out = single_run
 
     def train(self, node_map=24):
         """Abstraction around model adapter train method."""
-        return self.__model_adapter.train(node_map)
+        tc = SomTrainCommand(node_map=node_map, model_adapter=self.__model_adapter)
+        self.mgr.add_steps(tc)
+        self.mgr.execute_steps()
 
     def infer(self):
         """Abstraction around model adapter inference method."""
-        return self.__model_adapter.infer()
+        tc_infer = SomInferCommand(model_adapter=self.__model_adapter)
+        self.mgr.add_steps(tc_infer)
+        self.mgr.execute_steps()
