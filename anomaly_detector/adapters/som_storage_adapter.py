@@ -6,6 +6,11 @@ from anomaly_detector.config import Configuration
 import requests
 import logging
 import os
+import logging
+
+from anomaly_detector.adapters.base_storage_adapter import BaseStorageAdapter
+from anomaly_detector.storage.es_storage import ESStorage
+from anomaly_detector.storage.local_storage import LocalStorage
 
 from anomaly_detector.storage.storage_attribute import ESStorageAttribute
 
@@ -38,19 +43,26 @@ class SomStorageAdapter(BaseStorageAdapter):
 
     def retrieve_data(self, timespan, max_entry, false_positive):
         """Fetch data from storage system."""
-        return self.storage.retrieve(ESStorageAttribute(timespan,
-                                                        max_entry,
-                                                        false_positive))
+        data, raw = self.storage.retrieve(ESStorageAttribute(timespan,
+                                                             max_entry,
+                                                             false_positive))
+        if len(data) == 0:
+            logging.info("There are no logs in last %s seconds", timespan)
+            return None, None
+        else:
+            return data, raw
 
     def load_data(self, config_type):
         """Load data from storage class depending on training vs inference."""
         false_data = self.feedback_strategy.execute()
         if config_type == "train":
-            return self.retrieve_data(self.config.TRAIN_TIME_SPAN, self.config.TRAIN_MAX_ENTRIES,
-                                      false_data)
+            return self.retrieve_data(timespan=self.config.TRAIN_TIME_SPAN,
+                                      max_entry=self.config.TRAIN_MAX_ENTRIES,
+                                      false_positive=false_data)
         elif config_type == "infer":
-            return self.retrieve_data(self.config.INFER_TIME_SPAN, self.config.INFER_MAX_ENTRIES,
-                                      false_data)
+            return self.retrieve_data(timespan=self.config.INFER_TIME_SPAN,
+                                      max_entry=self.config.INFER_MAX_ENTRIES,
+                                      false_positive=false_data)
         else:
             raise Exception("Not Supported option . config_type not in ['infer','train']")
 

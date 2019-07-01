@@ -1,10 +1,10 @@
 """Test if SOM can learn from false positives."""
+import logging
+import numpy as np
 import pytest
 from anomaly_detector.anomaly_detector_facade import AnomalyDetectorFacade
 from anomaly_detector.adapters.feedback_strategy import FeedbackStrategy
 from anomaly_detector.config import Configuration
-import logging
-import numpy as np
 
 FREQ_NUM = 10000
 NODE_MAP = 2
