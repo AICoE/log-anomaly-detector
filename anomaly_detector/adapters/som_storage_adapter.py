@@ -2,15 +2,9 @@
 from anomaly_detector.adapters.base_storage_adapter import BaseStorageAdapter
 from anomaly_detector.storage.es_storage import ESStorage
 from anomaly_detector.storage.local_storage import LocalStorage
-from anomaly_detector.config import Configuration
+from anomaly_detector.decorator.utils import latency_logger
 import requests
 import logging
-import os
-import logging
-
-from anomaly_detector.adapters.base_storage_adapter import BaseStorageAdapter
-from anomaly_detector.storage.es_storage import ESStorage
-from anomaly_detector.storage.local_storage import LocalStorage
 
 from anomaly_detector.storage.storage_attribute import ESStorageAttribute
 
@@ -43,6 +37,7 @@ class SomStorageAdapter(BaseStorageAdapter):
         else:
             return data, raw
 
+    @latency_logger(name="SomStorageAdapter")
     def load_data(self, config_type):
         """Load data from storage class depending on training vs inference."""
         false_data = self.feedback_strategy.execute()
@@ -57,6 +52,7 @@ class SomStorageAdapter(BaseStorageAdapter):
         else:
             raise Exception("Not Supported option . config_type not in ['infer','train']")
 
+    @latency_logger(name="SomStorageAdapter")
     def persist_data(self, df):
         """Abstraction around storage persistence class."""
         self.storage.store_results(df)
