@@ -4,6 +4,7 @@ import logging
 from abc import ABCMeta, abstractmethod
 import time
 from prometheus_client import Gauge, Summary, Counter, Histogram
+
 TRAINING_COUNT = Counter("aiops_lad_train_count", "count of training runs")
 INFER_COUNT = Counter("aiops_lad_inference_count", "count of inference runs")
 
@@ -82,7 +83,24 @@ class SomInferCommand(AbstractCommand):
         return 0
 
 
-class TaskQueue:
+class Singleton(type):
+    """Singleton ensures  that a single instance will exist of this class."""
+
+    def __init__(self, *args, **kwargs):
+        """Create single instance if none exists."""
+        self.__state = None
+        super().__init__(*args, **kwargs)
+
+    def __call__(self, *args, **kwargs):
+        """Overwriting the call method when this is called."""
+        if self.__state is None:
+            self.__state = super().__call__(*args, **kwargs)
+            return self.__state
+        else:
+            return self.__state
+
+
+class TaskQueue(metaclass=Singleton):
     """Task manager is a custom."""
 
     count = 0
@@ -115,3 +133,8 @@ class TaskQueue:
     def __len__(self):
         """Number of steps in queue."""
         return len(self.steps)
+
+    def clear(self):
+        """Reset the values."""
+        self.steps = []
+        self.count = 0
