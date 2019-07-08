@@ -3,7 +3,6 @@ from anomaly_detector.adapters.base_storage_adapter import BaseStorageAdapter
 from anomaly_detector.storage.es_storage import ESStorage
 from anomaly_detector.storage.local_storage import LocalStorage
 from anomaly_detector.decorator.utils import latency_logger
-import requests
 import logging
 
 from anomaly_detector.storage.storage_attribute import ESStorageAttribute
@@ -14,7 +13,7 @@ class SomStorageAdapter(BaseStorageAdapter):
 
     STORAGE_BACKENDS = [LocalStorage, ESStorage]
 
-    def __init__(self, config, feedback_strategy):
+    def __init__(self, config, feedback_strategy=None):
         """Initialize configuration for for storage interface."""
         self.config = config
         self.feedback_strategy = feedback_strategy
@@ -40,7 +39,7 @@ class SomStorageAdapter(BaseStorageAdapter):
     @latency_logger(name="SomStorageAdapter")
     def load_data(self, config_type):
         """Load data from storage class depending on training vs inference."""
-        false_data = self.feedback_strategy.execute()
+        false_data = self.feedback_strategy.execute() if self.feedback_strategy else None
         if config_type == "train":
             return self.retrieve_data(timespan=self.config.TRAIN_TIME_SPAN,
                                       max_entry=self.config.TRAIN_MAX_ENTRIES,
