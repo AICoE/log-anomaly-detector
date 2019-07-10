@@ -24,6 +24,7 @@ class TestTaskManager(TestCase):
         self.assertNotEqual(mgr.count, TASKS_IN_QUEUE)
         mgr.execute_steps()
         self.assertEqual(mgr.count, TASKS_IN_QUEUE)
+        mgr.clear()
 
     def test_invalid_command(self):
         """Test case for validating that when we train a model and add it to task queue that it will run."""
@@ -36,6 +37,7 @@ class TestTaskManager(TestCase):
         mock = mock_func()
         with self.assertRaises(TypeError) as context:
             mgr.add_steps(mock)
+        mgr.clear()
 
     def test_valid_command(self):
         """Test case for validating that when we train a model and add it to task queue that it will run."""
@@ -51,3 +53,4 @@ class TestTaskManager(TestCase):
         self.assertNotEqual(mgr.count, TASKS_IN_QUEUE)
         mgr.execute_steps()
         self.assertEqual(mgr.count, TASKS_IN_QUEUE)
+        mgr.clear()
