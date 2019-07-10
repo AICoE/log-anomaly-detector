@@ -1,6 +1,8 @@
 """Anomaly Detector Facade - Acts as a gateway and abstracts the complexity."""
+from anomaly_detector.adapters.feedback_strategy import FeedbackStrategy
 from anomaly_detector.adapters.som_model_adapter import SomModelAdapter
 from anomaly_detector.adapters.som_storage_adapter import SomStorageAdapter
+from anomaly_detector.config import Configuration
 from anomaly_detector.adapters.feedback_strategy import FeedbackStrategy
 from anomaly_detector.jobs.tasks import TaskQueue, SomTrainCommand, SomInferCommand
 from prometheus_client import start_http_server
@@ -20,13 +22,12 @@ class AnomalyDetectorFacade:
 
     def run(self, single_run=False):
         """Abstraction around model adapter run method."""
-        start_http_server(8081)
         break_out = False
+        train = SomTrainCommand(model_adapter=self.__model_adapter)
+        infer = SomInferCommand(model_adapter=self.__model_adapter)
+        self.mgr.add_steps(train)
+        self.mgr.add_steps(infer)
         while break_out is False:
-            train = SomTrainCommand(model_adapter=self.__model_adapter)
-            infer = SomInferCommand(model_adapter=self.__model_adapter)
-            self.mgr.add_steps(train)
-            self.mgr.add_steps(infer)
             self.mgr.execute_steps()
             print("log::facade::run")
             time.sleep(5)

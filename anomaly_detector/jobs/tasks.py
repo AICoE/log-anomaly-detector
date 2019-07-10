@@ -3,6 +3,9 @@ import datetime
 import logging
 from abc import ABCMeta, abstractmethod
 import time
+from prometheus_client import Gauge, Summary, Counter, Histogram
+TRAINING_COUNT = Counter("aiops_lad_train_count", "count of training runs")
+INFER_COUNT = Counter("aiops_lad_inference_count", "count of inference runs")
 
 
 class AbstractCommand(metaclass=ABCMeta):
@@ -27,6 +30,7 @@ class SomTrainCommand(AbstractCommand):
 
     def execute(self):
         """Train models for anomaly detection."""
+        TRAINING_COUNT.inc()
         data, _ = self.model_adapter.preprocess(config_type="train",
                                                 recreate_model=self.recreate_model)
         # After first time training we will only update w2v model not recreate it everytime.
@@ -48,10 +52,10 @@ class SomInferCommand(AbstractCommand):
         """Will retrain with fresh data and perform predictions in batches."""
         self.model_adapter.load_w2v_model()
         self.model_adapter.load_som_model()
-
         mean, threshold = self.model_adapter.set_threshold()
         infer_loops = 0
         while infer_loops < self.model_adapter.storage_adapter.INFER_LOOPS:
+            INFER_COUNT.inc()
             then = time.time()
             now = datetime.datetime.now()
             # Get data for inference
@@ -67,12 +71,14 @@ class SomInferCommand(AbstractCommand):
             # Inference done, increase counter
             infer_loops += 1
             now = time.time()
+
             if self.sleep is True:
                 logging.info("waiting for next minute to start...")
                 logging.info("press ctrl+c to stop process")
                 sleep_time = self.model_adapter.storage_adapter.INFER_TIME_SPAN - (now - then)
                 if sleep_time > 0:
                     time.sleep(sleep_time)
+
         return 0
 
 
