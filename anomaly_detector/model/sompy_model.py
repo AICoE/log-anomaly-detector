@@ -37,4 +37,4 @@ class SOMPYModel(BaseModel):
                 dist = np.linalg.norm(self.model[x][y] - log)
                 if dist < dist_smallest:
                     dist_smallest = dist
-        return dist
+        return dist_smallest
