@@ -13,6 +13,7 @@ import os
 from prometheus_client import Gauge, Summary, Counter, Histogram
 
 ANOMALY_COUNT = Gauge("aiops_lad_anomaly_count", "count of anomalies runs", ['anomaly_status'])
+ANOMALY_SCORE = Gauge("aiops_lad_anomaly_avg_score", "avg anomaly score")
 LOG_LINES_COUNT = Gauge("aiops_lad_loglines_count", "count of log lines processed runs")
 FALSE_POSITIVE_COUNT = Counter("aiops_lad_false_positive_count", "count of false positives processed runs", ['id'])
 ANOMALY_HIST = Histogram("aiops_hist", "histogram of anomalies runs")
@@ -108,6 +109,7 @@ class SomModelAdapter(BaseModelAdapter):
                 hist_count += 1
                 s["anomaly"] = 1
                 logging.warning("Anomaly found (score: %f): %s" % (dist[i], s["message"]))
+                ANOMALY_SCORE.set(dist[i])
             else:
                 s["anomaly"] = 0
             # anomaly_status==1 means its an anomaly otherwise its not we may want to do some comparison.
