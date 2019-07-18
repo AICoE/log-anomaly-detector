@@ -59,7 +59,9 @@ class SomModelAdapter(BaseModelAdapter):
         self.model.train(to_put_train, node_map, self.storage_adapter.TRAIN_ITERATIONS,
                          self.storage_adapter.PARALLELISM)
         dist = self.model.get_anomaly_score(to_put_train, self.storage_adapter.PARALLELISM)
-        self.model.set_metadata((np.mean(dist), np.std(dist), np.max(dist), np.min(dist)))
+        max_dist = np.max(dist)
+        dist = dist/max_dist
+        self.model.set_metadata((np.mean(dist), np.std(dist), max_dist, np.min(dist)))
         try:
             self.model.save(self.storage_adapter.MODEL_PATH)
         except ModelSaveException as ex:
@@ -138,9 +140,12 @@ class SomModelAdapter(BaseModelAdapter):
     @latency_logger(name="SomModelAdapter")
     def process_anomaly_score(self, data):
         """Generate scores from some. To be used for inference."""
+        meta_data = self.model.get_metadata()
+        max_dist = meta_data[2]
         v = self.w2v_model.one_vector(data)
         dist = []
         dist = self.model.get_anomaly_score(v, self.storage_adapter.PARALLELISM)
+        dist = dist/max_dist
         return dist
 
     def set_threshold(self):
