@@ -6,7 +6,7 @@ This application leverages both a Word2Vec implementation and a self organizing 
 
 Internally it utilizes gensim for its Word2Vec implementation - used to encode the natural language portion of our logs, and an implementation of SOM, but it is possible to extend by other anomaly detection algorithms.
 
-The execution flow contain's the two main portions (found in any ML application): training and inference.
+The execution flow contains the two main portions (found in any ML application): training and inference.
 
 ## Use Case
 
@@ -35,7 +35,7 @@ You have 2 options when configuring the application.
 | TRAIN_MAX_ENTRIES       | Default: 30000                                                                                                                                                                                   | Maximum number of log messages read in from ElasticSearch during training                                                                                                                                                                                                                                                                                 |
 | TRAIN_ITERATIONS        | Default: Training Data Batch Size                                                                                                                                                                | Parameter used to train the SOM model. Defines the number of training examples used to train the model                                                                                                                                                                                                                                                    |
 | TRAIN_UPDATE_MODEL      | Defaults: False {OPTIONAL if you’ve done your training and you just want inference}                                                                                                              | If set to True, a pre-existing model is loaded for re-training. Otherwise, a new model is initialized.                                                                                                                                                                                                                                                    |
-| TRAIN_WINDOW            | Default: 5                                                                                                                                                                                       | [HYPER_PARAMETER] This is a hyper parameter used by the Word2Vec to dictate the number of words behind and in front of the target word during training.,Users may want to tweek this parameter.                                                                                                                                                           |
+| TRAIN_WINDOW            | Default: 5                                                                                                                                                                                       | [HYPER_PARAMETER] This is a hyper parameter used by the Word2Vec to dictate the number of words behind and in front of the target word during training.,Users may want to tweak this parameter.                                                                                                                                                           |
 | TRAIN_VECTOR_LENGTH     | Default: 25                                                                                                                                                                                      | [HYPER_PARAMETER] This is a hyper-parameter used by the,word2vec implementation to dictate the length of the feature vector generated from the log data for further processing by the SOM anomaly detection. Optimal feature length often can’t be known a priori,so users may want to tune this parameter based on their specific data set and use-case. |
 | PARALLELISM             | Default: 2                                                                                                                                                                                       | Used to past through to SOMPy package. Number of jobs that can be parallelized                                                                                                                                                                                                                                                                            |
 | INFER_ANOMALY_THRESHOLD | Default: 3.1                                                                                                                                                                                     | This value dictates how many standard deviations away from the mean a particular log anomaly value has to be before it will be classified as an anomaly.,If a user would like their system to be more strict they should increase this value. A value of 0 will classify all entries as anomalies.                                                        |
@@ -151,7 +151,7 @@ This will deploy and trigger image build which in turn will deploy and start the
 
 ### Training
 
-`anomaly_detector.train()` retrieves data from backend storage, converts it into vector representation using Gensim Word2Vec and stores the W2V model to disk. Next step is Self-Oragnizing Map training, once the model is trained, it is also stored to disk for furter use in `infer()`.
+`anomaly_detector.train()` retrieves data from backend storage, converts it into vector representation using Gensim Word2Vec and stores the W2V model to disk. Next step is Self-Organizing Map training, once the model is trained, it is also stored to disk for further use in `infer()`.
 
 ### Inference
 
@@ -164,11 +164,11 @@ We are using Word2Vec in this application in order to vectorize the natural lang
 
 ### SOM
 
-SOM (Self_organizming map) is the unsupervised learning algorithm used to help us quantify the anomalousness of our logs.  
+SOM (Self_organizing map) is the unsupervised learning algorithm used to help us quantify the anomalousness of our logs.  
 
 SOM, or Kohonon maps, are a type of unsupervised learning algorithm that "produce a low-dimensional (typically two-dimensional), discretized representation of the input space of the training samples" (wikipedia: https://en.wikipedia.org/wiki/Self-organizing_map). The idea to use this type of algorithm for our log data was inspired by a talk by Will Benton (found here: https://www.youtube.com/watch?v=fhuoKe4li6E).
 
-In short, we intialize a graph of some user-specified fixed dimensions, in our default case 24x24, where each node is an object of the same dimensions as our training data. We then iterate through each training example over the graph and find the node that is closest (here using L2 distance) to that trainng example. We then update the value of that node and the neighboring nodes. This process will generate a map that resembels the space of our training samples.
+In short, we intialize a graph of some user-specified fixed dimensions, in our default case 24x24, where each node is an object of the same dimensions as our training data. We then iterate through each training example over the graph and find the node that is closest (here using L2 distance) to that training example. We then update the value of that node and the neighboring nodes. This process will generate a map that resembles the space of our training samples.
 
 Once the map is trained, we can take a new example, measure its distance to each node on the map and determine how "close"/"similar" it is to our training data. This distance metric is how we quantify the spectrum from normal to anomalous and how we generate our anomaly scores.
 
@@ -178,7 +178,7 @@ There are 2 storage backends implemented at the moment - ElasticSearch and local
 
 #### ElasticSearch
 
-ES backend is pulling data from ElasticSearch instance. There are some assumptions made about the sturcture of the data and index names.
+ES backend is pulling data from ElasticSearch instance. There are some assumptions made about the structure of the data and index names.
 
 * Index name is assumed to be in the format of `index_name-YYYY.MM.DD`, where the date is automatically appended based on current date - i.e. only provide `index_name-` prefix as a parameter
 * You index schema has to contain a `service` field which is used for filtering the input data
