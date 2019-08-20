@@ -68,7 +68,9 @@ class SomInferCommand(AbstractCommand):
             logging.info("%d logs loaded from the last %d seconds", len(data),
                          self.model_adapter.storage_adapter.INFER_TIME_SPAN)
             results = self.model_adapter.predict(data, json_logs, threshold)
-            self.model_adapter.storage_adapter.persist_data(results)
+            # This is for offline testing of the ML Training and Infer which results in trigger emails.
+            if self.model_adapter.storage_adapter.PREDICTION_ALERT is True:
+                self.model_adapter.storage_adapter.persist_data(results)
             # Inference done, increase counter
             infer_loops += 1
             now = time.time()

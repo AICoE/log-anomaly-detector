@@ -108,6 +108,9 @@ class Configuration(Borg):
     # JSON representing a query passed to ElasticSearch to match the data
     ES_QUERY = ""
 
+    # For testing offline training and inference without triggering emails
+    PREDICTION_ALERT = True
+
     prefix = "LAD"
 
     def __init__(self, prefix=None, config_yaml=None):
@@ -153,7 +156,7 @@ class Configuration(Borg):
     def set_property(self, prop, val):
         """Set the correct datatype."""
         typ = type(getattr(self, prop))
-        if val:
+        if val is not None:
 
             if typ is int:
                 setattr(self, prop, int(val))
