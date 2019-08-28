@@ -1,6 +1,6 @@
 """Fact Store API for human feedback in the loop."""
 import os
-from anomaly_detector.fact_store.model import EventModel, FeedbackModel, Base
+from anomaly_detector.fact_store.model import FeedbackModel, Base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 import json
@@ -22,22 +22,7 @@ class FactStore(object):
         Session = sessionmaker(bind=engine)
         self.session = Session()
 
-    def write_event(self, predict_id, message, score, anomaly_status):
-        """Service for storage of event metadata in parquet.
-
-        :param id: predict Id where the anomaly details are stored
-        :param message: the original message that triggered the anomaly
-        :param score: the score that the algorithm set this anomaly
-        :param anomaly_status: is this anomaly correct or false
-        :return: None
-        """
-        event = EventModel(message=message, score=score, predict_id=predict_id, anomaly_status=anomaly_status)
-        self.session.add(event)
-        logging.info("Event ID: {}  recorded in events_store".format(event.predict_id))
-        self.session.commit()
-        return True
-
-    def write_feedback(self, predict_id, notes, anomaly_status):
+    def write_feedback(self, predict_id, message, anomaly_status):
         """Service for storage of metadata in parquet.
 
         :param predict_id: predict Id where the anomaly details are stored
@@ -48,7 +33,7 @@ class FactStore(object):
         """
         # Adding id to bloom filter so we don't have to hit the database every time
 
-        feedback = FeedbackModel(predict_id=predict_id, notes=notes, reported_anomaly_status=anomaly_status)
+        feedback = FeedbackModel(predict_id=predict_id, message=message, reported_anomaly_status=anomaly_status)
         self.session.add(feedback)
         self.session.commit()
         logging.info("Persisted ID: {} recorded in FStore".format(feedback.id))
@@ -65,7 +50,7 @@ class FactStore(object):
         items = self.session.query(FeedbackModel).all()
         messages = set()
         for i in items:
-            events = self.session.query(EventModel).filter_by(predict_id=i.predict_id)
-            messages.add(events[0].message)
+            if i.reported_anomaly_status is True:
+                messages.add(i.message)
 
         return list(messages)

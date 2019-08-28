@@ -76,14 +76,14 @@
                                     </div>
                                 </div>
 
-                                <!-- Notes (start) -->
-                                <div class="form-group">
-                                    <label class="col-sm-2 control-label" for="notes">Notes</label>
+                                <!-- Message -->
+                                 <div class="form-group">
+                                    <label class="col-sm-2 control-label" for="message">Message</label>
                                     <div class="input-group-btn">
-                                        <textarea class="form-control" id="notes" rows="5"></textarea>
+                                        <textarea class="form-control" id="message" rows="5"></textarea>
                                     </div>
                                 </div>
-                                <!-- Notes (end) -->
+                                <!-- Message (end) -->
 
                                 <div class="form-group">
                                     <div class="col-sm-offset-2 col-sm-10">
@@ -148,7 +148,7 @@
 
         var lad_id = $("#lad_id").val();
         var is_anomaly = $("#is_anomaly").val();
-        var notes = $("#notes").val();
+        var message = $("#message").val();
 
        $.ajax({
             type: "POST",
@@ -156,7 +156,8 @@
             data: JSON.stringify({
                     lad_id: lad_id,
                     is_anomaly: is_anomaly,
-                    notes: notes}),
+                    message: message
+                }),
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function(data){
