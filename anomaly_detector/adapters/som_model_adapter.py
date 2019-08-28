@@ -93,6 +93,7 @@ class SomModelAdapter(BaseModelAdapter):
         """Prediction from data provided and if it hits threshold it flags it an anomaly."""
         feedback_strategy = self.storage_adapter.feedback_strategy
         false_positives = feedback_strategy.execute() if feedback_strategy else None
+        logging.info("False Positive: {} ".format(false_positives))
         dist = self.process_anomaly_score(data)
         f = []
         hist_count = 0
@@ -101,13 +102,13 @@ class SomModelAdapter(BaseModelAdapter):
             s = json_logs[i]
             s["predict_id"] = str(uuid.uuid4())
             s["anomaly_score"] = dist[i]
-            # Record anomaly event in fact_store and
-            if false_positives is not None:
-                if {"message": s["message"]} in false_positives:
-                    logging.info("False positive was found (score: %f): %s" % (dist[i], s["message"]))
-                    FALSE_POSITIVE_COUNT.labels(id=s["predict_id"]).inc()
-                    continue
+            # Record anomaly event in fact_store
             if dist[i] > threshold:
+                if false_positives is not None:
+                    if s["message"] in feedback_strategy.uniq_items:
+                        # logging.info("False positive was found (score: %f): %s" % (dist[i], s["message"]))
+                        FALSE_POSITIVE_COUNT.labels(id=s["predict_id"]).inc()
+                        continue
                 hist_count += 1
                 s["anomaly"] = 1
                 logging.warning("Anomaly found (score: %f): %s" % (dist[i], s["message"]))
