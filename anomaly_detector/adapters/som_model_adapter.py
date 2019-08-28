@@ -116,9 +116,6 @@ class SomModelAdapter(BaseModelAdapter):
                 s["anomaly"] = 0
             # anomaly_status==1 means its an anomaly otherwise its not we may want to do some comparison.
             ANOMALY_COUNT.labels(anomaly_status=s["anomaly"]).inc()
-
-            if self.storage_adapter.FACT_STORE_URL is not "":
-                self.process_false_positives(data, dist, i, s)
             ANOMALY_HIST.observe(hist_count)
             f.append(s)
         return f

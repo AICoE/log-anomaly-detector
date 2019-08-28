@@ -38,7 +38,7 @@ def feedback():
         content = request.json
         logging.info("id: {} ".format(content["lad_id"]))
         logging.info("anomaly: {} ".format(content["is_anomaly"]))
-        logging.info("notes: {} ".format(content["notes"]))
+        logging.info("message: {} ".format(content["message"]))
 
         if not content["lad_id"] or not content["is_anomaly"]:
             raise Exception(
@@ -51,7 +51,7 @@ def feedback():
         # Note id is the prediction id that is found in the email.
         if (
                 fs.write_feedback(
-                    predict_id=content["lad_id"], notes=content["notes"], anomaly_status=bool(content["is_anomaly"])
+                    predict_id=content["lad_id"], message=content["message"], anomaly_status=bool(content["is_anomaly"])
                 )
                 is False
         ):
