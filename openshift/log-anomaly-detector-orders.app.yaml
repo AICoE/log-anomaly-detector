@@ -1,25 +1,12 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 objects:
-  - apiVersion: v1
-    kind: PersistentVolumeClaim
-    metadata:
-      labels:
-        app: log-anomaly-detector-f20
-      name: log-anomaly-detector-f20
-    spec:
-      accessModes:
-        - ReadWriteOnce
-      resources:
-        requests:
-          storage: 1Gi
-      storageClassName: ${STORAGE_CLASS}
   - apiVersion: image.openshift.io/v1
     kind: ImageStream
     metadata:
       labels:
-        app: log-anomaly-detector
-      name: log-anomaly-detector
+        app: log-anomaly-detector-app
+      name: log-anomaly-detector-app
     spec:
       lookupPolicy:
         local: true
