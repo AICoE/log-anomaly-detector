@@ -10,9 +10,11 @@ app = Flask(__name__, static_folder="static")
 def index():
     """Render main html page for fact_store."""
     _id = request.args.get("lad_id")
+    _msg = request.args.get("message")
+    _is_anomaly = request.args.get("is_anomaly")
     if _id is None:
         return render_template("index.html")
-    return render_template("index.html", id=_id)
+    return render_template("index.html", id=_id, msg=_msg, is_anomaly=_is_anomaly)
 
 
 @app.route("/api/metadata", methods=["GET"])

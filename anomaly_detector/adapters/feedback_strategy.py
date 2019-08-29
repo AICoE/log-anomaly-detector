@@ -18,16 +18,17 @@ class FeedbackStrategy():
         """Fetch false positive from datastore and add noise to training run."""
         logging.info("Fetching false positives from fact store")
         self.uniq_items = set()
-        try:
-            r = requests.get(url=self.config.FACT_STORE_URL + "/api/false_positive")
-            data = r.json()
-            false_positives = []
-            for msg in data["feedback"]:
-                self.uniq_items.add(msg)
-                noise = [{"message": msg}] * self.config.FREQ_NOISE
-                false_positives.extend(noise)
-            logging.info("Added noise {} messages ".format(len(false_positives)))
-            return false_positives
-        except Exception as ex:
-            logging.error("Fact Store is either down or not functioning")
-            return None
+        if self.config.FACT_STORE_URL:
+            try:
+                r = requests.get(url=self.config.FACT_STORE_URL + "/api/false_positive")
+                data = r.json()
+                false_positives = []
+                for msg in data["feedback"]:
+                    self.uniq_items.add(msg)
+                    noise = [{"message": msg}] * self.config.FREQ_NOISE
+                    false_positives.extend(noise)
+                logging.info("Added noise {} messages ".format(len(false_positives)))
+                return false_positives
+            except Exception as ex:
+                logging.error("Fact Store is either down or not functioning")
+        return None

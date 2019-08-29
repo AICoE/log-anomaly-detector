@@ -11,6 +11,7 @@ from anomaly_detector.model.sompy_model import SOMPYModel
 from anomaly_detector.model.w2v_model import W2VModel
 import os
 from prometheus_client import Gauge, Summary, Counter, Histogram
+from urllib.parse import quote
 
 ANOMALY_COUNT = Gauge("aiops_lad_anomaly_count", "count of anomalies runs", ['anomaly_status'])
 ANOMALY_SCORE = Gauge("aiops_lad_anomaly_avg_score", "avg anomaly score")
@@ -60,7 +61,7 @@ class SomModelAdapter(BaseModelAdapter):
                          self.storage_adapter.PARALLELISM)
         dist = self.model.get_anomaly_score(to_put_train, self.storage_adapter.PARALLELISM)
         max_dist = np.max(dist)
-        dist = dist/max_dist
+        dist = dist / max_dist
         self.model.set_metadata((np.mean(dist), np.std(dist), max_dist, np.min(dist)))
         try:
             self.model.save(self.storage_adapter.MODEL_PATH)
@@ -98,6 +99,10 @@ class SomModelAdapter(BaseModelAdapter):
         f = []
         hist_count = 0
         logging.info("Max anomaly score: %f" % max(dist))
+        console_report = set()
+        ANOMALY_COUNT._metrics.clear()
+
+        last_id = dict()
         for i in range(len(data)):
             s = json_logs[i]
             s["predict_id"] = str(uuid.uuid4())
@@ -112,6 +117,8 @@ class SomModelAdapter(BaseModelAdapter):
                 hist_count += 1
                 s["anomaly"] = 1
                 logging.warning("Anomaly found (score: %f): %s" % (dist[i], s["message"]))
+                console_report.add(quote(s["message"]))
+                last_id[quote(s["message"])] = s["predict_id"]
                 ANOMALY_SCORE.set(dist[i])
             else:
                 s["anomaly"] = 0
@@ -119,6 +126,14 @@ class SomModelAdapter(BaseModelAdapter):
             ANOMALY_COUNT.labels(anomaly_status=s["anomaly"]).inc()
             ANOMALY_HIST.observe(hist_count)
             f.append(s)
+
+        if self.storage_adapter.FACT_STORE_URL and len(console_report) > 0:
+            logging.info("To provide feedback on anomalies found click the following links")
+            for item in console_report:
+                logging.info("{}?lad_id={}&is_anomaly={}&message={}".format(self.storage_adapter.FACT_STORE_URL,
+                                                                            last_id[item], "False", item))
+        else:
+            logging.info("No anomalies found.")
         return f
 
     def process_false_positives(self, data, dist, i, s):
@@ -143,7 +158,7 @@ class SomModelAdapter(BaseModelAdapter):
         v = self.w2v_model.one_vector(data)
         dist = []
         dist = self.model.get_anomaly_score(v, self.storage_adapter.PARALLELISM)
-        dist = dist/max_dist
+        dist = dist / max_dist
         return dist
 
     def set_threshold(self):
