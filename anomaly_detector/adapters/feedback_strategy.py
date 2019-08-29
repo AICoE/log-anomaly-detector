@@ -10,17 +10,20 @@ class FeedbackStrategy():
     def __init__(self, config, fn=None):
         """Initial setup of configuration and users can provide custom feedback_function to execute."""
         self.config = config
+        self.uniq_items = set()
         if fn:
             self.execute = types.MethodType(fn, self)
 
     def execute(self):
         """Fetch false positive from datastore and add noise to training run."""
         logging.info("Fetching false positives from fact store")
+        self.uniq_items = set()
         try:
             r = requests.get(url=self.config.FACT_STORE_URL + "/api/false_positive")
             data = r.json()
             false_positives = []
             for msg in data["feedback"]:
+                self.uniq_items.add(msg)
                 noise = [{"message": msg}] * self.config.FREQ_NOISE
                 false_positives.extend(noise)
             logging.info("Added noise {} messages ".format(len(false_positives)))
