@@ -1,3 +1,4 @@
 .vscode
 amun/__pycache__/
 *.pyc
+docs/build/**
