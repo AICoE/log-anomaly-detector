@@ -47,7 +47,7 @@ class LocalStorage(Storage):
     def store_results(self, data):
         """Store results."""
         if len(self.config.LS_OUTPUT_PATH) > 0:
-            with open(self.config.LS_OUTPUT_PATH, "a") as fp:
+            with open(self.config.LS_OUTPUT_PATH, self.config.LS_OUTPUT_RWA_MODE) as fp:
                 json.dump(data, fp)
         else:
             for item in data:

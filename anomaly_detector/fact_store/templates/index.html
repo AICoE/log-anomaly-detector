@@ -68,8 +68,14 @@
                                             <i class="fas fa-thumbs-up"></i>
                                             <!--  -->
                                             <select class="form-control" id="is_anomaly">
-                                                <option>True</option>
-                                                <option>False</option>
+                                                {% if is_anomaly == 'True' %}
+                                                    <option selected>True</option>
+                                                    <option>False</option>
+
+                                                {% else %}
+                                                    <option>True</option>
+                                                    <option selected>False</option>
+                                                {% endif %}
                                             </select>
                                             <!-- -->
                                         </div>
@@ -80,7 +86,7 @@
                                  <div class="form-group">
                                     <label class="col-sm-2 control-label" for="message">Message</label>
                                     <div class="input-group-btn">
-                                        <textarea class="form-control" id="message" rows="5"></textarea>
+                                        <textarea class="form-control" id="message" rows="5">{{ msg }}</textarea>
                                     </div>
                                 </div>
                                 <!-- Message (end) -->
