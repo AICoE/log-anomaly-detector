@@ -116,6 +116,7 @@ class SomModelAdapter(BaseModelAdapter):
                         continue
                 hist_count += 1
                 s["anomaly"] = 1
+                s["e_message"] = quote(s["message"])
                 logging.warning("Anomaly found (score: %f): %s" % (dist[i], s["message"]))
                 console_report.add(quote(s["message"]))
                 last_id[quote(s["message"])] = s["predict_id"]
@@ -128,11 +129,12 @@ class SomModelAdapter(BaseModelAdapter):
             f.append(s)
 
         if self.storage_adapter.FACT_STORE_URL and len(console_report) > 0:
+
             logging.info("To provide feedback on anomalies found click the following links")
             for item in console_report:
                 logging.info("{}?lad_id={}&is_anomaly={}&message={}".format(self.storage_adapter.FACT_STORE_URL,
                                                                             last_id[item], "False", item))
-        else:
+        elif len(console_report) == 0:
             logging.info("No anomalies found.")
         return f
 
