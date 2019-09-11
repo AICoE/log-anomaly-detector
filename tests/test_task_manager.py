@@ -14,7 +14,7 @@ class TestTaskManager(TestCase):
     def test_train_command(self):
         """Test case for validating that when we train a model and add it to task queue that it will run."""
         mgr = TaskQueue()
-        config = Configuration(config_yaml=".env_config.yaml")
+        config = Configuration(config_yaml="config_files/.env_config.yaml")
         storage_adapter = SomStorageAdapter(config=config, feedback_strategy=None)
         model_adapter = SomModelAdapter(storage_adapter)
         tc = SomTrainCommand(node_map=2, model_adapter=model_adapter)

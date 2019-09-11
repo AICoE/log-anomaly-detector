@@ -13,7 +13,7 @@ CONFIGURATION_PREFIX = "LAD"
 @pytest.fixture()
 def config():
     """Initialize configurations before testing."""
-    config = Configuration(prefix=CONFIGURATION_PREFIX, config_yaml=".env_config.yaml")
+    config = Configuration(prefix=CONFIGURATION_PREFIX, config_yaml="config_files/.env_config.yaml")
 
     return config
 
