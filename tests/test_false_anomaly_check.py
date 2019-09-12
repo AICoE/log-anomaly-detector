@@ -15,7 +15,7 @@ LOG_MSG = "(root) CMD (/usr/local/bin/monitor-apache-stats.sh >/dev/null 2>&1)"
 @pytest.fixture()
 def config():
     """Provide default configurations to load yaml instead of env var."""
-    config = Configuration(config_yaml=".test_env_config.yaml")
+    config = Configuration(config_yaml="config_files/.test_env_config.yaml")
     return config
 
 

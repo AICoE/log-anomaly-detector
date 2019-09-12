@@ -1,2 +1,2 @@
 export SQL_CONNECT="mysql+pymysql://zak:password@localhost/factstore"
-python app.py --metric-port 8081 ui
+python ../app.py --metric-port 8081 ui
