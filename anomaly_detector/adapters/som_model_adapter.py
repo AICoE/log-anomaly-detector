@@ -73,6 +73,7 @@ class SomModelAdapter(BaseModelAdapter):
     @latency_logger(name="SomModelAdapter")
     def preprocess(self, config_type, recreate_model):
         """Load data and train."""
+        # TODO: Update this function to take an array of items instead of single batch
         data, raw = self.storage_adapter.load_data(config_type)
         # if data:
         if data is not None:
