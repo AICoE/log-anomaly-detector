@@ -22,16 +22,12 @@ class LocalDirStorage(LocalStorage):
 
     class ALLOWED_FILE_FORMATS(Enum):
         """Current Supported file formats that are supported to process."""
+
         COMMON_LOG = "common_log"
         JSON = "json"
 
     def get_filesnames_recursively(self, root_path, *, file_ext='log', file_format='common_log'):
-        """
-        Setup file read processing.
-        :param root_path:
-        :param file_ext:
-        :param file_format:
-        """
+        """Setup file read processing."""
         self.root_path = root_path
         self.file_ext = file_ext
         self.file_format = file_format
@@ -45,7 +41,8 @@ class LocalDirStorage(LocalStorage):
         return self.read_all_files(storage_attribute)
 
     def read_file(self, filepath, storage_attribute):
-        data=[]
+        """Check if file is supported and loop parse each file."""
+        data = []
         with open(filepath, "r") as fp:
             if filepath.suffix == ".json":
                 data = json.load(fp)
@@ -55,7 +52,8 @@ class LocalDirStorage(LocalStorage):
                     message_field = self.extract_message(line)
                     data.append({"message": message_field})
             else:
-                raise FileFormatNotSupported("File format is not supported json and common log format (which ends with '.log') .")
+                raise FileFormatNotSupported(
+                    "File format is not supported json and common log format (which ends with '.log') .")
             if storage_attribute.false_data is not None:
                 data.extend(storage_attribute.false_data)
         data_set = json_normalize(data)
@@ -63,12 +61,11 @@ class LocalDirStorage(LocalStorage):
         return data, data_set
 
     def read_all_files(self, storage_attribute: DefaultStorageAttribute):
+        """Loop through all files in directory and send it to parser."""
         self.get_filesnames_recursively(self.config.LS_INPUT_PATH)
-        items=[]
+        items = []
         for file in self.files:
-            data, data_set=self.read_file(file, storage_attribute)
+            data, data_set = self.read_file(file, storage_attribute)
             self._preprocess(data_set)
-            items.append((data,data_set))
+            items.append((data, data_set))
         return items
-
-

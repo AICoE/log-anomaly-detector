@@ -32,7 +32,8 @@ class LocalStorage(Storage):
         return data_set, data
 
     def read_file(self, filepath, storage_attribute):
-        data=[]
+        """Read and parse files."""
+        data = []
         with open(filepath, "r") as fp:
             if self.config.LS_INPUT_PATH.endswith("json"):
                 data = json.load(fp)
@@ -49,6 +50,7 @@ class LocalStorage(Storage):
         return data, data_set
 
     def extract_message(self, line):
+        """Parse common log file format."""
         message_field = " ".join(line.split(" ")[2:])
         message_field = message_field.rstrip("\n")
         return message_field
