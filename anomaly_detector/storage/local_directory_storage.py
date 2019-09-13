@@ -21,6 +21,7 @@ class LocalDirStorage(LocalStorage):
         self.config = configuration
 
     class ALLOWED_FILE_FORMATS(Enum):
+        """Current Supported file formats that are supported to process."""
         COMMON_LOG = "common_log"
         JSON = "json"
 
@@ -38,7 +39,6 @@ class LocalDirStorage(LocalStorage):
             raise FileFormatNotSupported("File format {} is not supported".format(file_format))
         self.files = [filename for filename in Path(root_path).glob('**/*.{}'.format(self.file_ext))]
 
-    # TODO: Remove this if duplicated higher up.
     def retrieve(self, storage_attribute: DefaultStorageAttribute):
         """Retrieve data from local storage."""
         _LOGGER.info("Reading from %s" % self.config.LS_INPUT_PATH)
@@ -47,14 +47,13 @@ class LocalDirStorage(LocalStorage):
     def read_file(self, filepath, storage_attribute):
         data=[]
         with open(filepath, "r") as fp:
-            if self.config.LS_INPUT_PATH.endswith("json"):
+            if filepath.suffix == ".json":
                 data = json.load(fp)
             else:
                 # Here we are loading in data from common log format Columns [0]= timestamp [1]=severity [2]=msg
                 for line in fp:
                     message_field = self.extract_message(line)
                     data.append({"message": message_field})
-            # TODO: Make sure to check for false_data is not Null
             if storage_attribute.false_data is not None:
                 data.extend(storage_attribute.false_data)
         data_set = json_normalize(data)

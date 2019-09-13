@@ -22,14 +22,3 @@ def test_end2endlocalfile(config):
     print("Count: {}".format(len(result)))
     assert True
 
-
-def test_training_infer(config):
-    """Test anomaly detection training on public dataset."""
-    model_adapter = SomModelAdapter(SomStorageAdapter(config=config, feedback_strategy=None))
-    tc_train = SomTrainCommand(node_map=2, model_adapter=model_adapter, recreate_model=True)
-    result, dist = tc_train.execute()
-    assert result == 0
-    model_adapter = SomModelAdapter(SomStorageAdapter(config=config, feedback_strategy=None))
-    tc_infer = SomInferCommand(model_adapter=model_adapter, sleep=False)
-    result = tc_infer.execute()
-    assert result == 0
