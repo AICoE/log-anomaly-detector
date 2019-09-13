@@ -2,6 +2,8 @@
 from anomaly_detector.adapters.base_storage_adapter import BaseStorageAdapter
 from anomaly_detector.storage.es_storage import ESStorage
 from anomaly_detector.storage.local_storage import LocalStorage
+from anomaly_detector.storage.local_directory_storage import LocalDirStorage
+
 from anomaly_detector.decorator.utils import latency_logger
 import logging
 
@@ -11,7 +13,7 @@ from anomaly_detector.storage.storage_attribute import ESStorageAttribute
 class SomStorageAdapter(BaseStorageAdapter):
     """Custom storage interface for dealing with som model."""
 
-    STORAGE_BACKENDS = [LocalStorage, ESStorage]
+    STORAGE_BACKENDS = [LocalStorage, LocalDirStorage, ESStorage]
 
     def __init__(self, config, feedback_strategy=None):
         """Initialize configuration for for storage interface."""

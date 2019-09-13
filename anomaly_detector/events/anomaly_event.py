@@ -1,6 +1,6 @@
 """Anomaly Events class for sending data to fact_store."""
 from ..types.anomaly_status import Anomaly_Status
-from ..exception.exceptions import factStoreEnvVarNotSetException
+from ..exception.exceptions import FactStoreEnvNotSetException
 import requests
 import logging
 
@@ -23,7 +23,7 @@ class AnomalyEvent:
         :param config:
         """
         if fact_evt_url == "" or fact_evt_url is None:
-            raise factStoreEnvVarNotSetException()
+            raise FactStoreEnvNotSetException()
 
         self.predict_id = str(predict_id)
         self.message = message

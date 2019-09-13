@@ -26,23 +26,32 @@ class LocalStorage(Storage):
         data = []
         _LOGGER.info("Reading from %s" % self.config.LS_INPUT_PATH)
 
-        with open(self.config.LS_INPUT_PATH, "r") as fp:
+        data, data_set = self.read_file(self.config.LS_INPUT_PATH, storage_attribute)
+        # Prepare data for training/inference
+        self._preprocess(data_set)
+        return data_set, data
+
+    def read_file(self, filepath, storage_attribute):
+        data=[]
+        with open(filepath, "r") as fp:
             if self.config.LS_INPUT_PATH.endswith("json"):
                 data = json.load(fp)
             else:
                 # Here we are loading in data from common log format Columns [0]= timestamp [1]=severity [2]=msg
                 for line in fp:
-                    message_field = " ".join(line.split(" ")[2:])
-                    message_field = message_field.rstrip("\n")
+                    message_field = self.extract_message(line)
                     data.append({"message": message_field})
             # TODO: Make sure to check for false_data is not Null
             if storage_attribute.false_data is not None:
                 data.extend(storage_attribute.false_data)
         data_set = json_normalize(data)
         _LOGGER.info("%d logs loaded", len(data_set))
-        # Prepare data for training/inference
-        self._preprocess(data_set)
-        return data_set, data
+        return data, data_set
+
+    def extract_message(self, line):
+        message_field = " ".join(line.split(" ")[2:])
+        message_field = message_field.rstrip("\n")
+        return message_field
 
     def store_results(self, data):
         """Store results."""

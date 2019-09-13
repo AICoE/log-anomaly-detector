@@ -5,7 +5,7 @@ import numpy as np
 from anomaly_detector.adapters.base_model_adapter import BaseModelAdapter
 from anomaly_detector.decorator.utils import latency_logger
 from anomaly_detector.events.anomaly_event import AnomalyEvent
-from anomaly_detector.exception.exceptions import factStoreEnvVarNotSetException
+from anomaly_detector.exception.exceptions import FactStoreEnvNotSetException
 from anomaly_detector.model.model_exception import ModelLoadException, ModelSaveException
 from anomaly_detector.model.sompy_model import SOMPYModel
 from anomaly_detector.model.w2v_model import W2VModel
@@ -146,7 +146,7 @@ class SomModelAdapter(BaseModelAdapter):
             AnomalyEvent(
                 s["predict_id"], s["message"], dist[i], s["anomaly"], self.storage_adapter.FACT_STORE_URL
             ).record_prediction()
-        except factStoreEnvVarNotSetException as f_ex:
+        except FactStoreEnvNotSetException as f_ex:
             logging.info("Fact Store Env Var is not set")
 
         except ConnectionError as e:

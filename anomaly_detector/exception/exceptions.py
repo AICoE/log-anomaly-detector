@@ -1,7 +1,7 @@
 """Exceptions for the log anomaly detector."""
 
 
-class factStoreEnvVarNotSetException(Exception):
+class FactStoreEnvNotSetException(Exception):
     """Fact Store env var validator."""
 
     def __init__(self, msg="fact store url env var not set"):
@@ -23,3 +23,11 @@ class ModelSaveException(Exception):
     def __intit__(self, msg="The model could not be saved"):
         """Initialize message."""
         self.message = msg
+
+class FileFormatNotSupported(Exception):
+    """Validates that fileformat is supported."""
+
+    def __intit__(self, msg="File format not supported"):
+        """Initialize message."""
+        self.message = msg
+
