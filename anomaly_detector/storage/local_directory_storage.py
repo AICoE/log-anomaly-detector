@@ -49,11 +49,13 @@ class LocalDirStorage(LocalStorage):
         with open(filepath, "r") as fp:
             if filepath.suffix == ".json":
                 data = json.load(fp)
-            else:
+            elif filepath.suffix == ".log":
                 # Here we are loading in data from common log format Columns [0]= timestamp [1]=severity [2]=msg
                 for line in fp:
                     message_field = self.extract_message(line)
                     data.append({"message": message_field})
+            else:
+                raise FileFormatNotSupported("File format is not supported json and common log format (which ends with '.log') .")
             if storage_attribute.false_data is not None:
                 data.extend(storage_attribute.false_data)
         data_set = json_normalize(data)
