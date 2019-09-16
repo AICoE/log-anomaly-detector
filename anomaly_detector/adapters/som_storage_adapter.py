@@ -60,6 +60,9 @@ class SomStorageAdapter(BaseStorageAdapter):
         elif  self.storage.NAME is LocalDirStorage.NAME:
             # [(List, DF),(List, DF),...]
             return self.storage.retrieve(DefaultStorageAttribute(false_data))
+        elif  self.storage.NAME is LocalStorage.NAME:
+            dataset = self.storage.retrieve(DefaultStorageAttribute(false_data))
+            return  dataset
 
         return None, None
 

@@ -121,10 +121,13 @@ class Configuration(Borg):
             # TODO: Open YAML File and load the configurations in here.
             with open(config_yaml) as f:
                 yaml_data = yaml.load(f, Loader=yaml.FullLoader)
+                # check_or_create_model_dir(self)
+                # join_model_path(self)
+                # join_w2v_model_path(self)
                 for prop in self.__class__.__dict__.keys():
                     attr = getattr(self, prop)
                     if prop.isupper() and prop.endswith("_CALLABLE") and callable(attr):
-                        attr()
+                        attr() #print(prop)#attr()
                     elif prop.isupper() and prop in list(yaml_data.keys()):
                         self.set_property(prop, yaml_data[prop])
                         # self.__setattr__(prop, yaml_data[prop])

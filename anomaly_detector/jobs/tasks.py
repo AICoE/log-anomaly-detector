@@ -32,6 +32,8 @@ class SomTrainCommand(AbstractCommand):
 
     def execute(self):
         """Train models for anomaly detection."""
+        # self.model_adapter.load_w2v_model()
+        # self.model_adapter.load_som_model()
         TRAINING_COUNT.inc()
         try:
             dataset = self.model_adapter.preprocess(config_type="train",
@@ -61,6 +63,7 @@ class SomInferCommand(AbstractCommand):
         self.model_adapter.load_w2v_model()
         self.model_adapter.load_som_model()
         mean, threshold = self.model_adapter.set_threshold()
+
         infer_loops = 0
         while infer_loops < self.model_adapter.storage_adapter.INFER_LOOPS:
             INFER_COUNT.inc()

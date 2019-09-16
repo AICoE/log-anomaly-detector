@@ -35,13 +35,29 @@ class SomModelAdapter(BaseModelAdapter):
         self.model = SOMPYModel()
         self.w2v_model = W2VModel()
 
+        try:
+            self.model.load(self.storage_adapter.MODEL_PATH)
+        except ModelLoadException as ex:
+            logging.error("Failed to load SOM model: %s" % ex)
+            self.model.save(self.storage_adapter.MODEL_PATH)
+            self.update_model = False
+            self.recreate_models = True
+
+        try:
+            self.w2v_model.load(self.storage_adapter.W2V_MODEL_PATH)
+        except ModelLoadException as ex:
+            logging.error("Failed to load W2V model: %s" % ex)
+            self.update_w2v_model = False
+            self.recreate_models = True
+
     def load_w2v_model(self):
         """Load in w2v model."""
         try:
             self.w2v_model.load(self.storage_adapter.W2V_MODEL_PATH)
         except ModelLoadException as ex:
             logging.error("Failed to load W2V model: %s" % ex)
-            raise
+            self.update_w2v_model = False
+            self.recreate_models = True
 
     def load_som_model(self):
         """Load in w2v model."""
@@ -79,8 +95,8 @@ class SomModelAdapter(BaseModelAdapter):
         dataset = self.storage_adapter.load_data(config_type)
         for data, raw in dataset:
             self.encode_w2v(raw, recreate_model)
-            if recreate_model:
-                recreate_model=False
+            # if recreate_model:
+            #     recreate_model=False
         return dataset
 
 

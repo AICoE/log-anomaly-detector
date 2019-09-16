@@ -29,7 +29,7 @@ class LocalStorage(Storage):
         data, data_set = self.read_file(self.config.LS_INPUT_PATH, storage_attribute)
         # Prepare data for training/inference
         self._preprocess(data_set)
-        return data_set, data
+        return [(data_set, data)]
 
     def read_file(self, filepath, storage_attribute):
         """Read and parse files."""
