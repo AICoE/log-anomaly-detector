@@ -3,7 +3,7 @@ from unittest import TestCase
 from anomaly_detector.adapters.som_model_adapter import SomModelAdapter
 from anomaly_detector.adapters.som_storage_adapter import SomStorageAdapter
 from anomaly_detector.config import Configuration
-from anomaly_detector.jobs.tasks import *
+from anomaly_detector.jobs import *
 
 TASKS_IN_QUEUE = 1
 

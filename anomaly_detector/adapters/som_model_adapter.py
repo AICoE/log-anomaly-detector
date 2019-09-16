@@ -2,15 +2,14 @@
 import logging
 import uuid
 import numpy as np
-from anomaly_detector.adapters.base_model_adapter import BaseModelAdapter
+from anomaly_detector.adapters import BaseModelAdapter
 from anomaly_detector.decorator.utils import latency_logger
-from anomaly_detector.events.anomaly_event import AnomalyEvent
-from anomaly_detector.exception.exceptions import factStoreEnvVarNotSetException
-from anomaly_detector.model.model_exception import ModelLoadException, ModelSaveException
-from anomaly_detector.model.sompy_model import SOMPYModel
-from anomaly_detector.model.w2v_model import W2VModel
+from anomaly_detector.events import AnomalyEvent
+from anomaly_detector.exception import FactStoreEnvVarNotSetException, \
+    ModelLoadException, ModelSaveException
+from anomaly_detector.model import SOMPYModel, W2VModel
 import os
-from prometheus_client import Gauge, Summary, Counter, Histogram
+from prometheus_client import Gauge, Counter, Histogram
 from urllib.parse import quote
 
 ANOMALY_COUNT = Gauge("aiops_lad_anomaly_count", "count of anomalies runs", ['anomaly_status'])
@@ -146,7 +145,7 @@ class SomModelAdapter(BaseModelAdapter):
             AnomalyEvent(
                 s["predict_id"], s["message"], dist[i], s["anomaly"], self.storage_adapter.FACT_STORE_URL
             ).record_prediction()
-        except factStoreEnvVarNotSetException as f_ex:
+        except FactStoreEnvVarNotSetException as f_ex:
             logging.info("Fact Store Env Var is not set")
 
         except ConnectionError as e:

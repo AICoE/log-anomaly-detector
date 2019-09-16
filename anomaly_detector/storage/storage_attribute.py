@@ -1,5 +1,4 @@
 """Storage Attribute for data query storage provider."""
-from abc import ABCMeta, abstractmethod
 
 
 class DefaultStorageAttribute:

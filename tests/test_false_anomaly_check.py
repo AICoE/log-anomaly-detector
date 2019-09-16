@@ -1,11 +1,9 @@
 """Test if SOM can learn from false positives."""
 import logging
 import pytest
-from anomaly_detector.adapters.feedback_strategy import FeedbackStrategy
-from anomaly_detector.adapters.som_model_adapter import SomModelAdapter
-from anomaly_detector.adapters.som_storage_adapter import SomStorageAdapter
+from anomaly_detector.adapters import FeedbackStrategy, SomModelAdapter, SomStorageAdapter
 from anomaly_detector.config import Configuration
-from anomaly_detector.jobs.tasks import SomTrainCommand
+from anomaly_detector.jobs import SomTrainCommand
 
 FREQ_NUM = 10000
 NODE_MAP = 2

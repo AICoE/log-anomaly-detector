@@ -1,7 +1,5 @@
 """SOMPY model."""
-from .base_model import BaseModel
-
-import os
+from anomaly_detector.model.base_model import BaseModel
 import numpy as np
 import logging
 import sompy
