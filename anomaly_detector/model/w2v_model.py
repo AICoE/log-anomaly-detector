@@ -1,10 +1,7 @@
 """Word 2 vector model."""
-
 import numpy as np
 from gensim.models import Word2Vec
-
-from .base_model import BaseModel
-
+from anomaly_detector.model.base_model import BaseModel
 import logging
 
 _LOGGER = logging.getLogger(__name__)

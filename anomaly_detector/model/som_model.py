@@ -1,6 +1,6 @@
 """SOM model."""
 
-from .base_model import BaseModel
+from anomaly_detector.model.base_model import BaseModel
 from matplotlib import pyplot as plt
 import os
 import numpy as np

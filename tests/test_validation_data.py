@@ -1,10 +1,7 @@
 """Validates if training was successful."""
 import pytest
-
-from anomaly_detector.adapters.som_model_adapter import SomModelAdapter
-from anomaly_detector.adapters.som_storage_adapter import SomStorageAdapter
-
-from anomaly_detector.jobs.tasks import SomTrainCommand, SomInferCommand
+from anomaly_detector.adapters import SomModelAdapter, SomStorageAdapter
+from anomaly_detector.jobs import SomTrainCommand, SomInferCommand
 from anomaly_detector.config import Configuration
 
 CONFIGURATION_PREFIX = "LAD"
@@ -14,7 +11,6 @@ CONFIGURATION_PREFIX = "LAD"
 def config():
     """Initialize configurations before testing."""
     config = Configuration(prefix=CONFIGURATION_PREFIX, config_yaml="config_files/.env_config.yaml")
-
     return config
 
 

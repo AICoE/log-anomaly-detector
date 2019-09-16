@@ -1,7 +1,5 @@
 """Storage abstract class."""
-
 from abc import ABCMeta, abstractmethod
-
 import re
 
 
