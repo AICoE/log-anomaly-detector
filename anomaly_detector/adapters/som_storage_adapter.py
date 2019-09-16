@@ -1,9 +1,8 @@
 """Som Storage Adapter for interfacing with custom storage for custom application."""
 from anomaly_detector.adapters.base_storage_adapter import BaseStorageAdapter
 from anomaly_detector.storage.es_storage import ESStorage
-from anomaly_detector.storage.local_storage import LocalStorage
+from anomaly_detector.storage.local_storage import LocalStorage, DefaultStorageAttribute
 from anomaly_detector.storage.local_directory_storage import LocalDirStorage
-
 from anomaly_detector.decorator.utils import latency_logger
 import logging
 
@@ -38,10 +37,7 @@ class SomStorageAdapter(BaseStorageAdapter):
         else:
             return data, raw
 
-    @latency_logger(name="SomStorageAdapter")
-    def load_data(self, config_type):
-        """Load data from storage class depending on training vs inference."""
-        false_data = self.feedback_strategy.execute() if self.feedback_strategy else None
+    def retrieve_es_data(self, config_type, false_data):
         if config_type == "train":
             return self.retrieve_data(timespan=self.config.TRAIN_TIME_SPAN,
                                       max_entry=self.config.TRAIN_MAX_ENTRIES,
@@ -52,6 +48,20 @@ class SomStorageAdapter(BaseStorageAdapter):
                                       false_positive=false_data)
         else:
             raise Exception("Not Supported option . config_type not in ['infer','train']")
+
+
+
+    @latency_logger(name="SomStorageAdapter")
+    def load_data(self, config_type):
+        """Load data from storage class depending on training vs inference."""
+        false_data = self.feedback_strategy.execute() if self.feedback_strategy else None
+        if self.storage.NAME is ESStorage.NAME:
+            return self.retrieve_es_data(config_type,false_data)
+        elif  self.storage.NAME is LocalDirStorage.NAME:
+            # [(List, DF),(List, DF),...]
+            return self.storage.retrieve(DefaultStorageAttribute(false_data))
+
+        return None, None
 
     @latency_logger(name="SomStorageAdapter")
     def persist_data(self, df):

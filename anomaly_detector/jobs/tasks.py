@@ -4,6 +4,7 @@ import logging
 from abc import ABCMeta, abstractmethod
 import time
 from prometheus_client import Gauge, Summary, Counter, Histogram
+from anomaly_detector.storage.local_directory_storage import LocalDirStorage
 
 TRAINING_COUNT = Counter("aiops_lad_train_count", "count of training runs")
 INFER_COUNT = Counter("aiops_lad_inference_count", "count of inference runs")
@@ -32,12 +33,18 @@ class SomTrainCommand(AbstractCommand):
     def execute(self):
         """Train models for anomaly detection."""
         TRAINING_COUNT.inc()
-        data, _ = self.model_adapter.preprocess(config_type="train",
+        try:
+            dataset = self.model_adapter.preprocess(config_type="train",
                                                 recreate_model=self.recreate_model)
-        # After first time training we will only update w2v model not recreate it everytime.
-        dist = self.model_adapter.train(node_map=self.node_map, data=data, recreate_model=self.recreate_model)
-        self.recreate_model = False
-        return 0, dist
+            for data, _ in dataset:
+                # After first time training we will only update w2v model not recreate it everytime.
+                dist = self.model_adapter.train(node_map=self.node_map, data=data, recreate_model=self.recreate_model)
+                self.recreate_model = False
+                return 0, dist
+        except Exception as e:
+            logging.error(e)
+
+
 
 
 class SomInferCommand(AbstractCommand):
@@ -60,29 +67,34 @@ class SomInferCommand(AbstractCommand):
             then = time.time()
             now = datetime.datetime.now()
             # Get data for inference
-            data, json_logs = self.model_adapter.preprocess(config_type="infer",
-                                                            recreate_model=self.recreate_model)
-            if data is None:
-                time.sleep(5)
-                continue
-            logging.info("%d logs loaded from the last %d seconds", len(data),
-                         self.model_adapter.storage_adapter.INFER_TIME_SPAN)
-            results = self.model_adapter.predict(data, json_logs, threshold)
-            # This is for offline testing of the ML Training and Infer which results in trigger emails.
-            if self.model_adapter.storage_adapter.PREDICTION_ALERT is True:
-                self.model_adapter.storage_adapter.persist_data(results)
-            # Inference done, increase counter
-            infer_loops += 1
-            now = time.time()
+            dataset = self.model_adapter.preprocess(config_type="infer",
+                                          recreate_model=self.recreate_model)
 
-            if self.sleep is True:
-                logging.info("waiting for next minute to start...")
-                logging.info("press ctrl+c to stop process")
-                sleep_time = self.model_adapter.storage_adapter.INFER_TIME_SPAN - (now - then)
-                if sleep_time > 0:
-                    time.sleep(sleep_time)
+            for data, json_logs in dataset:
+                if data is None:
+                    time.sleep(5)
+                    continue
+                logging.info("%d logs loaded from the last %d seconds", len(data),
+                             self.model_adapter.storage_adapter.INFER_TIME_SPAN)
+                infer_loops = self.process_batch(data, infer_loops, json_logs, then, threshold)
 
         return 0
+
+    def process_batch(self, data, infer_loops, json_logs, then, threshold):
+        results = self.model_adapter.predict(data, json_logs, threshold)
+        # This is for offline testing of the ML Training and Infer which results in trigger emails.
+        if self.model_adapter.storage_adapter.PREDICTION_ALERT is True:
+            self.model_adapter.storage_adapter.persist_data(results)
+        # Inference done, increase counter
+        infer_loops += 1
+        now = time.time()
+        if self.sleep is True:
+            logging.info("waiting for next minute to start...")
+            logging.info("press ctrl+c to stop process")
+            sleep_time = self.model_adapter.storage_adapter.INFER_TIME_SPAN - (now - then)
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+        return infer_loops
 
 
 class Singleton(type):

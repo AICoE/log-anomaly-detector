@@ -9,6 +9,7 @@ from anomaly_detector.exception.exceptions import FactStoreEnvNotSetException
 from anomaly_detector.model.model_exception import ModelLoadException, ModelSaveException
 from anomaly_detector.model.sompy_model import SOMPYModel
 from anomaly_detector.model.w2v_model import W2VModel
+from anomaly_detector.storage.local_directory_storage import LocalDirStorage
 import os
 from prometheus_client import Gauge, Summary, Counter, Histogram
 from urllib.parse import quote
@@ -74,8 +75,17 @@ class SomModelAdapter(BaseModelAdapter):
     def preprocess(self, config_type, recreate_model):
         """Load data and train."""
         # TODO: Update this function to take an array of items instead of single batch
-        data, raw = self.storage_adapter.load_data(config_type)
-        # if data:
+
+        dataset = self.storage_adapter.load_data(config_type)
+        for data, raw in dataset:
+            self.encode_w2v(raw, recreate_model)
+            if recreate_model:
+                recreate_model=False
+        return dataset
+
+
+
+    def encode_w2v(self, data, recreate_model):
         if data is not None:
             LOG_LINES_COUNT.set(len(data))
             if not recreate_model:
@@ -87,8 +97,6 @@ class SomModelAdapter(BaseModelAdapter):
             except ModelSaveException as ex:
                 logging.error("Failed to save W2V model: %s" % ex)
                 raise
-
-        return data, raw
 
     @latency_logger(name="SomModelAdapter")
     def predict(self, data, json_logs, threshold):
