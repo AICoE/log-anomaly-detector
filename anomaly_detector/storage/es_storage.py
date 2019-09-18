@@ -7,8 +7,7 @@ from elasticsearch5 import Elasticsearch, helpers
 import json
 import os
 import urllib3
-from .storage import Storage
-from ..config import Configuration
+from anomaly_detector.storage.storage import Storage
 
 import logging
 

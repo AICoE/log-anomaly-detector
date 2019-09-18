@@ -2,11 +2,7 @@
 from anomaly_detector.storage.storage_attribute import DefaultStorageAttribute
 from pandas.io.json import json_normalize
 import json
-import sys
-
-from .storage import Storage
-from ..config import Configuration
-
+from anomaly_detector.storage.storage import Storage
 import logging
 
 _LOGGER = logging.getLogger(__name__)
