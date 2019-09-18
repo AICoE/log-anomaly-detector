@@ -25,7 +25,8 @@ REQUIRED_PKG = [
 
 setup(
     name="scorpio",
-    version="0.0.1-rc1",
+    version="0.0.1-rc2",
+    py_modules=['app'],
     packages=find_packages(),
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
