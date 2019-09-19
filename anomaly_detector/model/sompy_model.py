@@ -11,6 +11,11 @@ _LOGGER = logging.getLogger(__name__)
 class SOMPYModel(BaseModel):
     """SOMPY alternative SOM implementation with parallelization."""
 
+    def __init__(self, config=None):
+        """Construct with configurations for customizations."""
+        super().__init__(config)
+        self.config = config
+
     def train(self, inp, map_size, iterations, parallelism):
         """Train the SOM model."""
         mapsize = [map_size, map_size]

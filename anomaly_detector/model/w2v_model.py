@@ -10,6 +10,11 @@ _LOGGER = logging.getLogger(__name__)
 class W2VModel(BaseModel):
     """Word2Vec model wrapper."""
 
+    def __init__(self, config=None):
+        """Construct with configurations for customizations."""
+        super().__init__(config)
+        self.config = config
+
     def update(self, words):
         """Update existing w2v model."""
         for col in list(self.model.keys()):
@@ -24,7 +29,14 @@ class W2VModel(BaseModel):
         self.model = {}
         for col in words.columns:
             if col in words:
-                self.model[col] = Word2Vec([list(words[col])], min_count=1, size=vector_length, window=window_size)
+                if not self.config:
+                    self.model[col] = Word2Vec([list(words[col])], min_count=1, size=vector_length, window=window_size)
+                else:
+                    self.model[col] = Word2Vec([list(words[col])], min_count=self.config.W2V_MIN_COUNT,
+                                               size=vector_length,
+                                               window=window_size, iter=self.config.W2V_ITER,
+                                               compute_loss=self.config.W2V_COMPUTE_LOSS,
+                                               workers=self.config.W2V_WORKERS, seed=self.config.W2V_SEED)
             else:
                 _LOGGER.warning("Skipping key %s as it does not exist in 'words'" % col)
 
