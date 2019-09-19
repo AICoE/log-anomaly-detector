@@ -7,10 +7,11 @@ import os
 class BaseModel:
     """Base class for model implementations."""
 
-    def __init__(self):
+    def __init__(self, config=None):
         """Initialize model."""
         self.model = None
         self.metadata = None
+        self.config = config
 
     def load(self, source):
         """Load a model from disk."""

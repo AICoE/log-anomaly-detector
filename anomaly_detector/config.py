@@ -57,6 +57,13 @@ class Configuration(Borg):
     MODEL_PATH = ""
     W2V_MODEL_PATH_CALLABLE = join_w2v_model_path
     W2V_MODEL_PATH = ""
+    # Custom parameters for W2V
+    W2V_MIN_COUNT = 1
+    W2V_ITER = 5
+    W2V_COMPUTE_LOSS = False
+    W2V_SEED = 1
+    W2V_WORKERS = 3
+
     MODEL_STORE = ""
     MODEL_STORE_PATH = "anomaly-detection/models/"
     # Number of seconds specifying how far to the past to go to load log entries for training

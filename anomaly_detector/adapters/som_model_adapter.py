@@ -30,8 +30,8 @@ class SomModelAdapter(BaseModelAdapter):
         self.update_model = os.path.isfile(self.storage_adapter.MODEL_PATH) and update_model
         self.update_w2v_model = os.path.isfile(self.storage_adapter.W2V_MODEL_PATH) and update_model
         self.recreate_models = False
-        self.model = SOMPYModel()
-        self.w2v_model = W2VModel()
+        self.model = SOMPYModel(config=storage_adapter.config)
+        self.w2v_model = W2VModel(config=storage_adapter.config)
 
     def load_w2v_model(self):
         """Load in w2v model."""
