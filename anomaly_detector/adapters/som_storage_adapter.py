@@ -1,14 +1,14 @@
 """Som Storage Adapter for interfacing with custom storage for custom application."""
-from anomaly_detector.adapters import BaseStorageAdapter
-from anomaly_detector.storage import ESStorage, LocalStorage,  ESStorageAttribute
-from anomaly_detector.decorator.utils import latency_logger
 import logging
+from anomaly_detector.adapters import BaseStorageAdapter
+from anomaly_detector.decorator.utils import latency_logger
+from anomaly_detector.storage import ESStorage, LocalStorage, ESStorageAttribute, LocalDirStorage
 
 
 class SomStorageAdapter(BaseStorageAdapter):
     """Custom storage interface for dealing with som model."""
 
-    STORAGE_BACKENDS = [LocalStorage, ESStorage]
+    STORAGE_BACKENDS = [LocalStorage, LocalDirStorage, ESStorage]
 
     def __init__(self, config, feedback_strategy=None):
         """Initialize configuration for for storage interface."""
