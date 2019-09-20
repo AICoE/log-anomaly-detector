@@ -1,13 +1,13 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: factstore
+  name: log-anomaly-detector-factstore
 objects:
   - apiVersion: image.openshift.io/v1
     kind: ImageStream
     metadata:
       labels:
-        app: log-anomaly-detector-factstore
+        app: log-anomaly-detector-factstore-${APP_NAME}
       name: log-anomaly-detector-factstore
     spec:
       lookupPolicy:
@@ -17,7 +17,7 @@ objects:
     metadata:
       labels:
         app: log-anomaly-detector-factstore
-      name: log-anomaly-detector-factstore
+      name: anomaly-detector-factstore
     spec:
       output:
         to:
@@ -39,43 +39,40 @@ objects:
         - imageChange: {}
           type: ImageChange
         - type: ConfigChange
-  - apiVersion: v1
-    kind: Service
-    metadata:
-      name: log-anomaly-detector-factstore-svc
-    spec:
-      selector:
-        app: log-anomaly-detector-factstore
-      ports:
-        - protocol: TCP
-          port: 5001
-          targetPort: 5001
   - apiVersion: apps.openshift.io/v1
     kind: DeploymentConfig
     metadata:
       labels:
-        app: ${NAME}
-      name: ${NAME}
+        app: log-anomaly-detector-factstore-${APP_NAME}
+      name: log-anomaly-detector-factstore-${APP_NAME}
     spec:
       replicas: 1
       selector:
-        deploymentconfig: ${NAME}
+        deploymentconfig: log-anomaly-detector-factstore-${APP_NAME}
       template:
         metadata:
           labels:
-            app: log-anomaly-detector-factstore
-            deploymentconfig: log-anomaly-detector-factstore
+            app: log-anomaly-detector-factstore-${APP_NAME}
+            deploymentconfig: log-anomaly-detector-factstore-${APP_NAME}
         spec:
           containers:
-            - name: log-anomaly-detector-factstore
+            - args:
+                - app.py
+                - ui
+              command:
+                - python
               image: log-anomaly-detector-factstore:latest
-              command: ["python"]
-              args: ["app.py", "ui"]
               imagePullPolicy: Always
+              name: log-anomaly-detector-factstore
+              env:
+                - name: SQL_CONNECT
+                  value: ${SQL_CONNECT}
+                - name: APP_NAME
+                  value: ${APP_NAME}
               resources:
                 limits:
-                  cpu: 1
-                  memory: 2Gi
+                  cpu: 2
+                  memory: 1Gi
                 requests:
                   cpu: 500m
                   memory: 500Mi
@@ -95,8 +92,22 @@ objects:
               kind: ImageStreamTag
               name: log-anomaly-detector-factstore:latest
           type: ImageChange
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: log-anomaly-detector-${APP_NAME}-svc
+      labels:
+        app: log-anomaly-detector-factstore-${APP_NAME}
+    spec:
+      selector:
+        app: log-anomaly-detector-${APP_NAME}
+      ports:
+        - protocol: TCP
+          name: metrics
+          port: 5001
+          targetPort: 5001
 parameters:
   - name: SQL_CONNECT
-    value: "mysql+pymysql://admin:admin@mysql-56-centos7/factstore"
-  - name: NAME
-    value: "log-anomaly-detector-factstore"
+    value: mysql+pymysql://admin:admin@mysql-56-centos7/factstore
+  - name: APP_NAME
+    value: "placeholder"

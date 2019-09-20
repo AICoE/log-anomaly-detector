@@ -1,12 +1,14 @@
 apiVersion: template.openshift.io/v1
 kind: Template
+metadata:
+  name: log-anomaly-detector
 objects:
   - apiVersion: v1
     kind: PersistentVolumeClaim
     metadata:
       labels:
-        app: log-anomaly-detector-f20
-      name: log-anomaly-detector-f20
+        app: log-anomaly-detector-${APP_NAME}
+      name: log-anomaly-detector-${APP_NAME}
     spec:
       accessModes:
         - ReadWriteOnce
@@ -54,24 +56,29 @@ objects:
     kind: DeploymentConfig
     metadata:
       labels:
-        app: log-anomaly-detector-f20
-      name: log-anomaly-detector-f20
+        app: log-anomaly-detector-${APP_NAME}
+      name: log-anomaly-detector-${APP_NAME}
     spec:
       replicas: 1
       selector:
-        deploymentconfig: log-anomaly-detector-f20
+        deploymentconfig: log-anomaly-detector-${APP_NAME}
       template:
         metadata:
           labels:
-            app: log-anomaly-detector-f20
-            deploymentconfig: log-anomaly-detector-f20
+            app: log-anomaly-detector-${APP_NAME}
+            deploymentconfig: log-anomaly-detector-${APP_NAME}
         spec:
           containers:
-            - name: log-anomaly-detector
+            - args:
+                - app.py
+                - run
+                - --config-yaml
+                - validation_data/.env_config.yaml
+              command:
+                - python
               image: log-anomaly-detector:latest
-              command: ["python"]
-              args: ["app.py", "run", "--config-yaml", "validation_data/.env_config.yaml"]
               imagePullPolicy: Always
+              name: log-anomaly-detector
               resources:
                 limits:
                   cpu: 2
@@ -79,12 +86,11 @@ objects:
               volumeMounts:
                 - mountPath: /opt/app-root/src/models
                   name: model-storage
-                - name: escerts
-                  mountPath: "/opt/app-root/src/certs"
+                - mountPath: /opt/app-root/src/certs
+                  name: escerts
                   readOnly: true
                 - mountPath: /opt/app-root/src/validation_data
                   name: volume-ehbcr
-
           dnsPolicy: ClusterFirst
           restartPolicy: Always
           schedulerName: default-scheduler
@@ -93,15 +99,14 @@ objects:
           volumes:
             - name: escerts
               secret:
-                secretName: "log-anomaly-detector-odcs"
-            - name: model-storage
-              persistentVolumeClaim:
-              claimName: log-anomaly-detector-f20
+                secretName: ${ESCERTS}
+            - claimName: log-anomaly-detector-${APP_NAME}
+              name: model-storage
+              persistentVolumeClaim: null
             - configMap:
                 defaultMode: 420
-                name: "factory20-config"
+                name: ${CONFIGMAP_NAME}
               name: volume-ehbcr
-
       test: false
       triggers:
         - type: ConfigChange
@@ -113,47 +118,28 @@ objects:
               kind: ImageStreamTag
               name: log-anomaly-detector:latest
           type: ImageChange
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: log-anomaly-detector-${APP_NAME}-svc
+      labels:
+        app: log-anomaly-detector-${APP_NAME}
+    spec:
+      selector:
+        app: log-anomaly-detector-${APP_NAME}
+      ports:
+        - protocol: TCP
+          name: metrics
+          port: 8080
+          targetPort: 8080
 parameters:
-  - description: Name of the storage backend to be used for loading training and inference
-      data ('local' or 'es')
-    name: STORAGE_BACKEND
-    value: es
-  - name: MODEL_DIR
-    value: models
+  - name: APP_NAME
+    value: "f20"
+  - name: CONFIGMAP_NAME
+    value: "factory20-config"
+  - name: ESCERTS
+    value: log-anomaly-detector-odcs
   - name: CMD
-    value: "run --config-yaml validation_data/.env_config.yaml"
-  - name: MODEL_FILE
-    value: SOM.model
-  - name: W2V_MODEL_FILE
-    value: W2V.model
-  - name: TRAIN_TIME_SPAN
-    value: "36000"
-  - name: TRAIN_MAX_ENTRIES
-    value: "10000"
-  - name: TRAIN_ITERATIONS
-    value: "15000"
-  - description: True if updating existing model, False if starting new model
-    name: TRAIN_UPDATE_MODEL
-    value: "True"
-  - name: INFER_TIME_SPAN
-    value: "60"
-  - name: INFER_MAX_ENTRIES
-    value: "3000"
-  - name: INFER_LOOPS
-    value: "1500"
-  - name: INFER_ANOMALY_THRESHOLD
-    value: "1.3"
-  - name: ES_ENDPOINT
-    value: https://elastic1-dh-prod-storage.cloud.datahub.upshift.redhat.com
-  - name: ES_INPUT_INDEX
-    value: logstash-
-  - name: ES_TARGET_INDEX
-    value: odcs-anomaly-detect-
-  - name: ES_CERT_DIR
-    value: /opt/app-root/src/certs
+    value: run --config-yaml validation_data/.env_config.yaml
   - name: STORAGE_CLASS
     value: ceph-dyn-datahub-paas
-  - name: ES_CERT_SECRET
-    value: log-anomaly-detector-odcs
-  - name: ES_QUERY
-    value: tags:"odcs-prod"
