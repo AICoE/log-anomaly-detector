@@ -30,8 +30,13 @@
                 <div class="navbar-collapse collapse">
                     <ul class="navbar-nav navbar-primary nav navbar-nav">
                         <li class="active" role="presentation">
-                            <a href="/">Anomaly Detection Feedback </a>
+                            <a href="/">Feedback </a>
                         </li>
+                         {% if graphview == 'True' %}
+                        <li role="presentation">
+                            <a href="/graph">Graph</a>
+                        </li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
