@@ -3,6 +3,7 @@ import logging
 from flask import Flask, request, render_template, jsonify, make_response
 from anomaly_detector.fact_store.fact_store_api import FactStore
 import os
+
 app = Flask(__name__, static_folder="static")
 
 
@@ -14,7 +15,7 @@ def index():
     _is_anomaly = request.args.get("is_anomaly")
     graphview = os.getenv('GRAPH_VIEW', None)
     if _id is None:
-        return render_template("index.html",graphview=graphview)
+        return render_template("index.html", graphview=graphview)
     return render_template("index.html",
                            id=_id,
                            msg=_msg,
@@ -24,7 +25,9 @@ def index():
 
 @app.route("/graph")
 def render_graph():
+    """Render graphview."""
     return render_template("lineage.html")
+
 
 @app.route("/api/metadata", methods=["GET"])
 def metadata():

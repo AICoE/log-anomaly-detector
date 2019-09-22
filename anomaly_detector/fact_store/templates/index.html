@@ -32,7 +32,7 @@
                         <li class="active" role="presentation">
                             <a href="/">Feedback </a>
                         </li>
-                         {% if graphview == 'True' %}
+                        {% if graphview == 'True' %}
                         <li role="presentation">
                             <a href="/graph">Graph</a>
                         </li>
@@ -74,12 +74,12 @@
                                             <!--  -->
                                             <select class="form-control" id="is_anomaly">
                                                 {% if is_anomaly == 'True' %}
-                                                    <option selected>True</option>
-                                                    <option>False</option>
+                                                <option selected>True</option>
+                                                <option>False</option>
 
                                                 {% else %}
-                                                    <option>True</option>
-                                                    <option selected>False</option>
+                                                <option>True</option>
+                                                <option selected>False</option>
                                                 {% endif %}
                                             </select>
                                             <!-- -->
@@ -88,7 +88,7 @@
                                 </div>
 
                                 <!-- Message -->
-                                 <div class="form-group">
+                                <div class="form-group">
                                     <label class="col-sm-2 control-label" for="message">Message</label>
                                     <div class="input-group-btn">
                                         <textarea class="form-control" id="message" rows="5">{{ msg }}</textarea>
@@ -161,26 +161,26 @@
         var is_anomaly = $("#is_anomaly").val();
         var message = $("#message").val();
 
-       $.ajax({
+        $.ajax({
             type: "POST",
             url: "/api/feedback",
             data: JSON.stringify({
-                    lad_id: lad_id,
-                    is_anomaly: is_anomaly,
-                    message: message
-                }),
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-                success: function(data){
-                    $("#user-feedback-panel").hide();
-                    $("#success-message").show();
-                },
-                failure: function(errMsg) {
-                    showNotification("Warning: empty ratings response, please try again or check the predictor service "+ errMsg);
-                }
-            })
+                lad_id: lad_id,
+                is_anomaly: is_anomaly,
+                message: message
+            }),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (data) {
+                $("#user-feedback-panel").hide();
+                $("#success-message").show();
+            },
+            failure: function (errMsg) {
+                showNotification("Warning: empty ratings response, please try again or check the predictor service " + errMsg);
+            }
+        })
 
-        };
+    };
 
     var displayReport = function () {
         clearTable();
