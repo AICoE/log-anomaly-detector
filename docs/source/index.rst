@@ -73,4 +73,7 @@ We happily welcome contributions to LAD. Please see our contribution guide for
    configinfo
    changelog
    architecture
-   api_reference
+   installation
+   model
+   storage
+   modules
