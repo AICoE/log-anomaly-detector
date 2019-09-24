@@ -22,7 +22,7 @@ class FactStore(object):
         Session = sessionmaker(bind=engine)
         self.session = Session()
 
-    def write_feedback(self, predict_id, message, anomaly_status):
+    def write_feedback(self, predict_id, message, anomaly_status, customer_id):
         """Service for storage of metadata in parquet.
 
         :param predict_id: predict Id where the anomaly details are stored
@@ -33,7 +33,8 @@ class FactStore(object):
         """
         # Adding id to bloom filter so we don't have to hit the database every time
 
-        feedback = FeedbackModel(predict_id=predict_id, message=message, reported_anomaly_status=anomaly_status)
+        feedback = FeedbackModel(predict_id=predict_id, message=message, reported_anomaly_status=anomaly_status,
+                                 customer_id=customer_id)
         self.session.add(feedback)
         self.session.commit()
         logging.info("Persisted ID: {} recorded in FStore".format(feedback.id))
