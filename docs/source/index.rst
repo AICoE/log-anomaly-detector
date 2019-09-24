@@ -62,7 +62,15 @@ We happily welcome contributions to LAD. Please see our contribution guide for
 
 
 .. toctree::
-    :hidden:
-    :glob:
 
-    *
+
+
+   goals
+   use_case
+   factstore
+   development_guide
+   deployment
+   configinfo
+   changelog
+   architecture
+   api_reference
