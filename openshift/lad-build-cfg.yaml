@@ -1,37 +1,45 @@
-apiVersion: image.openshift.io/v1
-kind: ImageStream
+---
+apiVersion: v1
+kind: Template
 metadata:
+  name: log-anomaly-detector-image-bc
   labels:
     app: log-anomaly-detector-app
-  name: log-anomaly-detector-app
-spec:
-  lookupPolicy:
-    local: true
----
-apiVersion: build.openshift.io/v1
-kind: BuildConfig
-metadata:
-  labels:
-    app: log-anomaly-detector
-  name: anomaly-detector
-spec:
-  output:
-    to:
-      kind: ImageStreamTag
-      name: log-anomaly-detector-app:latest
-  source:
-    git:
-      ref: master
-      uri: https://github.com/AICoE/log-anomaly-detector.git
-    type: Git
-  strategy:
-    sourceStrategy:
-      from:
-        kind: ImageStreamTag
-        name: python:3.6
-        namespace: openshift
-    type: Source
-  triggers:
-    - imageChange: {}
-      type: ImageChange
-    - type: ConfigChange
+objects:
+  - apiVersion: image.openshift.io/v1
+    kind: ImageStream
+    metadata:
+      labels:
+        app: log-anomaly-detector-app
+      name: log-anomaly-detector-app
+    spec:
+      lookupPolicy:
+        local: true
+
+  - apiVersion: build.openshift.io/v1
+    kind: BuildConfig
+    metadata:
+      labels:
+        app: log-anomaly-detector
+      name: anomaly-detector
+    spec:
+      output:
+        to:
+          kind: ImageStreamTag
+          name: log-anomaly-detector-app:latest
+      source:
+        git:
+          ref: master
+          uri: https://github.com/AICoE/log-anomaly-detector.git
+        type: Git
+      strategy:
+        sourceStrategy:
+          from:
+            kind: ImageStreamTag
+            name: python:3.6
+            namespace: openshift
+        type: Source
+      triggers:
+        - imageChange: {}
+          type: ImageChange
+        - type: ConfigChange
