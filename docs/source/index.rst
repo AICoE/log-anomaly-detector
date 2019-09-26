@@ -60,9 +60,28 @@ Contributing
 We happily welcome contributions to LAD. Please see our contribution guide for details.
 
 
-
 .. toctree::
-    :hidden:
-    :glob:
 
-    *
+   goals
+   use_case
+   factstore
+   development_guide
+   deployment
+   configinfo
+   changelog
+   architecture
+   installation
+   model
+   storage
+   anomaly_detector
+   anomaly_detector.adapters
+   anomaly_detector.decorator
+   anomaly_detector.events
+   anomaly_detector.exception
+   anomaly_detector.fact_store
+   anomaly_detector.jobs
+   anomaly_detector.model
+   anomaly_detector.storage
+   anomaly_detector.types
+
+
