@@ -2,6 +2,7 @@
 import logging
 from flask import Flask, request, render_template, jsonify, make_response
 from anomaly_detector.fact_store.fact_store_api import FactStore
+import os
 
 app = Flask(__name__, static_folder="static")
 
@@ -38,9 +39,12 @@ def feedback():
     """Feedback Service to provide user input on which false predictions this model provided."""
     try:
         content = request.json
+        # When deploying fact_store per customer you should set env var
+        customer_id = os.getenv("CUSTOMER_ID")
         logging.info("id: {} ".format(content["lad_id"]))
         logging.info("anomaly: {} ".format(content["is_anomaly"]))
         logging.info("message: {} ".format(content["message"]))
+        logging.info("customer_id: {} ".format(customer_id))
 
         if not content["lad_id"] or not content["is_anomaly"]:
             raise Exception(
@@ -53,7 +57,8 @@ def feedback():
         # Note id is the prediction id that is found in the email.
         if (
                 fs.write_feedback(
-                    predict_id=content["lad_id"], message=content["message"], anomaly_status=bool(content["is_anomaly"])
+                    predict_id=content["lad_id"], message=content["message"],
+                    anomaly_status=bool(content["is_anomaly"]), customer_id=customer_id
                 )
                 is False
         ):

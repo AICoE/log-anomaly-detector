@@ -1,5 +1,6 @@
 """Model orm table descriptor."""
-from sqlalchemy import Column, Integer, String, Float, Boolean, Sequence, ForeignKey
+import datetime
+from sqlalchemy import Column, Integer, String, Boolean, Sequence, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -17,6 +18,10 @@ class FeedbackModel(Base):
     message = Column(String(2000), nullable=False)
     # Required
     reported_anomaly_status = Column(Boolean, nullable=False)
+    # Default track last date of
+    created_date = Column(DateTime, default=datetime.datetime.utcnow)
+    # CustomerID
+    customer_id = Column(String(255), nullable=False)
 
     def __repr__(self):
         """Repr - Used for debugging to see repr output."""
