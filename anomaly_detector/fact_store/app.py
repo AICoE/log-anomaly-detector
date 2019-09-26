@@ -3,6 +3,10 @@ import logging
 from flask import Flask, request, render_template, jsonify, make_response
 from anomaly_detector.fact_store.fact_store_api import FactStore
 import os
+from prometheus_client import Counter
+
+HUMAN_FEEDBACK_COUNT = Counter("aiops_human_feedback_count", "count of training runs",
+                               ['customer_id', 'anomaly_status'])
 
 app = Flask(__name__, static_folder="static")
 
@@ -38,6 +42,7 @@ def false_positive():
 def feedback():
     """Feedback Service to provide user input on which false predictions this model provided."""
     try:
+
         content = request.json
         # When deploying fact_store per customer you should set env var
         customer_id = os.getenv("CUSTOMER_ID")
@@ -53,6 +58,8 @@ def feedback():
             )
 
         fs = FactStore()
+        # Record feedback
+        HUMAN_FEEDBACK_COUNT.labels(customer_id=customer_id, anomaly_status=content["is_anomaly"]).inc()
 
         # Note id is the prediction id that is found in the email.
         if (
@@ -72,18 +79,6 @@ def feedback():
         return make_response(jsonify(result), 200)
 
     return ""
-
-
-@app.route("/api/anomaly_event", methods=["POST"])
-def false_anomaly():
-    """Tag false anomalies in database."""
-    content = request.get_json()
-    fs = FactStore()
-    id = content["predict_id"]
-    # Tracking event in fact-store
-    res = fs.write_event(content["predict_id"], content["message"], content["score"], content["anomaly_status"])
-    # Returning status if this anomaly is real anomaly_status== false
-    return jsonify({"false_anomaly": res})
 
 
 if __name__ == "__main__":
