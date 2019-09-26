@@ -1,11 +1,9 @@
 """Anomaly Detector Facade - Acts as a gateway and abstracts the complexity."""
-from anomaly_detector.adapters.feedback_strategy import FeedbackStrategy
 from anomaly_detector.adapters.som_model_adapter import SomModelAdapter
 from anomaly_detector.adapters.som_storage_adapter import SomStorageAdapter
-from anomaly_detector.config import Configuration
 from anomaly_detector.adapters.feedback_strategy import FeedbackStrategy
 from anomaly_detector.jobs.tasks import TaskQueue, SomTrainCommand, SomInferCommand
-from prometheus_client import start_http_server
+
 import time
 
 
