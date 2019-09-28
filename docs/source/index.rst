@@ -62,7 +62,7 @@ We happily welcome contributions to LAD. Please see our contribution guide for
 
 .. toctree::
 
-   goals
+   cli
    use_case
    factstore
    development_guide
