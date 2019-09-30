@@ -114,7 +114,10 @@ class Configuration(Borg):
     ES_INPUT_INDEX = ""
     # JSON representing a query passed to ElasticSearch to match the data
     ES_QUERY = ""
-
+    STORAGE_BACKEND_SINK = ""  # Can be 'local' or 'es' or 'kafka'
+    KF_SINK_BOOTSTRAP_SERVER = ""
+    KF_SINK_TOPIC = ""
+    KF_SINK_CACERT = ""
     # For testing offline training and inference without triggering emails
     PREDICTION_ALERT = True
 
