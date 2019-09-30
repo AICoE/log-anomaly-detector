@@ -11,3 +11,8 @@ run-with-local:
 test:
 	pipenv run python setup.py test --addopts -vs
 
+oc_deploy_elasticsearch:
+	oc process -f ./openshift/lad-elasticsearch-deployment.yaml | oc apply -f -
+	
+oc_delete_elasticsearch:
+	oc process -f ./openshift/lad-elasticsearch-deployment.yaml | oc delete -f -
