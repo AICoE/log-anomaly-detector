@@ -7,6 +7,7 @@ from prometheus_client import Gauge, Summary, Counter, Histogram
 
 TRAINING_COUNT = Counter("aiops_lad_train_count", "count of training runs")
 INFER_COUNT = Counter("aiops_lad_inference_count", "count of inference runs")
+ES_QUERY_TIMEOUT_SECONDS = 10  # seconds
 
 
 class AbstractCommand(metaclass=ABCMeta):
@@ -32,10 +33,21 @@ class SomTrainCommand(AbstractCommand):
     def execute(self):
         """Train models for anomaly detection."""
         TRAINING_COUNT.inc()
-        data, _ = self.model_adapter.preprocess(config_type="train",
-                                                recreate_model=self.recreate_model)
+        data, _ = self.model_adapter.preprocess(
+            config_type="train", recreate_model=self.recreate_model
+        )
+
+        while len(data) < 2:  # need at least 2 log entries for training
+            logging.info("There are less than 2 log entries")
+            time.sleep(ES_QUERY_TIMEOUT_SECONDS)
+            data, _ = self.model_adapter.preprocess(
+                config_type="train", recreate_model=self.recreate_model
+            )
+
         # After first time training we will only update w2v model not recreate it everytime.
-        dist = self.model_adapter.train(node_map=self.node_map, data=data, recreate_model=self.recreate_model)
+        dist = self.model_adapter.train(
+            node_map=self.node_map, data=data, recreate_model=self.recreate_model
+        )
         self.recreate_model = False
         return 0, dist
 
@@ -60,13 +72,17 @@ class SomInferCommand(AbstractCommand):
             then = time.time()
             now = datetime.datetime.now()
             # Get data for inference
-            data, json_logs = self.model_adapter.preprocess(config_type="infer",
-                                                            recreate_model=self.recreate_model)
+            data, json_logs = self.model_adapter.preprocess(
+                config_type="infer", recreate_model=self.recreate_model
+            )
             if data is None:
-                time.sleep(5)
+                time.sleep(ES_QUERY_TIMEOUT_SECONDS)
                 continue
-            logging.info("%d logs loaded from the last %d seconds", len(data),
-                         self.model_adapter.storage_adapter.INFER_TIME_SPAN)
+            logging.info(
+                "%d logs loaded from the last %d seconds",
+                len(data),
+                self.model_adapter.storage_adapter.INFER_TIME_SPAN,
+            )
             results = self.model_adapter.predict(data, json_logs, threshold)
             # This is for offline testing of the ML Training and Infer which results in trigger emails.
             if self.model_adapter.storage_adapter.PREDICTION_ALERT is True:
@@ -78,7 +94,9 @@ class SomInferCommand(AbstractCommand):
             if self.sleep is True:
                 logging.info("waiting for next minute to start...")
                 logging.info("press ctrl+c to stop process")
-                sleep_time = self.model_adapter.storage_adapter.INFER_TIME_SPAN - (now - then)
+                sleep_time = self.model_adapter.storage_adapter.INFER_TIME_SPAN - (
+                    now - then
+                )
                 if sleep_time > 0:
                     time.sleep(sleep_time)
 

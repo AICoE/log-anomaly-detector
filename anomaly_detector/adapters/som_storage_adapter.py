@@ -29,9 +29,8 @@ class SomStorageAdapter(BaseStorageAdapter):
                                                              false_positive))
         if len(data) == 0:
             logging.info("There are no logs in last %s seconds", timespan)
-            return None, None
-        else:
-            return data, raw
+
+        return data, raw
 
     @latency_logger(name="SomStorageAdapter")
     def load_data(self, config_type):
