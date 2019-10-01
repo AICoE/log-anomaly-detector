@@ -31,3 +31,11 @@ class FileFormatNotSupported(Exception):
     def __init__(self, msg="File format not supported"):
         """Initialize message."""
         self.message = msg
+
+
+class EmptyDataSetException(Exception):
+    """Validates there is empty dataset returned from ingest."""
+
+    def __init__(self, msg="Empty dataset returned from ingest"):
+        """Initialize message."""
+        self.message = msg

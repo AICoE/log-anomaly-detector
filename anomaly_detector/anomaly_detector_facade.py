@@ -3,6 +3,9 @@ from anomaly_detector.adapters.som_model_adapter import SomModelAdapter
 from anomaly_detector.adapters.som_storage_adapter import SomStorageAdapter
 from anomaly_detector.adapters.feedback_strategy import FeedbackStrategy
 from anomaly_detector.jobs.tasks import TaskQueue, SomTrainCommand, SomInferCommand
+from anomaly_detector.exception.exceptions import EmptyDataSetException
+import logging
+
 
 import time
 
@@ -26,10 +29,14 @@ class AnomalyDetectorFacade:
         self.mgr.add_steps(train)
         self.mgr.add_steps(infer)
         while break_out is False:
-            self.mgr.execute_steps()
-            print("log::facade::run")
-            time.sleep(5)
-            break_out = single_run
+            try:
+                self.mgr.execute_steps()
+                logging.info("Job ran succesfully")
+            except EmptyDataSetException as e:
+                logging.debug(e)
+            finally:
+                time.sleep(5)
+                break_out = single_run
 
     def train(self, node_map=24):
         """Abstraction around model adapter train method."""
