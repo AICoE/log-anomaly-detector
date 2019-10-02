@@ -31,12 +31,9 @@ class LocalDirStorage(LocalStorage):
 
     def get_filesnames_recursively(self, root_path, *, file_ext='log', file_format='common_log'):
         """Setup file read processing."""
-        self.root_path = root_path
-        self.file_ext = file_ext
-        self.file_format = file_format
         if file_format not in (self.ALLOWED_FILE_FORMATS.COMMON_LOG.value, self.ALLOWED_FILE_FORMATS.JSON.value):
             raise FileFormatNotSupported("File format {} is not supported".format(file_format))
-        self.files = [filename for filename in Path(root_path).glob('**/*.{}'.format(self.file_ext))]
+        self.files = [filename for filename in Path(root_path).glob('**/*.{}'.format(file_ext))]
 
     def retrieve(self, storage_attribute: DefaultStorageAttribute):
         """Retrieve data from local storage."""
