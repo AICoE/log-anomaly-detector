@@ -1,17 +1,21 @@
+---
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
   name: log-anomaly-detector-factstore
+
 objects:
+
   - apiVersion: image.openshift.io/v1
     kind: ImageStream
     metadata:
       labels:
-        app: log-anomaly-detector-factstore-${APP_NAME}
+        app: log-anomaly-detector-factstore-${CUSTOMER_ID}
       name: log-anomaly-detector-factstore
     spec:
       lookupPolicy:
         local: true
+
   - apiVersion: build.openshift.io/v1
     kind: BuildConfig
     metadata:
@@ -39,21 +43,22 @@ objects:
         - imageChange: {}
           type: ImageChange
         - type: ConfigChange
+
   - apiVersion: apps.openshift.io/v1
     kind: DeploymentConfig
     metadata:
       labels:
-        app: log-anomaly-detector-factstore-${APP_NAME}
-      name: log-anomaly-detector-factstore-${APP_NAME}
+        app: log-anomaly-detector-factstore-${CUSTOMER_ID}
+      name: log-anomaly-detector-factstore-${CUSTOMER_ID}
     spec:
       replicas: 1
       selector:
-        deploymentconfig: log-anomaly-detector-factstore-${APP_NAME}
+        deploymentconfig: log-anomaly-detector-factstore-${CUSTOMER_ID}
       template:
         metadata:
           labels:
-            app: log-anomaly-detector-factstore-${APP_NAME}
-            deploymentconfig: log-anomaly-detector-factstore-${APP_NAME}
+            app: log-anomaly-detector-factstore-${CUSTOMER_ID}
+            deploymentconfig: log-anomaly-detector-factstore-${CUSTOMER_ID}
         spec:
           containers:
             - args:
@@ -67,8 +72,8 @@ objects:
               env:
                 - name: SQL_CONNECT
                   value: ${SQL_CONNECT}
-                - name: APP_NAME
-                  value: ${APP_NAME}
+                - name: CUSTOMER_ID
+                  value: ${CUSTOMER_ID}
               resources:
                 limits:
                   cpu: 2
@@ -92,22 +97,25 @@ objects:
               kind: ImageStreamTag
               name: log-anomaly-detector-factstore:latest
           type: ImageChange
+
   - apiVersion: v1
     kind: Service
     metadata:
-      name: log-anomaly-detector-${APP_NAME}-svc
+      name: log-anomaly-detector-${CUSTOMER_ID}-svc
       labels:
-        app: log-anomaly-detector-factstore-${APP_NAME}
+        app: log-anomaly-detector-factstore-${CUSTOMER_ID}
     spec:
       selector:
-        app: log-anomaly-detector-${APP_NAME}
+        app: log-anomaly-detector-factstore-${CUSTOMER_ID}
       ports:
-        - protocol: TCP
+        - port: 5001
+          name: http
+        - port: 8080
           name: metrics
-          port: 5001
-          targetPort: 5001
+
 parameters:
   - name: SQL_CONNECT
-    value: mysql+pymysql://admin:admin@mysql-56-centos7/factstore
-  - name: APP_NAME
+    value: >
+      mysql+pymysql://admin:password@$(MYSQL_56_CENTOS7_SERVICE_HOST):$(MYSQL_56_CENTOS7_SERVICE_PORT)/factstore
+  - name: CUSTOMER_ID
     value: "placeholder"

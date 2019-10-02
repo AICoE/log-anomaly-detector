@@ -3,6 +3,9 @@ from anomaly_detector.adapters.som_model_adapter import SomModelAdapter
 from anomaly_detector.adapters.som_storage_adapter import SomStorageAdapter
 from anomaly_detector.adapters.feedback_strategy import FeedbackStrategy
 from anomaly_detector.jobs.tasks import TaskQueue, SomTrainCommand, SomInferCommand
+from anomaly_detector.exception.exceptions import EmptyDataSetException
+import logging
+
 
 import time
 
@@ -11,34 +14,53 @@ class AnomalyDetectorFacade:
     """For external interface for integration different adapters for custom models and training logic."""
 
     def __init__(self, config, feedback_strategy=None):
-        """Abstraction around model adapter run method."""
+        """Set up required properties to run training or prediction.
+
+        :param config: configuration provided via yaml or environment variables
+        :param feedback_strategy: a function that runs to improve the feedback of system
+        """
         if feedback_strategy is None:
             feedback_strategy = FeedbackStrategy(config=config)
         storage_adapter = SomStorageAdapter(config, feedback_strategy)
         self.__model_adapter = SomModelAdapter(storage_adapter)
-        self.mgr = TaskQueue()
+        self.tasks = TaskQueue()
 
     def run(self, single_run=False):
-        """Abstraction around model adapter run method."""
-        break_out = False
+        """Run train and inference and main event loop.
+
+        :param single_run: if this is set to TRUE then we exit loop after first iteration.
+        :return: None
+        """
+        exit = False
         train = SomTrainCommand(model_adapter=self.__model_adapter)
         infer = SomInferCommand(model_adapter=self.__model_adapter)
-        self.mgr.add_steps(train)
-        self.mgr.add_steps(infer)
-        while break_out is False:
-            self.mgr.execute_steps()
-            print("log::facade::run")
-            time.sleep(5)
-            break_out = single_run
+        self.tasks.add_steps(train)
+        self.tasks.add_steps(infer)
+        while exit is False:
+            try:
+                self.tasks.execute_steps()
+                logging.info("Job ran succesfully")
+            except EmptyDataSetException as e:
+                logging.debug(e)
+            finally:
+                time.sleep(5)
+                exit = single_run
 
     def train(self, node_map=24):
-        """Abstraction around model adapter train method."""
-        tc = SomTrainCommand(node_map=node_map, model_adapter=self.__model_adapter)
-        self.mgr.add_steps(tc)
-        self.mgr.execute_steps()
+        """Run training of model and provides size of map.
+
+        :param node_map: by default the node_map is 24 and is custom field for SOM model.
+        :return: None
+        """
+        train = SomTrainCommand(node_map=node_map, model_adapter=self.__model_adapter)
+        self.tasks.add_steps(train)
+        self.tasks.execute_steps()
 
     def infer(self):
-        """Abstraction around model adapter inference method."""
-        tc_infer = SomInferCommand(model_adapter=self.__model_adapter)
-        self.mgr.add_steps(tc_infer)
-        self.mgr.execute_steps()
+        """Run inference of model.
+
+        :return: None
+        """
+        inference = SomInferCommand(model_adapter=self.__model_adapter)
+        self.tasks.add_steps(inference)
+        self.tasks.execute_steps()

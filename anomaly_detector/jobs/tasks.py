@@ -3,7 +3,9 @@ import datetime
 import logging
 from abc import ABCMeta, abstractmethod
 import time
-from prometheus_client import Gauge, Summary, Counter, Histogram
+from prometheus_client import Counter
+from anomaly_detector.exception import EmptyDataSetException
+from anomaly_detector.storage import KafkaSink
 
 TRAINING_COUNT = Counter("aiops_lad_train_count", "count of training runs")
 INFER_COUNT = Counter("aiops_lad_inference_count", "count of inference runs")
@@ -32,10 +34,12 @@ class SomTrainCommand(AbstractCommand):
     def execute(self):
         """Train models for anomaly detection."""
         TRAINING_COUNT.inc()
-        data, _ = self.model_adapter.preprocess(config_type="train",
-                                                recreate_model=self.recreate_model)
+        dataframe, raw_data = self.model_adapter.preprocess(config_type="train",
+                                                            recreate_model=self.recreate_model)
+        if not raw_data:
+            raise EmptyDataSetException("no new logs found.")
         # After first time training we will only update w2v model not recreate it everytime.
-        dist = self.model_adapter.train(node_map=self.node_map, data=data, recreate_model=self.recreate_model)
+        dist = self.model_adapter.train(node_map=self.node_map, data=dataframe, recreate_model=self.recreate_model)
         self.recreate_model = False
         return 0, dist
 
@@ -70,7 +74,15 @@ class SomInferCommand(AbstractCommand):
             results = self.model_adapter.predict(data, json_logs, threshold)
             # This is for offline testing of the ML Training and Infer which results in trigger emails.
             if self.model_adapter.storage_adapter.PREDICTION_ALERT is True:
-                self.model_adapter.storage_adapter.persist_data(results)
+                if self.model_adapter.storage_adapter.STORAGE_BACKEND_SINK == "kafka":
+                    kf_sink = KafkaSink(config=self.model_adapter.storage_adapter.config)
+                    for data in results:
+                        kf_sink.store_results(data=data)
+                        kf_sink.flush()
+                    logging.info("{} predictions sent to kafka".format(len(results)))
+                else:
+                    self.model_adapter.storage_adapter.persist_data(results)
+
             # Inference done, increase counter
             infer_loops += 1
             now = time.time()

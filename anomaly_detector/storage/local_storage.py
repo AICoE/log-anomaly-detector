@@ -31,12 +31,10 @@ class LocalStorage(Storage):
                     message_field = " ".join(line.split(" ")[2:])
                     message_field = message_field.rstrip("\n")
                     data.append({"message": message_field})
-            # TODO: Make sure to check for false_data is not Null
             if storage_attribute.false_data is not None:
                 data.extend(storage_attribute.false_data)
         data_set = json_normalize(data)
         _LOGGER.info("%d logs loaded", len(data_set))
-        # Prepare data for training/inference
         self._preprocess(data_set)
         return data_set, data
 
