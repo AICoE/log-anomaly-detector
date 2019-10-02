@@ -11,3 +11,15 @@ run-with-local:
 test:
 	pipenv run python setup.py test --addopts -vs
 
+# openshift deployment commands
+oc_deploy_sql_db:
+	oc new-app centos/mysql-56-centos7 -e MYSQL_DATABASE=factstore -e MYSQL_PASSWORD=password -e MYSQL_USER=admin -e MYSQL_ROOT_PASSWORD=password
+
+oc_delete_sql_db:
+	oc delete all -l app=mysql-56-centos7
+
+oc_deploy_factstore:
+	oc process -f openshift/factstore.app.yaml | oc apply -f -
+
+oc_delete_factstore:
+	oc process -f openshift/factstore.app.yaml | oc delete -f -
