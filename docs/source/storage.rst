@@ -19,3 +19,31 @@ Local storage backend is able to read data from a file or standard input and wri
 Input data can be in a form of JSON (one entry per line) or plain text (simplified JSON object resembling the ES entry described above is constructed). We also support common logging format ["timestamp  severity    message"]
 
 
+LocalDir
+--------
+This works the same as the local storage except this will let you read from a directory of logs which can either be json or common log. We support only files ending with '.log' or '.json'
+
+
+.. code-block:: shell
+
+   STORAGE_BACKEND: "es" # Reads logs from elasticsearch
+   STORAGE_BACKEND: "local" # Reads logs from local file
+   STORAGE_BACKEND: "localdir" # Reads logs from directory of files
+
+
+.. note::
+
+   You will need to set the configuration via cli to select which data provider you will use.
+
+Extending Storage
+-----------------
+
+To extend storage with different storage systems:
+
+
+.. literalinclude:: ../../anomaly_detector/adapters/base_storage_adapter.py
+
+
+
+
+

@@ -30,8 +30,3 @@ If you desire to extend the machine learning models and would like to contribute
 
 .. literalinclude:: ../../anomaly_detector/adapters/base_model_adapter.py
 
-To extend storage with different storage systems:
-
-
-.. literalinclude:: ../../anomaly_detector/adapters/base_storage_adapter.py
-

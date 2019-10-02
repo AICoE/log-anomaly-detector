@@ -15,12 +15,6 @@ See: https://docs.sqlalchemy.org/en/latest/dialects/
 
 You would provide a connection string for example if your using mysql:
 
-To test this locally try:
-
-.. code-block:: shell
-
-   export SQL_CONNECT="mysql+pymysql://{USERNAME}:{PASSWORD}@localhost/factstore"
-   python app.py ui --port 8080 --debug True
 
 Deploy mysql test instance on openshift:
 
