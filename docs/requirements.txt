@@ -1,3 +1,5 @@
 sphinx
 sphinx_rtd_theme
 sphinx-autoapi
+guzzle_sphinx_theme
+sphinx_press_theme
