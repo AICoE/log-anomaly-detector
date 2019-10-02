@@ -31,7 +31,7 @@ pyyaml = "*"
 Flask-SQLAlchemy = "*"
 PyMySQL = "*"
 numba = "*"
-
+kafka-python = "*"
 
 [requires]
 python_version = "3.6"
