@@ -49,9 +49,9 @@ class Configuration(Borg):
     # A directory where trained models will be stored
     MODEL_DIR = "./models/"
     MODE_DIR_CALLABLE = check_or_create_model_dir
-    # Name of the file where SOM model will be stored TODO: move to model config
+    # Name of the file where SOM model will be stored
     MODEL_FILE = "SOM.model"
-    # Name of the file where W2V model will be stored TODO: move to model config
+    # Name of the file where W2V model will be stored
     W2V_MODEL_FILE = "W2V.model"
     MODEL_PATH_CALLABLE = join_model_path
     MODEL_PATH = ""
@@ -70,7 +70,7 @@ class Configuration(Borg):
     TRAIN_TIME_SPAN = 900
     # Maximum number of entries for training loaded from backend storage
     TRAIN_MAX_ENTRIES = 315448
-    # Number of SOM training iterations TODO: move to model config
+    # Number of SOM training iterations
     TRAIN_ITERATIONS = 315448
     # If true, re-traing the models
     TRAIN_UPDATE_MODEL = False
@@ -128,7 +128,6 @@ class Configuration(Borg):
         # For backward compatibility
         self.load_from_env()
         if config_yaml is not None:
-            # TODO: Open YAML File and load the configurations in here.
             with open(config_yaml) as f:
                 yaml_data = yaml.load(f, Loader=yaml.FullLoader)
                 for prop in self.__class__.__dict__.keys():

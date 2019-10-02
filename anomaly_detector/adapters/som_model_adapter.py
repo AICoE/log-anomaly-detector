@@ -4,7 +4,6 @@ import uuid
 import numpy as np
 from anomaly_detector.adapters import BaseModelAdapter
 from anomaly_detector.decorator.utils import latency_logger
-from anomaly_detector.events import AnomalyEvent
 from anomaly_detector.exception import FactStoreEnvVarNotSetException, \
     ModelLoadException, ModelSaveException
 from anomaly_detector.model import SOMPYModel, W2VModel
@@ -52,13 +51,13 @@ class SomModelAdapter(BaseModelAdapter):
     @latency_logger(name="SomModelAdapter")
     def train(self, node_map, data, recreate_model=True):
         """Train som model after creating vectors from words using w2v model."""
-        to_put_train = self.w2v_model.one_vector(data)
+        vectors = self.w2v_model.one_vector(data)
         # If node_map is none then we assume it is calculating score for inference
         if recreate_model is True:
-            self.model.set(np.random.rand(node_map, node_map, to_put_train.shape[1]))
-        self.model.train(to_put_train, node_map, self.storage_adapter.TRAIN_ITERATIONS,
+            self.model.set(np.random.rand(node_map, node_map, vectors.shape[1]))
+        self.model.train(vectors, node_map, self.storage_adapter.TRAIN_ITERATIONS,
                          self.storage_adapter.PARALLELISM)
-        dist = self.model.get_anomaly_score(to_put_train, self.storage_adapter.PARALLELISM)
+        dist = self.model.get_anomaly_score(vectors, self.storage_adapter.PARALLELISM)
         max_dist = np.max(dist)
         dist = dist / max_dist
         self.model.set_metadata((np.mean(dist), np.std(dist), max_dist, np.min(dist)))
@@ -72,21 +71,22 @@ class SomModelAdapter(BaseModelAdapter):
     @latency_logger(name="SomModelAdapter")
     def preprocess(self, config_type, recreate_model):
         """Load data and train."""
-        data, raw = self.storage_adapter.load_data(config_type)
-        # if data:
-        if data is not None:
-            LOG_LINES_COUNT.set(len(data))
+        dataframe, raw_data = self.storage_adapter.load_data(config_type)
+        if dataframe is not None:
+            LOG_LINES_COUNT.set(len(dataframe))
             if not recreate_model:
-                self.w2v_model.update(data)
+                self.w2v_model.update(dataframe)
             else:
-                self.w2v_model.create(data, self.storage_adapter.TRAIN_VECTOR_LENGTH, self.storage_adapter.TRAIN_WINDOW)
+                self.w2v_model.create(dataframe,
+                                      self.storage_adapter.TRAIN_VECTOR_LENGTH,
+                                      self.storage_adapter.TRAIN_WINDOW)
             try:
                 self.w2v_model.save(self.storage_adapter.W2V_MODEL_PATH)
             except ModelSaveException as ex:
                 logging.error("Failed to save W2V model: %s" % ex)
                 raise
 
-        return data, raw
+        return dataframe, raw_data
 
     @latency_logger(name="SomModelAdapter")
     def predict(self, data, json_logs, threshold):
@@ -128,7 +128,6 @@ class SomModelAdapter(BaseModelAdapter):
             f.append(s)
 
         if self.storage_adapter.FACT_STORE_URL and len(console_report) > 0:
-
             logging.info("To provide feedback on anomalies found click the following links")
             for item in console_report:
                 logging.info("{}?lad_id={}&is_anomaly={}&message={}".format(self.storage_adapter.FACT_STORE_URL,
@@ -136,20 +135,6 @@ class SomModelAdapter(BaseModelAdapter):
         elif len(console_report) == 0:
             logging.info("No anomalies found.")
         return f
-
-    def process_false_positives(self, data, dist, i, s):
-        """Process false positive data in feedback store."""
-        try:
-            logging.info("Progress of anomaly events record {} of {} ".format(i, len(data)))
-
-            AnomalyEvent(
-                s["predict_id"], s["message"], dist[i], s["anomaly"], self.storage_adapter.FACT_STORE_URL
-            ).record_prediction()
-        except FactStoreEnvVarNotSetException as f_ex:
-            logging.info("Fact Store Env Var is not set")
-
-        except ConnectionError as e:
-            logging.info("Fact store is down unable to check")
 
     @latency_logger(name="SomModelAdapter")
     def process_anomaly_score(self, data):

@@ -28,7 +28,7 @@ class ESStorage(Storage):
     def _connect(self):
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         if len(self.config.ES_CERT_DIR) and os.path.isdir(self.config.ES_CERT_DIR):
-            _LOGGER.warn(
+            _LOGGER.warning(
                 "Using cert and key in %s for connection to %s (verify_certs=%s)."
                 % (
                     self.config.ES_CERT_DIR,
@@ -46,8 +46,7 @@ class ESStorage(Storage):
                 max_retries=2,
             )
         else:
-            _LOGGER.warn("Conecting to ElasticSearch without authentication.")
-            print(self.config.ES_USE_SSL)
+            _LOGGER.warning("Conecting to ElasticSearch without authentication.")
             self.es = Elasticsearch(
                 self.config.ES_ENDPOINT,
                 use_ssl=self.config.ES_USE_SSL,

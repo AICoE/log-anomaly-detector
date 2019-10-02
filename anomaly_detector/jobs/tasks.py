@@ -3,8 +3,8 @@ import datetime
 import logging
 from abc import ABCMeta, abstractmethod
 import time
-from prometheus_client import Gauge, Summary, Counter, Histogram
-from anomaly_detector.exception.exceptions import EmptyDataSetException
+from prometheus_client import Counter
+from anomaly_detector.exception import EmptyDataSetException
 from anomaly_detector.storage import KafkaSink
 
 TRAINING_COUNT = Counter("aiops_lad_train_count", "count of training runs")
