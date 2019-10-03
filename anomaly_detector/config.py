@@ -63,6 +63,9 @@ class Configuration(Borg):
     W2V_COMPUTE_LOSS = False
     W2V_SEED = 1
     W2V_WORKERS = 3
+    # Custom parameters for SOM
+    SOMPY_TRAIN_ROUGH_LEN = None
+    SOMPY_TRAIN_FINETUNE_LEN = None
 
     MODEL_STORE = ""
     MODEL_STORE_PATH = "anomaly-detection/models/"
