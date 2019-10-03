@@ -2,32 +2,26 @@
 import json
 from kafka import KafkaProducer
 from anomaly_detector.config import Configuration
+from anomaly_detector.storage.storage_sink import StorageSink
 
 
-class KafkaSink:
+class KafkaSink():
     """Kafka storage backend."""
 
-    def __init__(self, config: Configuration):
+    def __init__(self, config):
         """Setup of kafka producer which will send messages to bootstrap server topic."""
-        self.init_config(config)
+        self.bootstrap = config.KF_BOOTSTRAP_SERVER
+        self.topic = config.KF_TOPIC
+        self.cacert = config.KF_CACERT
+        self.security_protocol = config.KF_SECURITY_PROTOCOL
         self.create_client()
-
-    def init_config(self, config):
-        """Initialize configurations for kafka communication."""
-        self.bootstrap = config.KF_SINK_BOOTSTRAP_SERVER
-        self.topic = config.KF_SINK_TOPIC
-        self.cacert = config.KF_SINK_CACERT
 
     def create_client(self):
         """Initialize producer."""
-        if not self.cacert:
-            self.producer = KafkaProducer(bootstrap_servers=self.bootstrap,
-                                          api_version_auto_timeout_ms=30000)
-        else:
-            self.producer = KafkaProducer(bootstrap_servers=self.bootstrap,
-                                          api_version_auto_timeout_ms=30000,
-                                          security_protocol='SSL',
-                                          ssl_cafile=self.cacert)
+        self.producer = KafkaProducer(bootstrap_servers=self.bootstrap,
+                                      api_version_auto_timeout_ms=30000,
+                                      security_protocol=self.security_protocol,
+                                      ssl_cafile=self.cacert)
 
     def store_results(self, data):
         """Save data to Kafka."""

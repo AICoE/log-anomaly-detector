@@ -4,8 +4,7 @@ import uuid
 import numpy as np
 from anomaly_detector.adapters import BaseModelAdapter
 from anomaly_detector.decorator.utils import latency_logger
-from anomaly_detector.exception import FactStoreEnvVarNotSetException, \
-    ModelLoadException, ModelSaveException
+from anomaly_detector.exception import ModelLoadException, ModelSaveException
 from anomaly_detector.model import SOMPYModel, W2VModel
 import os
 from prometheus_client import Gauge, Counter, Histogram

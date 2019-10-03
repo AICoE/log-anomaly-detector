@@ -7,12 +7,12 @@ import logging
 class FeedbackStrategy():
     """Custom Feedback strategy for overwriting behaviour of application to provide configurable api."""
 
-    def __init__(self, config, fn=None):
+    def __init__(self, config, func=None):
         """Initial setup of configuration and users can provide custom feedback_function to execute."""
         self.config = config
         self.uniq_items = set()
-        if fn:
-            self.execute = types.MethodType(fn, self)
+        if func:
+            self.execute = types.MethodType(func, self)
 
     def execute(self):
         """Fetch false positive from datastore and add noise to training run."""
@@ -20,10 +20,10 @@ class FeedbackStrategy():
         self.uniq_items = set()
         if self.config.FACT_STORE_URL:
             try:
-                r = requests.get(url=self.config.FACT_STORE_URL + "/api/false_positive")
-                data = r.json()
+                response = requests.get(url=self.config.FACT_STORE_URL + "/api/false_positive")
+                result_data = response.json()
                 false_positives = []
-                for msg in data["feedback"]:
+                for msg in result_data["feedback"]:
                     self.uniq_items.add(msg)
                     noise = [{"message": msg}] * self.config.FREQ_NOISE
                     false_positives.extend(noise)

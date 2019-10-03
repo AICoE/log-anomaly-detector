@@ -27,7 +27,7 @@ def test_false_positive(config):
 
 def get_score(config, node_map, feedback):
     """Simple utility function for injecting custom mock function into Detector."""
-    feedback_strategy = FeedbackStrategy(config, fn=feedback)
+    feedback_strategy = FeedbackStrategy(config, func=feedback)
     storage_adapter = SomStorageAdapter(config=config, feedback_strategy=feedback_strategy)
     model_adapter = SomModelAdapter(storage_adapter=storage_adapter)
     tc = SomTrainCommand(node_map=node_map, model_adapter=model_adapter)
