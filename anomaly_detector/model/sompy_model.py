@@ -20,7 +20,12 @@ class SOMPYModel(BaseModel):
         """Train the SOM model."""
         mapsize = [map_size, map_size]
         som = sompy.SOMFactory.build(inp, mapsize)
-        som.train(n_job=parallelism)
+        if not self.config:
+            som.train(n_job=parallelism)
+        else:
+            som.train(n_job=parallelism, train_rough_len=self.config.SOMPY_TRAIN_ROUGH_LEN,
+                      train_finetune_len=self.config.SOMPY_TRAIN_FINETUNE_LEN)
+            # train_rough_len=100,train_finetune_len=5
         self.model = som.codebook.matrix.reshape([map_size, map_size, inp.shape[1]])
 
     def get_anomaly_score(self, logs, parallelism):
