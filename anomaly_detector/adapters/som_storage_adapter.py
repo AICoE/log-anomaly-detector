@@ -36,7 +36,10 @@ class SomStorageAdapter(BaseStorageAdapter):
     @latency_logger(name="SomStorageAdapter")
     def load_data(self, config_type):
         """Load data from storage class depending on training vs inference."""
-        false_data = self.feedback_strategy.execute() if self.feedback_strategy else None
+        false_data = None
+        if self.feedback_strategy is not None:
+            false_data = self.feedback_strategy.execute()
+
         if config_type == "train":
             return self.retrieve_data(timespan=self.config.TRAIN_TIME_SPAN,
                                       max_entry=self.config.TRAIN_MAX_ENTRIES,

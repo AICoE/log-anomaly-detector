@@ -33,10 +33,14 @@ RUN command options
 -------------------
 
 
-
     --config-yaml (string)
 
 Select path to read configmap to overwrite default configuration for the application
+
+
+    --tracing-enabled (boolean)
+
+Provides ability to expose tracing information of ml jobs running underneath.
 
 
     --single-run (boolean)
@@ -52,6 +56,8 @@ Select what type of job to run. (Defaults to run both train and inference)
 - train
 - inference
 - all (default)
+
+
 
 
 

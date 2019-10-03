@@ -6,6 +6,9 @@ import time
 from prometheus_client import Counter
 from anomaly_detector.exception import EmptyDataSetException
 from anomaly_detector.storage import KafkaSink
+import time
+from jaeger_client import Config
+from opentracing_instrumentation.request_context import get_current_span, span_in_context
 
 TRAINING_COUNT = Counter("aiops_lad_train_count", "count of training runs")
 INFER_COUNT = Counter("aiops_lad_inference_count", "count of inference runs")
@@ -31,6 +34,12 @@ class SomTrainCommand(AbstractCommand):
         self.model_adapter = model_adapter
         self.recreate_model = recreate_model
 
+    def execute_with_tracing(self, tracer):
+        """Train models for anomaly detection with tracing enabled."""
+        with tracer.start_span('aiops_train_execute', child_of=get_current_span()) as span:
+            with span_in_context(span):
+                return self.execute()
+
     def execute(self):
         """Train models for anomaly detection."""
         TRAINING_COUNT.inc()
@@ -53,8 +62,14 @@ class SomInferCommand(AbstractCommand):
         self.sleep = sleep
         self.recreate_model = recreate_model
 
-    def execute(self):
+    def execute_with_tracing(self, tracer):
         """Will retrain with fresh data and perform predictions in batches."""
+        with tracer.start_span('aiops_inference_execute', child_of=get_current_span()) as span:
+            with span_in_context(span):
+                return self.execute()
+
+    def execute(self):
+        """Execute inference steps and loop."""
         self.model_adapter.load_w2v_model()
         self.model_adapter.load_som_model()
         mean, threshold = self.model_adapter.set_threshold()
@@ -138,10 +153,13 @@ class TaskQueue(metaclass=Singleton):
         else:
             raise TypeError()
 
-    def execute_steps(self):
+    def execute_steps(self, tracer=None):
         """Execute steps one by one."""
         for step in self.steps:
-            step.execute()
+            if tracer is None:
+                step.execute()
+            else:
+                step.execute_with_tracing(tracer)
             self.count += 1
 
     def __len__(self):
