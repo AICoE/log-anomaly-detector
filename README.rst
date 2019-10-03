@@ -1,7 +1,7 @@
 
 Log Anomaly Detector
 ====================
-Log anomaly detector is an open source project code named "Project Scorpio". LAD is also used for short. It can connect to streaming sources and produce predictions of abnormal log lines. Internally it uses unsupervised machine learning. We incorporate a number of machine learning models to achieve this result. In addition it includes a human in the loop feedback system. 
+Log anomaly detector is an open source project code named "Project Scorpio". LAD is also used for short. It can connect to streaming sources and produce predictions of abnormal log lines. Internally it uses unsupervised machine learning. We incorporate a number of machine learning models to achieve this result. In addition it includes a human in the loop feedback system.
 
 .. image:: imgs/full-app.gif
 
@@ -19,7 +19,7 @@ It currently contains the following components:
 1. LAD-Core: Contains custom code to train model and predict if a log line is an anomaly. We are currently use W2V (word 2 vec) and SOM (self organizing map) with unsupervised machine learning. We are planning to add more models.
 2. Metrics: To monitor this system in production we utilize grafana and prometheus to visualize the health of this machine learning system.
 3. Fact-Store: In addition we have a metadata registry for tracking feedback from false_positives in the machine learning system and to providing a method for ML to self correcting false predictions called the “fact-store”.
-	
+
 Installing
 ==========
 
@@ -32,6 +32,33 @@ Install Log Anomaly Detector (LAD):
 .. note::
 
    LAD requires python 3.6
+
+Minishift Demo Installation
+===========================
+*Perform all the following steps in the same namespace*
+
+*The following deployment configuration has been tested on a minishift setup with 6 vcpus and 8Gigs of memory*
+1. Deploying Elasticsearch and a demo web app to generate logs
+	* In the root of the repository run: `make oc_deploy_elasticsearch` to deploy elastisearch.
+	* Run the following command to deploy a demo web app that pushes purchase logs to our elasticsearch db <br>
+		`oc process -f https://raw.githubusercontent.com/HumairAK/anomaly-detection-demo-app/master/openshift/ad_demo.yaml | oc apply -f -`
+
+
+2. Deploying the FactStore and a mysql database to store facts in
+	* In the root of the repository run: `make oc_deploy_sql_db` to deploy a demo mysql database.
+	* After the db is deployed, run `make oc_deploy_factstore` to deploy the factstore.
+
+
+3. Deploy the demo [E-commerce Web App](https://github.com/HumairAK/anomaly-detection-demo-app)
+	* Run the following command to deploy the demo application *(make sure it is in the same namespace as elasticsearch)* <br>
+	`oc process -f https://raw.githubusercontent.com/HumairAK/anomaly-detection-demo-app/master/openshift/ad_demo.yaml -p NAMESPACE=lad | oc apply -f -` <br>
+		Here `lad` is the namespace where our elasticsearch deployment is.
+
+
+4. Deploy Log anomaly detector
+  * Set up the configmap with the lad configuration
+  * Deploy the Log anomaly detector
+
 
 Documentation
 -------------
@@ -54,7 +81,3 @@ OpenShift Commons AiOps Sig Calendar: `https://bit.ly/2lMn6yU`
 Contributing
 ============
 We happily welcome contributions to LAD. Please see our contribution guide for details.
-
-
-
-
