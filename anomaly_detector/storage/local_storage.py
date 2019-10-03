@@ -1,17 +1,40 @@
 """Local Storage."""
+from anomaly_detector.storage.storage import Storage
 from anomaly_detector.storage.storage_attribute import DefaultStorageAttribute
 from pandas.io.json import json_normalize
-import json
-from anomaly_detector.storage.storage import Storage
+from anomaly_detector.storage.storage_sink import StorageSink
+from anomaly_detector.storage.storage_source import StorageSource
+from anomaly_detector.storage.storage import DataCleaner
 import logging
+import json
+import re
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class LocalStorage(Storage):
-    """Local storage implementation."""
+class LocalStorageDataSink(StorageSink, DataCleaner):
+    """Local storage data sink implementation."""
 
-    NAME = "local"
+    NAME = "local.sink"
+
+    def __init__(self, configuration):
+        """Initialize local storage backend."""
+        self.config = configuration
+
+    def store_results(self, data):
+        """Store results."""
+        if len(self.config.LS_OUTPUT_PATH) > 0:
+            with open(self.config.LS_OUTPUT_PATH, self.config.LS_OUTPUT_RWA_MODE) as fp:
+                json.dump(data, fp)
+        else:
+            for item in data:
+                _LOGGER.info("Anomaly: %d, Anmaly score: %f" % (item["anomaly"], item["anomaly_score"]))
+
+
+class LocalStorageDataSource(StorageSource, DataCleaner):
+    """Local storage Data source implementation."""
+
+    NAME = "local.source"
 
     def __init__(self, configuration):
         """Initialize local storage backend."""
@@ -37,12 +60,3 @@ class LocalStorage(Storage):
         _LOGGER.info("%d logs loaded", len(data_set))
         self._preprocess(data_set)
         return data_set, data
-
-    def store_results(self, data):
-        """Store results."""
-        if len(self.config.LS_OUTPUT_PATH) > 0:
-            with open(self.config.LS_OUTPUT_PATH, self.config.LS_OUTPUT_RWA_MODE) as fp:
-                json.dump(data, fp)
-        else:
-            for item in data:
-                _LOGGER.info("Anomaly: %d, Anmaly score: %f" % (item["anomaly"], item["anomaly_score"]))

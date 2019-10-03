@@ -1,12 +1,13 @@
 """Kafka Storage interface."""
 import json
 from kafka import KafkaProducer
-from anomaly_detector.config import Configuration
 from anomaly_detector.storage.storage_sink import StorageSink
 
 
-class KafkaSink():
+class KafkaSink(StorageSink):
     """Kafka storage backend."""
+
+    NAME = "kafka.sink"
 
     def __init__(self, config):
         """Setup of kafka producer which will send messages to bootstrap server topic."""

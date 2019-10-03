@@ -1,4 +1,4 @@
-"""Storage Source abstract class."""
+"""Storage Data Source."""
 from abc import ABCMeta, abstractmethod
 
 

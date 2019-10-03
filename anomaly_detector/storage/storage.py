@@ -20,6 +20,10 @@ class Storage(metaclass=ABCMeta):
         """Store results back to storage backend."""
         raise NotImplementedError("Please implement the <store_results method>")
 
+
+class DataCleaner:
+    """Data cleaning utility functions."""
+
     @classmethod
     def _clean_message(cls, line):
         """Remove all none alphabetical characters from message strings."""

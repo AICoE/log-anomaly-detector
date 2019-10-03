@@ -1,23 +1,20 @@
 """Local Storage."""
 import json
 import logging
-from collections import deque
 from enum import Enum
 from pathlib import Path
-
-from pandas.io.json import json_normalize
-
 from anomaly_detector.exception import FileFormatNotSupported
-from anomaly_detector.storage.local_storage import LocalStorage
 from anomaly_detector.storage.storage_attribute import DefaultStorageAttribute
+from anomaly_detector.storage.storage_source import StorageSource
+from anomaly_detector.storage.storage import DataCleaner
+from collections import deque
+from pandas.io.json import json_normalize
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class LocalDirStorage(LocalStorage):
+class LocalDirStorage:
     """Local storage implementation."""
-
-    NAME = "localdir"
 
     def __init__(self, configuration):
         """Initialize local storage backend."""
@@ -28,6 +25,16 @@ class LocalDirStorage(LocalStorage):
 
         COMMON_LOG = "common_log"
         JSON = "json"
+
+
+class LocalDirectoryStorageDataSource(StorageSource, DataCleaner, LocalDirStorage):
+    """Local storage Data source implementation."""
+
+    NAME = "localdir.source"
+
+    def __init__(self, configuration):
+        """Initialize local storage backend."""
+        self.config = configuration
 
     def get_filesnames_recursively(self, root_path, *, file_ext='log', file_format='common_log'):
         """Setup file read processing."""
