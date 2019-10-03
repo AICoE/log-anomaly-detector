@@ -64,8 +64,8 @@ class Configuration(Borg):
     W2V_SEED = 1
     W2V_WORKERS = 3
     # Custom parameters for SOM
-    SOMPY_TRAIN_ROUGH_LEN = None
-    SOMPY_TRAIN_FINETUNE_LEN = None
+    SOMPY_TRAIN_ROUGH_LEN = 100
+    SOMPY_TRAIN_FINETUNE_LEN = 5
 
     MODEL_STORE = ""
     MODEL_STORE_PATH = "anomaly-detection/models/"
