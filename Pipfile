@@ -32,6 +32,8 @@ Flask-SQLAlchemy = "*"
 PyMySQL = "*"
 numba = "*"
 kafka-python = "*"
+jaeger-client = "*"
+opentracing_instrumentation = "*"
 
 [requires]
 python_version = "3.6"

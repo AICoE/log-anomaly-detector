@@ -92,7 +92,9 @@ class SomModelAdapter(BaseModelAdapter):
     def predict(self, data, json_logs, threshold):
         """Prediction from data provided and if it hits threshold it flags it an anomaly."""
         feedback_strategy = self.storage_adapter.feedback_strategy
-        false_positives = feedback_strategy.execute() if feedback_strategy else None
+        false_positives = None
+        if feedback_strategy is not None:
+            false_positives = feedback_strategy.execute()
         logging.info("False Positive: {} ".format(false_positives))
         dist = self.process_anomaly_score(data)
         f = []

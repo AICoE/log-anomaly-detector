@@ -32,12 +32,13 @@ def ui(debug, port):
     help="select either 'train', 'inference', 'all' by default it runs train and infer in loop", )
 @click.option("--config-yaml", default=".env_config.yaml", help="configuration file used to configure service")
 @click.option("--single-run", default=False, help="it will loop infinitely pause at interval if set to true")
+@click.option("--tracing-enabled", default=False, help="allows you to expose tracing metrics using jaegar")
 # Initializing click function.
-def run(job_type, config_yaml, single_run):
+def run(job_type, config_yaml, single_run, tracing_enabled):
     """Perform machine learning model generation with input log data."""
     click.echo("Starting...")
     config = Configuration(prefix=CONFIGURATION_PREFIX, config_yaml=config_yaml)
-    anomaly_detector = AnomalyDetectorFacade(config)
+    anomaly_detector = AnomalyDetectorFacade(config=config, tracing_enabled=tracing_enabled)
     click.echo("Created jobtype {}".format(job_type))
 
     if job_type == "train":
