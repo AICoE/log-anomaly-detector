@@ -1,0 +1,162 @@
+---
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: log-anomaly-detector
+objects:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      labels:
+        app: log-anomaly-detector-${APP_NAME}
+      name: log-anomaly-detector-${APP_NAME}
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+  - apiVersion: image.openshift.io/v1
+    kind: ImageStream
+    metadata:
+      labels:
+        app: log-anomaly-detector
+      name: log-anomaly-detector
+    spec:
+      lookupPolicy:
+        local: true
+  - apiVersion: build.openshift.io/v1
+    kind: BuildConfig
+    metadata:
+      labels:
+        app: log-anomaly-detector
+      name: anomaly-detector
+    spec:
+      output:
+        to:
+          kind: ImageStreamTag
+          name: log-anomaly-detector:latest
+      source:
+        git:
+          ref: master
+          uri: https://github.com/AICoE/log-anomaly-detector.git
+        type: Git
+      strategy:
+        sourceStrategy:
+          from:
+            kind: ImageStreamTag
+            name: python:3.6
+            namespace: openshift
+        type: Source
+      triggers:
+        - imageChange: {}
+          type: ImageChange
+        - type: ConfigChange
+  - apiVersion: apps.openshift.io/v1
+    kind: DeploymentConfig
+    metadata:
+      labels:
+        app: log-anomaly-detector-${APP_NAME}
+      name: log-anomaly-detector-${APP_NAME}
+    spec:
+      replicas: 1
+      selector:
+        deploymentconfig: log-anomaly-detector-${APP_NAME}
+      template:
+        metadata:
+          labels:
+            app: log-anomaly-detector-${APP_NAME}
+            deploymentconfig: log-anomaly-detector-${APP_NAME}
+        spec:
+          containers:
+            - args:
+                - app.py
+                - run
+                - --config-yaml
+                - validation_data/.env_config.yaml
+              command:
+                - python
+              image: log-anomaly-detector:latest
+              imagePullPolicy: Always
+              name: log-anomaly-detector
+              resources:
+                limits:
+                  cpu: 1
+                  memory: 1Gi
+              volumeMounts:
+                - mountPath: /opt/app-root/src/models
+                  name: model-storage
+                - mountPath: /opt/app-root/src/validation_data
+                  name: volume-ehbcr
+          dnsPolicy: ClusterFirst
+          restartPolicy: Always
+          schedulerName: default-scheduler
+          securityContext: {}
+          terminationGracePeriodSeconds: 30
+          volumes:
+            - claimName: log-anomaly-detector-${APP_NAME}
+              name: model-storage
+              persistentVolumeClaim: null
+            - configMap:
+                defaultMode: 420
+                name: ${CONFIGMAP_NAME}
+              name: volume-ehbcr
+      test: false
+      triggers:
+        - type: ConfigChange
+        - imageChangeParams:
+            automatic: true
+            containerNames:
+              - log-anomaly-detector
+            from:
+              kind: ImageStreamTag
+              name: log-anomaly-detector:latest
+          type: ImageChange
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: log-anomaly-detector-${APP_NAME}-svc
+      labels:
+        app: log-anomaly-detector-${APP_NAME}
+    spec:
+      selector:
+        app: log-anomaly-detector-${APP_NAME}
+      ports:
+        - protocol: TCP
+          name: metrics
+          port: 8080
+          targetPort: 8080
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: sample-config
+      labels:
+        app: log-anomaly-detector-${APP_NAME}
+    data:
+      .env_config.yaml: |
+        STORAGE_BACKEND: "es"
+        ES_ENDPOINT: ${ES_ENDPOINT}
+        ES_QUERY: 'ecommerce'
+        ES_USE_SSL: False
+        ES_INPUT_INDEX: "lad-"
+        ES_TARGET_INDEX: "odcs-anomaly-detect-"
+        FACT_STORE_URL: ${FACT_STORE_URL}
+        INFER_ANOMALY_THRESHOLD: 1.3
+        INFER_TIME_SPAN: 1
+        INFER_LOOPS: 1
+        PARALLELISM: 6
+
+
+parameters:
+  - name: APP_NAME
+    value: "demo"
+  - name: CONFIGMAP_NAME
+    value: "sample-config"
+  - name: ES_ENDPOINT
+    displayName: Host URL for elasticsearch
+    required: true
+  - name: FACT_STORE_URL
+    displayName: Host URL for FactStore
+    required: true
+  - name: CMD
+    value: run --config-yaml validation_data/.env_config.yaml
