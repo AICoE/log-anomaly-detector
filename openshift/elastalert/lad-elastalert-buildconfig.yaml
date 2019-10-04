@@ -1,0 +1,43 @@
+---
+apiVersion: v1
+kind: Template
+metadata:
+  name: lad-elastalert-image-bc
+  labels:
+    elastalert-app: lad-elastalert-app
+    app: log-anomaly-detector-app
+objects:
+  - apiVersion: build.openshift.io/v1
+    kind: BuildConfig
+    metadata:
+      name: lad-elastalert-image
+      labels:
+        elastalert-app: lad-elastalert-app
+        app: log-anomaly-detector-app
+    spec:
+      output:
+        to:
+          kind: ImageStreamTag
+          name: lad-elastalert-image:latest
+      source:
+        type: Git
+        contextDir: docker
+        git:
+          ref: master
+          uri: https://gitlab.cee.redhat.com/asanmukh/container-elastalert.git
+      strategy:
+        type: Docker
+        dockerStrategy:
+          env:
+            - name: GIT_SSL_NO_VERIFY
+              value: 'true'
+      triggers:
+        - type: ConfigChange
+
+  - apiVersion: image.openshift.io/v1
+    kind: ImageStream
+    metadata:
+      name: lad-elastalert-image
+      labels:
+        elastalert-app: lad-elastalert-app
+        app: log-anomaly-detector-app

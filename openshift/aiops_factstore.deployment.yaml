@@ -101,7 +101,7 @@ objects:
   - apiVersion: v1
     kind: Service
     metadata:
-      name: log-anomaly-detector-${CUSTOMER_ID}-svc
+      name: log-anomaly-detector-factstore-${CUSTOMER_ID}-svc
       labels:
         app: log-anomaly-detector-factstore-${CUSTOMER_ID}
     spec:
@@ -112,6 +112,17 @@ objects:
           name: http
         - port: 8080
           name: metrics
+
+  - apiVersion: v1
+    kind: Route
+    metadata:
+      name: log-anomaly-detector-factstore-${CUSTOMER_ID}-route
+      labels:
+        app: log-anomaly-detector-factstore-${CUSTOMER_ID}
+    spec:
+      to:
+        kind: Service
+        name: log-anomaly-detector-factstore-${CUSTOMER_ID}-svc
 
 parameters:
   - name: SQL_CONNECT

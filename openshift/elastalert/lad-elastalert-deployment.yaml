@@ -1,0 +1,227 @@
+---
+apiVersion: v1
+kind: Template
+metadata:
+  name: lad-elastalert-image-bc
+  labels:
+    elastalert-app: lad-elastalert-app
+    app: log-anomaly-detector-app
+objects:
+  - apiVersion: v1
+    kind: DeploymentConfig
+    metadata:
+      labels:
+        elastalert-app: lad-elastalert-app
+      name: lad-elastalert-app
+    spec:
+      replicas: 1
+      selector:
+        elastalert-app: lad-elastalert-app
+      strategy:
+        type: Recreate
+      template:
+        metadata:
+          labels:
+            elastalert-app: lad-elastalert-app
+        spec:
+          containers:
+            - name: elastalertcore
+              imagePullPolicy: IfNotPresent
+              resources:
+                requests:
+                  cpu: "300m"
+                  memory: "500Mi"
+                limits:
+                  cpu: "300m"
+                  memory: "500Mi"
+              env:
+                - name: PYTHONWARNINGS
+                  value: "ignore:Unverified HTTPS request"
+                - name: ELASTICSEARCH_PROTOCOL
+                  value: http
+                - name: ELASTICSEARCH_USER
+                  value: ${ELASTICSEARCH_USER}
+                - name: ELASTICSEARCH_PASSWORD
+                  value: ${ELASTICSEARCH_PASSWORD}
+                - name: ELASTICSEARCH_HOST
+                  value: ${ELASTICSEARCH_HOST}
+                - name: ELASTICSEARCH_PORT
+                  value: ${ELASTICSEARCH_PORT}
+              volumeMounts:
+                - name: elastalert-config-vol
+                  mountPath: /opt/config/
+                - name: elastalert-rules-vol
+                  mountPath: /opt/rules/
+
+          volumes:
+            - configMap:
+                defaultMode: 420
+                name: elastalert-config
+              name: elastalert-config-vol
+            - configMap:
+                defaultMode: 420
+                name: elastalert-rules
+              name: elastalert-rules-vol
+      triggers:
+        - type: ConfigChange
+        - type: ImageChange
+          imageChangeParams:
+            automatic: true
+            containerNames:
+              - elastalertcore
+            from:
+              kind: ImageStreamTag
+              name: lad-elastalert-image:latest
+
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: elastalert-config
+    data:
+      config.yaml: |
+        # This is the folder that contains the rule yaml files
+        # Any .yaml file will be loaded as a rule
+        rules_folder: /opt/rules
+
+        # How often ElastAlert will query elasticsearch
+        # The unit can be anything from weeks to seconds
+        run_every:
+          minutes: 5
+
+        # ElastAlert will buffer results from the most recent
+        # period of time, in case some log sources are not in real time
+        buffer_time:
+          minutes: 30
+
+        # The elasticsearch hostname for metadata writeback
+        # Note that every rule can have it's own elasticsearch host
+        es_host: "${ELASTICSEARCH_HOST}"
+
+        # The elasticsearch port
+        es_port: "${ELASTICSEARCH_PORT}"
+
+        # Optional URL prefix for elasticsearch
+
+        #es_url_prefix: elasticsearch
+
+        # Connect with SSL to elasticsearch
+        use_ssl: False
+        verify_certs: False
+
+        # Option basic-auth username and password for elasticsearch
+        es_username: ${ELASTICSEARCH_USER}
+        es_password: ${ELASTICSEARCH_PASSWORD}
+
+        # The index on es_host which is used for metadata storage
+        # This can be a unmapped index, but it is recommended that you run
+        # elastalert-create-index to set a mapping
+        writeback_index: ${METADATA_STORE_INDEX}
+
+        # If an alert fails for some reason, ElastAlert will retry
+        # sending the alert until this time period has elapsed
+        alert_time_limit:
+          days: 7
+
+        scan_subdirectories: false
+
+        smtp_host: ${SMTP_SERVER}
+
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: elastalert-rules
+    data:
+      lad-anomaly-detected.yaml: |
+        name: "LAD ANOMALIES DETECTED"
+
+        es_host: ${ELASTICSEARCH_HOST}
+        es_port: ${ELASTICSEARCH_PORT}
+        use_ssl: False
+        verify_certs: False
+        use_strftime_index: true
+        index: "odcs-anomaly-detect-%Y.%m.%d"
+        type: frequency
+        num_events: 1
+        timeframe:
+          minutes: 2
+
+        realert:
+          minutes: 10
+
+        filter:
+        - query:
+            query_string:
+              query: "anomaly:1"
+
+        alert_text: |
+            We found the following message in your logs:
+            message: {2}
+
+            If this is not correct and you would like to report it you can provide feedback with the following link:
+            ${FACTSTORE_URL}?lad_id={0}&is_anomaly=False&message={1}
+
+        alert_text_args: ["predict_id", "e_message", "message"]
+        alert_text_type: alert_text_only
+
+        alert:
+        - "email"
+        email:
+        - "${ALERTS_EMAIL}"
+
+      lad-anomaly-no-logs.yaml: |
+        name: "LAD ANOMALY DETECT logs are not seen for an hour"
+
+        es_host: ${ELASTICSEARCH_HOST}
+        es_port: ${ELASTICSEARCH_PORT}
+        use_ssl: False
+        verify_certs: False
+
+        use_strftime_index: true
+        index: "lad-anomaly-detect-%Y.%m.%d"
+
+        use_count_query: true
+        doc_type: log
+        type: flatline
+
+        threshold: 1
+        timeframe:
+          minutes: 60
+        realert:
+          hours: 1
+
+        alert:
+        - "email"
+        email:
+        - "${ALERTS_EMAIL}"
+
+parameters:
+  - name: ELASTICSEARCH_HOST
+    displayName: Host URL for elasticsearch
+    value: "lad-elasticsearch-service.lad.svc"  # assuming lad is the namespace
+    required: true
+  - name: ELASTICSEARCH_PORT
+    displayName: Host port for elasticsearch
+    value: "9200"
+    required: true
+  - name: ELASTICSEARCH_USER
+    displayName: username for elasticsearch connection
+    value: elastalert
+    required: true
+  - name: ELASTICSEARCH_PASSWORD
+    displayName: password for elasticsearch connection
+    value: elastalert
+    required: true
+  - name: FACTSTORE_URL
+    displayName: "Host URL for Factstore ending with a '/'"
+    required: true
+  - name: SMTP_SERVER
+    displayName: Host URL for smtp email server
+    required: true
+  - name: METADATA_STORE_INDEX
+    displayName: Host URL for Factstore
+    value: elastalert_status
+    required: true
+  - name: ALERTS_EMAIL
+    displayName: email address to send alerts to
+    value: zhassan@redhat.com
+    required: true
