@@ -3,7 +3,7 @@ import logging
 import pytest
 from anomaly_detector.adapters import FeedbackStrategy, SomModelAdapter, SomStorageAdapter
 from anomaly_detector.config import Configuration
-from anomaly_detector.jobs import SomTrainCommand
+from anomaly_detector.jobs import SomTrainJob
 
 FREQ_NUM = 10000
 NODE_MAP = 2
@@ -30,7 +30,7 @@ def get_score(config, node_map, feedback):
     feedback_strategy = FeedbackStrategy(config, func=feedback)
     storage_adapter = SomStorageAdapter(config=config, feedback_strategy=feedback_strategy)
     model_adapter = SomModelAdapter(storage_adapter=storage_adapter)
-    tc = SomTrainCommand(node_map=node_map, model_adapter=model_adapter)
+    tc = SomTrainJob(node_map=node_map, model_adapter=model_adapter)
     success, dist = tc.execute()
     freq_one = dist[-1]
     return freq_one

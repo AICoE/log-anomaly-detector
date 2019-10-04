@@ -1,8 +1,5 @@
 """Anomaly Detector Facade - Acts as a gateway and abstracts the complexity."""
-from anomaly_detector.adapters.som_model_adapter import SomModelAdapter
-from anomaly_detector.adapters.som_storage_adapter import SomStorageAdapter
-from anomaly_detector.adapters.feedback_strategy import FeedbackStrategy
-from anomaly_detector.jobs.tasks import TaskQueue, SomTrainCommand, SomInferCommand
+from anomaly_detector.jobs.core import Pipeline, PipelineCatalog
 from anomaly_detector.exception.exceptions import EmptyDataSetException
 import logging
 import uuid
@@ -21,14 +18,13 @@ class AnomalyDetectorFacade:
         :param config: configuration provided via yaml or environment variables
         :param feedback_strategy: a function that runs to improve the feedback of system
         """
-        if feedback_strategy is None:
-            feedback_strategy = FeedbackStrategy(config=config)
-        storage_adapter = SomStorageAdapter(config, feedback_strategy)
-        self.__model_adapter = SomModelAdapter(storage_adapter)
-        self.tasks = TaskQueue()
+        self.config = config
+        self.feedback_strategy = feedback_strategy
+        self.pipeline = Pipeline()
         self.tracing_enabled = tracing_enabled
 
-    def create_tracer(self, service):
+    @staticmethod
+    def create_tracer(service):
         """Initialize tracer for open tracing."""
         logging.getLogger('').handlers = []
         logging.basicConfig(format='%(message)s', level=logging.DEBUG)
@@ -51,13 +47,12 @@ class AnomalyDetectorFacade:
         :return: None
         """
         exit = False
-
         while exit is False:
             try:
-                train = SomTrainCommand(model_adapter=self.__model_adapter)
-                infer = SomInferCommand(model_adapter=self.__model_adapter)
-                self.tasks.add_steps(train)
-                self.tasks.add_steps(infer)
+                jobs = PipelineCatalog(config=self.config,
+                                       feedback_strategy=self.feedback_strategy,
+                                       job="sompy.train.inference")
+                self.pipeline = jobs.get_pipeline()
                 self.start_job()
                 logging.info("Job ran succesfully")
             except EmptyDataSetException as e:
@@ -76,18 +71,20 @@ class AnomalyDetectorFacade:
             with tracer.start_span('anomaly_facade_run') as span:
                 span.set_tag('job_id', job_id)
                 with span_in_context(span):
-                    self.tasks.execute_steps(tracer=tracer)
+                    self.pipeline.execute_steps(tracer=tracer)
         else:
-            self.tasks.execute_steps()
+            self.pipeline.execute_steps()
 
-    def train(self, node_map=24):
+    def train(self):
         """Run training of model and provides size of map.
 
-        :param node_map: by default the node_map is 24 and is custom field for SOM model.
         :return: None
         """
-        train = SomTrainCommand(node_map=node_map, model_adapter=self.__model_adapter)
-        self.tasks.add_steps(train)
+        jobs = PipelineCatalog(config=self.config,
+                               feedback_strategy=self.feedback_strategy,
+                               job="sompy.train")
+
+        self.pipeline = jobs.get_pipeline()
         self.start_job()
 
     def infer(self):
@@ -95,6 +92,8 @@ class AnomalyDetectorFacade:
 
         :return: None
         """
-        inference = SomInferCommand(model_adapter=self.__model_adapter)
-        self.tasks.add_steps(inference)
+        jobs = PipelineCatalog(config=self.config,
+                               feedback_strategy=self.feedback_strategy,
+                               job="sompy.inference")
+        self.pipeline = jobs.get_pipeline()
         self.start_job()

@@ -13,11 +13,11 @@ class TestTaskManager(TestCase):
 
     def test_train_command(self):
         """Test case for validating that when we train a model and add it to task queue that it will run."""
-        mgr = TaskQueue()
+        mgr = Pipeline()
         config = Configuration(config_yaml="config_files/.env_config.yaml")
         storage_adapter = SomStorageAdapter(config=config, feedback_strategy=None)
         model_adapter = SomModelAdapter(storage_adapter)
-        tc = SomTrainCommand(node_map=2, model_adapter=model_adapter)
+        tc = SomTrainJob(node_map=2, model_adapter=model_adapter)
 
         mgr.add_steps(tc)
         self.assertEqual(len(mgr), TASKS_IN_QUEUE)
@@ -28,7 +28,7 @@ class TestTaskManager(TestCase):
 
     def test_invalid_command(self):
         """Test case for validating that when we train a model and add it to task queue that it will run."""
-        mgr = TaskQueue()
+        mgr = Pipeline()
 
         class mock_func:
             def execute(self):
@@ -41,7 +41,7 @@ class TestTaskManager(TestCase):
 
     def test_valid_command(self):
         """Test case for validating that when we train a model and add it to task queue that it will run."""
-        mgr = TaskQueue()
+        mgr = Pipeline()
 
         class mock_func(AbstractCommand):
             def execute(self):
