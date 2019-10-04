@@ -1,5 +1,9 @@
 ## Anomaly Detection Core
 
-Core component that consists of:
-* Storage - Different Storage providers currently we provide file based streaming and elasticsearch based streaming
-* 
+
+* storage - All storage interfaces and apis 
+* decorator - Utilities to decorate functions
+* exception - All exception handling
+* fact_store - Human in the loop feedback system
+* jobs - All controll logic to manage the data pipeline and ml system
+* model - All machine learning models
