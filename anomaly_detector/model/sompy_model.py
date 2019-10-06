@@ -19,7 +19,7 @@ class SOMPYModel(BaseModel):
     def train(self, inp, map_size, iterations, parallelism):
         """Train the SOM model."""
         mapsize = [map_size, map_size]
-        som = sompy.SOMFactory.build(inp, mapsize)
+        som = sompy.SOMFactory.build(inp, mapsize, initialization=self.config.SOMPY_INIT)
         if not self.config:
             som.train(n_job=parallelism)
         else:
