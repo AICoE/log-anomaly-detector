@@ -7,14 +7,15 @@ from elasticsearch5 import Elasticsearch, helpers
 import json
 import os
 import urllib3
-from anomaly_detector.storage.storage import Storage
-
+from anomaly_detector.storage.storage_sink import StorageSink
+from anomaly_detector.storage.storage_source import StorageSource
 import logging
+from anomaly_detector.storage.storage import DataCleaner
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class ESStorage(Storage):
+class ESStorage:
     """Elasticsearch storage backend."""
 
     NAME = "es"
@@ -62,6 +63,36 @@ class ESStorage(Storage):
         index = prefix + date
         return index
 
+
+class ElasticSearchDataSink(StorageSink, DataCleaner, ESStorage):
+    """Local storage data sink implementation."""
+
+    NAME = "es.sink"
+
+    def __init__(self, configuration):
+        """Initialize local storage backend."""
+        self.config = configuration
+        self._connect()
+
+    def store_results(self, data):
+        """Store results back to ES."""
+        index_out = self._prep_index_name(self.config.ES_TARGET_INDEX)
+
+        actions = [{"_index": index_out, "_type": "log", "_source": data[i]} for i in range(len(data))]
+
+        helpers.bulk(self.es, actions, chunk_size=int(len(data) / 4) + 1)
+
+
+class ElasticSearchDataSource(StorageSource, DataCleaner, ESStorage):
+    """Local storage Data source implementation."""
+
+    NAME = "es.source"
+
+    def __init__(self, configuration):
+        """Initialize local storage backend."""
+        self.config = configuration
+        self._connect()
+
     def retrieve(self, storage_attribute: ESStorageAttribute):
         """Retrieve data from ES."""
         index_in = self._prep_index_name(self.config.ES_INPUT_INDEX)
@@ -101,11 +132,3 @@ class ESStorage(Storage):
         self._preprocess(es_data_normalized)
 
         return es_data_normalized, es_data  # bad solution, this is how Entry objects could come in.
-
-    def store_results(self, data):
-        """Store results back to ES."""
-        index_out = self._prep_index_name(self.config.ES_TARGET_INDEX)
-
-        actions = [{"_index": index_out, "_type": "log", "_source": data[i]} for i in range(len(data))]
-
-        helpers.bulk(self.es, actions, chunk_size=int(len(data) / 4) + 1)

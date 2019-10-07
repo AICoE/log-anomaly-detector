@@ -2,25 +2,18 @@
 import logging
 from anomaly_detector.adapters import BaseStorageAdapter
 from anomaly_detector.decorator.utils import latency_logger
-from anomaly_detector.storage import ESStorage, LocalStorage, ESStorageAttribute, LocalDirStorage
+from anomaly_detector.storage import ESStorageAttribute
+from anomaly_detector.storage.storage_proxy import StorageProxy
 
 
 class SomStorageAdapter(BaseStorageAdapter):
     """Custom storage interface for dealing with som model."""
 
-    STORAGE_BACKENDS = [LocalStorage, LocalDirStorage, ESStorage]
-
     def __init__(self, config, feedback_strategy=None):
         """Initialize configuration for for storage interface."""
         self.config = config
         self.feedback_strategy = feedback_strategy
-        for backend in self.STORAGE_BACKENDS:
-            if backend.NAME == self.config.STORAGE_BACKEND:
-                logging.info("Using %s storage backend" % backend.NAME)
-                self.storage = backend(config)
-                break
-        if not self.storage:
-            raise Exception("Could not use %s storage backend" % self.STORAGE_BACKENDS)
+        self.storage = StorageProxy(config)
 
     def retrieve_data(self, timespan, max_entry, false_positive):
         """Fetch data from storage system."""

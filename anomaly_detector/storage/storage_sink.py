@@ -1,4 +1,4 @@
-"""Storage Sink abstract class."""
+"""Storage Data Sink."""
 from abc import ABCMeta, abstractmethod
 
 
