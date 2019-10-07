@@ -42,7 +42,7 @@ class StorageCatalog(object):
         return ElasticSearchDataSource(configuration=config)
 
     @classmethod
-    def _elasticsearch_datasink_api(cls, config, job_type):
+    def _elasticsearch_datasink_api(cls, config):
         """Local file storage api datasink construction."""
         logging.info("save to elasticsearch datasink")
         return ElasticSearchDataSink(configuration=config)
