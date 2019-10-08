@@ -89,17 +89,7 @@ class SomInferenceJob(AbstractCommand):
             logging.info("%d logs loaded from the last %d seconds", len(data),
                          self.model_adapter.storage_adapter.INFER_TIME_SPAN)
             results = self.model_adapter.predict(data, json_logs, threshold)
-            # This is for offline testing of the ML Training and Infer which results in trigger emails.
-            if self.model_adapter.storage_adapter.PREDICTION_ALERT is True:
-                if self.model_adapter.storage_adapter.STORAGE_BACKEND_SINK == "kafka":
-                    kf_sink = KafkaSink(config=self.model_adapter.storage_adapter.config)
-                    for data in results:
-                        kf_sink.store_results(data=data)
-                        kf_sink.flush()
-                    logging.info("{} predictions sent to kafka".format(len(results)))
-                else:
-                    self.model_adapter.storage_adapter.persist_data(results)
-
+            self.model_adapter.storage_adapter.persist_data(results)
             # Inference done, increase counter
             infer_loops += 1
             now = time.time()
