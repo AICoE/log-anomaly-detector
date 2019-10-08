@@ -11,22 +11,63 @@ run-with-local:
 test:
 	pipenv run python setup.py test --addopts -vs
 
+# namespace/project where all the deployments will be made
+NAMESPACE=lad
+# route for the Factstore deployed
+FACTSTORE_ROUTE="http://LAD.FACTSTORE.URL.ENTER.HERE.com/"
+# mailing server used by elastalerts to send anomaly alerts
+SMTP_SERVER_URL="my.mailing.server.url"
+
 # openshift deployment commands
 oc_deploy_elasticsearch:
-	oc process -f ./openshift/aiops_lad_core.elasticsearch.storage.yaml | oc apply -f -
-	
+	oc process -f ./openshift/aiops_lad_core.elasticsearch.storage.yaml | oc apply -f - -n ${NAMESPACE}
+
 oc_delete_elasticsearch:
-	oc process -f ./openshift/aiops_lad_core.elasticsearch.storage.yaml | oc delete -f -
+	oc process -f ./openshift/aiops_lad_core.elasticsearch.storage.yaml | oc delete -f - -n ${NAMESPACE}
 
 oc_deploy_sql_db:
-	oc new-app centos/mysql-56-centos7 -e MYSQL_DATABASE=factstore -e MYSQL_PASSWORD=password -e MYSQL_USER=admin -e MYSQL_ROOT_PASSWORD=password
+	oc new-app centos/mysql-56-centos7 -e MYSQL_DATABASE=factstore -e MYSQL_PASSWORD=password -e MYSQL_USER=admin -e MYSQL_ROOT_PASSWORD=password -n ${NAMESPACE}
 
 oc_delete_sql_db:
-	oc delete all -l app=mysql-56-centos7
+	oc delete all -l app=mysql-56-centos7 -n ${NAMESPACE}
 
 oc_deploy_factstore:
-	oc process -f aiops_factstore.deployment.yaml | oc apply -f -
+	oc process -f ./openshift/aiops_factstore.deployment.yaml | oc apply -f - -n ${NAMESPACE}
 
 oc_delete_factstore:
-	oc process -f aiops_factstore.deployment.yaml | oc delete -f -
+	oc process -f ./openshift/aiops_factstore.deployment.yaml | oc delete -f - -n ${NAMESPACE}
 
+oc_deploy_lad:
+	oc process -f ./openshift/log-anomaly-detector-minishift.yaml -p FACT_STORE_URL=${FACTSTORE_ROUTE} | oc apply -f - -n ${NAMESPACE}
+
+oc_delete_lad:
+	oc process -f ./openshift/log-anomaly-detector-minishift.yaml -p FACT_STORE_URL=${FACTSTORE_ROUTE} | oc delete -f - -n ${NAMESPACE}
+
+oc_deploy_demo_app:
+	oc process -f https://raw.githubusercontent.com/HumairAK/anomaly-detection-demo-app/master/openshift/ad_demo.yaml | oc apply -f - -n ${NAMESPACE}
+
+oc_build_elastalert_image:
+	oc process -f ./openshift/elastalert/lad-elastalert-buildconfig.yaml | oc apply -f - -n ${NAMESPACE}
+
+oc_delete_elastalert_image:
+	oc process -f ./openshift/elastalert/lad-elastalert-buildconfig.yaml | oc delete -f - -n ${NAMESPACE}
+
+oc_deploy_elastalert:
+	oc process -f ./openshift/elastalert/lad-elastalert-deployment.yaml -p FACTSTORE_URL=${FACTSTORE_ROUTE} -p SMTP_SERVER=${SMTP_SERVER_URL}| oc apply -f - -n ${NAMESPACE}
+
+oc_delete_elastalert:
+	oc process -f ./openshift/elastalert/lad-elastalert-deployment.yaml -p FACTSTORE_URL=${FACTSTORE_ROUTE} -p SMTP_SERVER=${SMTP_SERVER_URL}| oc delete -f - -n ${NAMESPACE}
+
+echo_message:
+	echo "Please update the vars FACTSTORE_ROUTE and SMTP_SERVER_URL in this Makefile"
+
+# minishift start
+minishift_start:
+	# these commands should run before a vm is created
+	minishift config set --global memory 8192 # give the cluster about 8 gigs of memory
+	minishift config set --global cpus 6 # and 6 vcpus
+
+	# start the cluster this will take some time
+	minishift start
+
+oc_deploy_demo_prereqs: oc_deploy_sql_db oc_deploy_elasticsearch oc_deploy_factstore oc_deploy_demo_app oc_build_elastalert_image echo_message
