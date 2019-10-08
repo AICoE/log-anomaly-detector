@@ -31,9 +31,6 @@ release = "0.0.1.beta"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = []
-extensions.append('autoapi.extension')
-autoapi_type = 'python'
-autoapi_dirs = ['../../anomaly_detector']
 master_doc = "index"
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -54,8 +51,4 @@ html_theme = "press"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
-html_theme_options = {
-  'googlewebfont': True,
-  'googlewebfont_url': 'http://fonts.googleapis.com/css?family=Text+Me+One',
-  'googlewebfont_style': "font-family: 'Text Me One', sans-serif",
-}
+html_logo = "_static/logo.svg"
