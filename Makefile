@@ -38,10 +38,10 @@ oc_delete_factstore:
 	oc process -f ./openshift/aiops_factstore.deployment.yaml | oc delete -f - -n ${NAMESPACE}
 
 oc_deploy_lad:
-	oc process -f ./openshift/log-anomaly-detector-minishift.yaml -p FACT_STORE_URL=${FACTSTORE_ROUTE} | oc apply -f - -n ${NAMESPACE}
+	oc process -f ./openshift/log-anomaly-detector-minishift.yaml -p FACT_STORE_URL=${FACTSTORE_ROUTE} -p ES_ENDPOINT="lad-elasticsearch-service.${NAMESPACE}.svc:9200" | oc apply -f - -n ${NAMESPACE}
 
 oc_delete_lad:
-	oc process -f ./openshift/log-anomaly-detector-minishift.yaml -p FACT_STORE_URL=${FACTSTORE_ROUTE} | oc delete -f - -n ${NAMESPACE}
+	oc process -f ./openshift/log-anomaly-detector-minishift.yaml -p FACT_STORE_URL=${FACTSTORE_ROUTE} -p ES_ENDPOINT="lad-elasticsearch-service.${NAMESPACE}.svc:9200"| oc delete -f - -n ${NAMESPACE}
 
 oc_deploy_demo_app:
 	oc process -f https://raw.githubusercontent.com/HumairAK/anomaly-detection-demo-app/master/openshift/ad_demo.yaml | oc apply -f - -n ${NAMESPACE}
