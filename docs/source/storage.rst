@@ -23,12 +23,18 @@ LocalDir
 --------
 This works the same as the local storage except this will let you read from a directory of logs which can either be json or common log. We support only files ending with '.log' or '.json'
 
+Example
+-------
+To read from Elasticsearch and write predictions to Kafka you can use the following configurations
 
 .. code-block:: shell
 
-   STORAGE_BACKEND: "es" # Reads logs from elasticsearch
-   STORAGE_BACKEND: "local" # Reads logs from local file
-   STORAGE_BACKEND: "localdir" # Reads logs from directory of files
+   STORAGE_DATASOURCE: “es.source”
+   STORAGE_DATASINK: “kafka.sink”
+
+
+.. image:: ../../imgs/storage-example.png
+
 
 
 .. note::
@@ -38,12 +44,23 @@ This works the same as the local storage except this will let you read from a di
 Extending Storage
 -----------------
 
-To extend storage with different storage systems:
+You can extend the following storage classes to allow for LAD to connect to different systems:
 
 
-.. literalinclude:: ../../anomaly_detector/adapters/base_storage_adapter.py
+.. literalinclude:: ../../anomaly_detector/storage/storage_sink.py
+.. literalinclude:: ../../anomaly_detector/storage/storage_source.py
 
 
+Here are git issues that explain how to set something like this up:
+
+See: https://github.com/AICoE/log-anomaly-detector/issues/281 for example of how to add new storage sink
+
+See: https://github.com/AICoE/log-anomaly-detector/issues/207 for example of how to add new storage source
 
 
+Note you will need to update the storage_catalog.py which can be found here:
+
+.. literalinclude:: ../../anomaly_detector/storage/storage_catalog.py
+
+ 
 
