@@ -68,6 +68,7 @@ class Configuration(Borg):
     SOMPY_TRAIN_ROUGH_LEN = 100
     SOMPY_TRAIN_FINETUNE_LEN = 5
     SOMPY_NODE_MAP = 24
+    SOMPY_INIT = "pca"
 
     MODEL_STORE = ""
     MODEL_STORE_PATH = "anomaly-detection/models/"
