@@ -7,25 +7,30 @@ with open("README.rst", "r", encoding="utf-8") as fh:
 REQUIRED_PKG = [
     "Click",
     "elasticsearch5",
-    "urllib3==1.21.1",
     "gensim",
     "matplotlib",
     "numpy",
     "pandas",
     "prometheus_client",
-    "Flask",
+    "Flask==1.0.4",
     "scikit-learn",
     "scipy",
     "tqdm",
-    "Flask-SQLAlchemy",
+    "SQLAlchemy",
     "PyMySQL",
     "sompy",
     "pyyaml",
+    "boto3",
+    "pyyaml",
+    "numba",
+    "kafka-python",
+    "jaeger-client",
+    "opentracing_instrumentation",
 ]
 
 setup(
-    name="scorpio",
-    version="0.0.1-rc2",
+    name="log-anomaly-detector",
+    version="0.0.1b5",
     py_modules=['app'],
     packages=find_packages(),
     setup_requires=["pytest-runner"],
@@ -49,6 +54,6 @@ setup(
     install_requires=REQUIRED_PKG,
     entry_points="""
         [console_scripts]
-        scorpio=app:cli
+        log-anomaly-detector=app:cli
     """,
 )
