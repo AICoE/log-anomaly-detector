@@ -134,7 +134,8 @@ objects:
         app: log-anomaly-detector-${APP_NAME}
     data:
       .env_config.yaml: |
-        STORAGE_BACKEND: "es"
+        STORAGE_DATASOURCE: "es.source"
+        STORAGE_DATASINK: "es.sink"
         ES_ENDPOINT: ${ES_ENDPOINT}
         ES_QUERY: 'ecommerce'
         ES_USE_SSL: False
@@ -142,9 +143,12 @@ objects:
         ES_TARGET_INDEX: "odcs-anomaly-detect-"
         FACT_STORE_URL: ${FACT_STORE_URL}
         INFER_ANOMALY_THRESHOLD: 1.3
-        INFER_TIME_SPAN: 1
+        INFER_TIME_SPAN: 10
         INFER_LOOPS: 1
         PARALLELISM: 6
+        SOMPY_TRAIN_ROUGH_LEN: 100
+        SOMPY_TRAIN_FINETUNE_LEN: 5
+        SOMPY_INIT: "random"
 
 
 parameters:

@@ -110,6 +110,16 @@ objects:
       ports:
         - port: 5001
           name: http
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: log-anomaly-detector-factstore-${CUSTOMER_ID}-metrics-svc
+      labels:
+        app: log-anomaly-detector-factstore-${CUSTOMER_ID}
+    spec:
+      selector:
+        app: log-anomaly-detector-factstore-${CUSTOMER_ID}
+      ports:
         - port: 8080
           name: metrics
 

@@ -1,0 +1,116 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: prometheus
+  annotations:
+    "openshift.io/display-name": Prometheus
+    description: Federate another prometheus and add predicted metric targets
+    iconClass: fa fa-cogs
+    tags: "monitoring, prometheus, time-series"
+parameters:
+  - description: The location of the prometheus image
+    name: IMAGE_PROMETHEUS
+    value: quay.io/prometheus/prometheus:v2.13.0
+  - description: Memory Limit Prometheus
+    name: LIMIT_MEMORY_PROMETHEUS
+    value: 1Gi
+  - name: APPLICATION_NAME
+    value: lad-prometheus
+  - name: TARGET_HOSTS
+    description: target hosts to scrape
+  - name: SCRAPE_JOB_NAME
+    description: the job_name label for metrics collected
+    value: lad
+
+objects:
+  - apiVersion: v1
+    kind: DeploymentConfig
+    metadata:
+      name: ${APPLICATION_NAME}
+      labels:
+        deploymentConfig: ${APPLICATION_NAME}
+        app: ${APPLICATION_NAME}
+    spec:
+      replicas: 1
+      selector:
+        deploymentConfig: ${APPLICATION_NAME}
+      strategy:
+        type: Recreate
+      template:
+        metadata:
+          labels:
+            deploymentConfig: ${APPLICATION_NAME}
+            app: ${APPLICATION_NAME}
+        spec:
+          containers:
+            - name: ${APPLICATION_NAME}
+              args:
+                - --storage.tsdb.retention.time=12h
+                - --storage.tsdb.min-block-duration=2h
+                - --storage.tsdb.max-block-duration=2h
+                - --config.file=/etc/prometheus/prometheus.yml
+                - --web.listen-address=0.0.0.0:9090
+              image: ${IMAGE_PROMETHEUS}
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: '1'
+                  memory: ${LIMIT_MEMORY_PROMETHEUS}
+              volumeMounts:
+                - mountPath: /etc/prometheus
+                  name: prometheus-config
+                - mountPath: /prometheus
+                  name: prometheus-data
+          restartPolicy: Always
+          volumes:
+            - name: prometheus-config
+              configMap:
+                defaultMode: 420
+                name: ${APPLICATION_NAME}
+            - name: prometheus-data
+              emptyDir: {}
+
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${APPLICATION_NAME}-service
+      labels:
+        app: ${APPLICATION_NAME}
+    spec:
+      ports:
+        - port: 9090
+          name: http
+      selector:
+        app: ${APPLICATION_NAME}
+
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      name: ${APPLICATION_NAME}-route
+      labels:
+        app: ${APPLICATION_NAME}
+    spec:
+      to:
+        kind: Service
+        name: ${APPLICATION_NAME}-service
+
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: ${APPLICATION_NAME}
+    data:
+      prometheus.yml: |
+        global:
+          external_labels:
+            monitor: prometheus
+        scrape_configs:
+        - job_name: ${SCRAPE_JOB_NAME}
+          tls_config:
+            insecure_skip_verify: true
+          honor_labels: true
+          scrape_interval: 60s
+          scrape_timeout: 10s
+          metrics_path: /metrics
+          scheme: http
+          static_configs:
+          - targets: [${TARGET_HOSTS}]

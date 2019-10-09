@@ -38,10 +38,10 @@ oc_delete_factstore:
 	oc process -f ./openshift/aiops_factstore.deployment.yaml | oc delete -f - -n ${NAMESPACE}
 
 oc_deploy_lad:
-	oc process -f ./openshift/log-anomaly-detector-minishift.yaml -p FACT_STORE_URL=${FACTSTORE_ROUTE} | oc apply -f - -n ${NAMESPACE}
+	oc process -f ./openshift/log-anomaly-detector-minishift.yaml -p FACT_STORE_URL=${FACTSTORE_ROUTE} -p ES_ENDPOINT="lad-elasticsearch-service.${NAMESPACE}.svc:9200" | oc apply -f - -n ${NAMESPACE}
 
 oc_delete_lad:
-	oc process -f ./openshift/log-anomaly-detector-minishift.yaml -p FACT_STORE_URL=${FACTSTORE_ROUTE} | oc delete -f - -n ${NAMESPACE}
+	oc process -f ./openshift/log-anomaly-detector-minishift.yaml -p FACT_STORE_URL=${FACTSTORE_ROUTE} -p ES_ENDPOINT="lad-elasticsearch-service.${NAMESPACE}.svc:9200"| oc delete -f - -n ${NAMESPACE}
 
 oc_deploy_demo_app:
 	oc process -f https://raw.githubusercontent.com/HumairAK/anomaly-detection-demo-app/master/openshift/ad_demo.yaml | oc apply -f - -n ${NAMESPACE}
@@ -57,6 +57,13 @@ oc_deploy_elastalert:
 
 oc_delete_elastalert:
 	oc process -f ./openshift/elastalert/lad-elastalert-deployment.yaml -p FACTSTORE_URL=${FACTSTORE_ROUTE} -p SMTP_SERVER=${SMTP_SERVER_URL}| oc delete -f - -n ${NAMESPACE}
+
+oc_deploy_prometheus:
+	oc process -f ./openshift/metrics/prometheus.yaml -p TARGET_HOSTS="anomaly-detection-demo.${NAMESPACE}.svc:8088, log-anomaly-detector-demo-svc.${NAMESPACE}.svc:8080" | oc apply -f - -n ${NAMESPACE}
+
+oc_delete_prometheus:
+	oc process -f ./openshift/metrics/prometheus.yaml -p TARGET_HOSTS="anomaly-detection-demo.${NAMESPACE}.svc:8088, log-anomaly-detector-demo-svc.${NAMESPACE}.svc:8080" | oc delete -f - -n ${NAMESPACE}
+
 
 echo_message:
 	echo "Please update the vars FACTSTORE_ROUTE and SMTP_SERVER_URL in this Makefile"
