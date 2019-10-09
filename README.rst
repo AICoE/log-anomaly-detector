@@ -27,11 +27,15 @@ Install Log Anomaly Detector (LAD):
 
 .. code-block:: shell
 
-   pip install git+https://github.com/AICoE/log-anomaly-detector.git
+   pip install log-anomaly-detector
 
 .. note::
 
    LAD requires python 3.6
+
+
+
+
 
 Documentation
 -------------
