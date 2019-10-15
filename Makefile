@@ -64,6 +64,12 @@ oc_deploy_prometheus:
 oc_delete_prometheus:
 	oc process -f ./openshift/metrics/prometheus.yaml -p TARGET_HOSTS="anomaly-detection-demo.${NAMESPACE}.svc:8088, log-anomaly-detector-demo-svc.${NAMESPACE}.svc:8080" | oc delete -f - -n ${NAMESPACE}
 
+oc_deploy_grafana:
+	oc process -f ./openshift/metrics/grafana.yaml | oc apply -f - -n ${NAMESPACE}
+	./openshift/metrics/setup_grafana.sh
+
+oc_delete_grafana:
+	oc process -f ./openshift/metrics/grafana.yaml | oc delete -f - -n ${NAMESPACE}
 
 echo_message:
 	echo "Please update the vars FACTSTORE_ROUTE and SMTP_SERVER_URL in this Makefile"
@@ -78,3 +84,5 @@ minishift_start:
 	minishift start
 
 oc_deploy_demo_prereqs: oc_deploy_sql_db oc_deploy_elasticsearch oc_deploy_factstore oc_deploy_demo_app oc_build_elastalert_image echo_message
+
+oc_deploy_demo_monitoring: oc_deploy_prometheus oc_deploy_grafana
