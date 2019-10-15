@@ -68,6 +68,7 @@ We happily welcome contributions to LAD. Please see our contribution guide for
    development_guide
    deployment
    configinfo
+   metricsinfo
    changelog
    architecture
    model
