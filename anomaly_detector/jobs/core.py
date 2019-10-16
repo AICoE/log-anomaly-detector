@@ -2,14 +2,12 @@
 import datetime
 import logging
 from abc import ABCMeta, abstractmethod
-import time
+import os
 from prometheus_client import Counter
-
+from anomaly_detector.model import SOMPYModel, W2VModel
 from anomaly_detector.adapters import FeedbackStrategy, SomModelAdapter, SomStorageAdapter
-from anomaly_detector.exception import EmptyDataSetException
-from anomaly_detector.storage import KafkaSink
+from anomaly_detector.exception import EmptyDataSetException, ModelSaveException, ModelLoadException
 import time
-from jaeger_client import Config
 from opentracing_instrumentation.request_context import get_current_span, span_in_context
 
 TRAINING_COUNT = Counter("aiops_lad_train_count", "count of training runs")
@@ -23,6 +21,56 @@ class AbstractCommand(metaclass=ABCMeta):
     def execute(self):
         """Generic method that gets executed by the task manager."""
         raise NotImplementedError("Please implement the <execute method>")
+
+
+class LogEncoder(object):
+    """Log Encoder."""
+
+    def __init__(self, encoder_api, config, recreate_model=False):
+        """Initialize encoder."""
+        self.config = config
+        self.update_model = os.path.isfile(self.config.W2V_MODEL_PATH) and self.config.TRAIN_UPDATE_MODEL
+        self.recreate_model = recreate_model
+        if encoder_api in self._instance_method_choices:
+            self.encoder_api = encoder_api
+        else:
+            raise ValueError("Invalid Value for Param: {0}".format(encoder_api))
+
+    def encode_log(self, dataframe):
+        """Encode logs using dataframe provided from input datasource."""
+        if dataframe is not None:
+            if not self.recreate_model:
+                self.model.update(dataframe)
+            else:
+                self.model.create(dataframe,
+                                  self.config.TRAIN_VECTOR_LENGTH,
+                                  self.config.TRAIN_WINDOW)
+            try:
+                self.model.save(self.config.W2V_MODEL_PATH)
+            except ModelSaveException as ex:
+                logging.error("Failed to save W2V model: %s" % ex)
+                raise
+
+    def _w2v_encoder(self):
+        """Load the encoder and prepare model for processing logs."""
+        self.model = W2VModel(config=self.config)
+        try:
+            self.model.load(self.config.W2V_MODEL_PATH)
+        except ModelLoadException as ex:
+            logging.error("Failed to load W2V model: %s" % ex)
+            raise
+
+        return self.model
+
+    def one_vector(self, data):
+        """Return vectors from data."""
+        return self.model.one_vector(data)
+
+    _instance_method_choices = {'w2v_encoder': _w2v_encoder}
+
+    def build(self):
+        """Build and initialize encoder."""
+        return self._instance_method_choices[self.encoder_api].__get__(self)()
 
 
 class SomTrainJob(AbstractCommand):
