@@ -5,8 +5,10 @@ from anomaly_detector.fact_store.fact_store_api import FactStore
 import os
 from prometheus_client import Counter
 
-HUMAN_FEEDBACK_COUNT = Counter("aiops_human_feedback_count", "count of training runs",
+HUMAN_FEEDBACK_COUNT = Counter("aiops_human_feedback", "count of number of human feedback provided by customer",
                                ['customer_id', 'anomaly_status'])
+HUMAN_FEEDBACK_ERROR_COUNT = Counter("aiops_human_feedback_error", "count of human feedback not able to write to db",
+                                     ['err_msg'])
 
 app = Flask(__name__, static_folder="static")
 
@@ -72,6 +74,7 @@ def feedback():
             raise Exception("Predict ID must be unique. This anomaly" + " feedback  has been reported before")
     except Exception as e:
         logging.info(e)
+        HUMAN_FEEDBACK_ERROR_COUNT.labels(err_msg="failure to write to db in factstore").inc()
         result = {"feedback_service": "failure", "error_msg": "{0}".format(e)}
         return make_response(jsonify(result), 403)
     else:
