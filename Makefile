@@ -44,7 +44,7 @@ oc_delete_lad:
 	oc process -f ./openshift/log-anomaly-detector-minishift.yaml -p FACT_STORE_URL=${FACTSTORE_ROUTE} -p ES_ENDPOINT="lad-elasticsearch-service.${NAMESPACE}.svc:9200"| oc delete -f - -n ${NAMESPACE}
 
 oc_deploy_demo_app:
-	oc process -f https://raw.githubusercontent.com/HumairAK/anomaly-detection-demo-app/master/openshift/ad_demo.yaml | oc apply -f - -n ${NAMESPACE}
+	oc process -f https://raw.githubusercontent.com/AICoE/anomaly-detection-demo-app/master/openshift/ad_demo.yaml | oc apply -f - -n ${NAMESPACE}
 
 oc_build_elastalert_image:
 	oc process -f ./openshift/elastalert/lad-elastalert-buildconfig.yaml | oc apply -f - -n ${NAMESPACE}
