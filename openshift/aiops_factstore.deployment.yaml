@@ -11,6 +11,8 @@ objects:
     metadata:
       labels:
         app: log-anomaly-detector-factstore-${CUSTOMER_ID}
+        component: factstore
+        customer: ${CUSTOMER_ID}
       name: log-anomaly-detector-factstore
     spec:
       lookupPolicy:
@@ -49,6 +51,8 @@ objects:
     metadata:
       labels:
         app: log-anomaly-detector-factstore-${CUSTOMER_ID}
+        component: factstore
+        customer: ${CUSTOMER_ID}
       name: log-anomaly-detector-factstore-${CUSTOMER_ID}
     spec:
       replicas: 1

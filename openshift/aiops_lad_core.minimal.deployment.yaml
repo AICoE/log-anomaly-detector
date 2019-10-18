@@ -43,17 +43,21 @@ objects:
     kind: DeploymentConfig
     metadata:
       labels:
-        app: log-anomaly-detector-f20
-      name: log-anomaly-detector-f20
+        app: log-anomaly-detector-${CUSTOMER_ID}
+        component: lad-core
+        customer: ${CUSTOMER_ID}
+      name: log-anomaly-detector-${CUSTOMER_ID}
     spec:
       replicas: 1
       selector:
-        deploymentconfig: log-anomaly-detector-f20
+        deploymentconfig: log-anomaly-detector-${CUSTOMER_ID}
       template:
         metadata:
           labels:
-            app: log-anomaly-detector-f20
-            deploymentconfig: log-anomaly-detector-f20
+            app: log-anomaly-detector-${CUSTOMER_ID}
+            component: lad-core
+            customer: ${CUSTOMER_ID}
+            deploymentconfig: log-anomaly-detector-${CUSTOMER_ID}
         spec:
           containers:
             - name: log-anomaly-detector
@@ -66,8 +70,6 @@ objects:
                   cpu: 2
                   memory: 2Gi
               volumeMounts:
-                - mountPath: /opt/app-root/src/validation_data
-                  name: lad-demo-volume
                 - mountPath: /opt/app-root/src/openshift
                   name: volume-jobconfigmap
           dnsPolicy: ClusterFirst
@@ -76,12 +78,9 @@ objects:
           securityContext: {}
           terminationGracePeriodSeconds: 30
           volumes:
-            - name: lad-demo-volume
-              persistentVolumeClaim:
-                claimName: lad-demo-log
             - configMap:
                 defaultMode: 420
-                name: sap-demo
+                name: "${CONFIG_MAP}"
               name: volume-jobconfigmap
 
       test: false
@@ -98,3 +97,7 @@ objects:
 parameters:
   - name: CMD
     value: "run --config-yaml validation_data/.env_config.yaml"
+  - name: CUSTOMER_ID
+    value: "placeholder"
+  - name: CONFIG_MAP
+    value: "sample-config"
