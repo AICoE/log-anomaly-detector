@@ -121,8 +121,10 @@ class ElasticSearchDataSource(StorageSource, DataCleaner, ESStorage):
         query["query"]["bool"]["must"][0]["query_string"]["query"] = self.config.ES_QUERY
 
         es_data = self.es.search(index_in, body=json.dumps(query))
-        if es_data["hits"]["total"] == 0 or es_data["hits"]["total"]["value"] == 0:
+        if (self.config.ES_VERSION < 7 and es_data["hits"]["total"] == 0) or \
+                (self.config.ES_VERSION >= 7 and es_data["hits"]["total"]["value"] == 0):
             return pandas.DataFrame(), es_data
+
         # only use _source sub-dict
         es_data = [x["_source"] for x in es_data["hits"]["hits"]]
         es_data_normalized = pandas.DataFrame(json_normalize(es_data)["message"])
