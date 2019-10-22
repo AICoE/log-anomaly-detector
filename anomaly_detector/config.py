@@ -120,6 +120,7 @@ class Configuration(Borg):
     ES_INPUT_INDEX = ""
     # JSON representing a query passed to ElasticSearch to match the data
     ES_QUERY = ""
+    ES_VERSION = 5
     KF_BOOTSTRAP_SERVER = ""
     KF_TOPIC = ""
     KF_CACERT = None
