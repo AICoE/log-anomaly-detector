@@ -1,5 +1,6 @@
 """Storage Data Sink."""
 from abc import ABCMeta, abstractmethod
+import logging
 
 
 class StorageSink(metaclass=ABCMeta):

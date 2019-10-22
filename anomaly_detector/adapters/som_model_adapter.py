@@ -126,18 +126,9 @@ class SomModelAdapter(BaseModelAdapter):
                 ANOMALY_SCORE.set(dist[i])
             else:
                 s["anomaly"] = 0
-            # anomaly_status==1 means its an anomaly otherwise its not we may want to do some comparison.
             ANOMALY_COUNT.labels(anomaly_status=s["anomaly"]).inc()
             ANOMALY_HIST.observe(hist_count)
             f.append(s)
-
-        if self.storage_adapter.FACT_STORE_URL and len(console_report) > 0:
-            logging.info("To provide feedback on anomalies found click the following links")
-            for item in console_report:
-                logging.info("{}?lad_id={}&is_anomaly={}&message={}".format(self.storage_adapter.FACT_STORE_URL,
-                                                                            last_id[item], "False", item))
-        elif len(console_report) == 0:
-            logging.info("No anomalies found.")
         return f
 
     @latency_logger(name="SomModelAdapter")
