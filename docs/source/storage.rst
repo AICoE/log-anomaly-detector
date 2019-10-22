@@ -19,6 +19,12 @@ Local storage backend is able to read data from a file or standard input and wri
 Input data can be in a form of JSON (one entry per line) or plain text (simplified JSON object resembling the ES entry described above is constructed). We also support common logging format ["timestamp  severity    message"]
 
 
+Stdout
+-----
+
+You can output anomalies found out on console to allow us to debug without sending emails.
+
+
 LocalDir
 --------
 This works the same as the local storage except this will let you read from a directory of logs which can either be json or common log. We support only files ending with '.log' or '.json'

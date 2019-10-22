@@ -2,6 +2,7 @@
 from anomaly_detector.storage.kafka_storage import KafkaSink
 from anomaly_detector.storage.local_storage import LocalStorageDataSource, LocalStorageDataSink
 from anomaly_detector.storage.local_directory_storage import LocalDirectoryStorageDataSource
+from anomaly_detector.storage.stdout_sink import StdoutSink
 from anomaly_detector.storage.es_storage import ElasticSearchDataSink, ElasticSearchDataSource
 import logging
 
@@ -53,12 +54,19 @@ class StorageCatalog(object):
         logging.info("save kafka datasink")
         return KafkaSink(config=config)
 
+    @classmethod
+    def _stdout_datasink_api(cls, config):
+        """Stdout data sink."""
+        logging.info("save stdout datasink")
+        return StdoutSink(config=config)
+
     _class_method_choices = {'local.sink': _localfile_datasink_api,
                              'local.source': _localfile_datasource_api,
                              'es.sink': _elasticsearch_datasink_api,
                              'es.source': _elasticsearch_datasource_api,
                              'kafka.sink': _kafka_datasink_api,
-                             'localdir.source': _localdir_datasource_api}
+                             'localdir.source': _localdir_datasource_api,
+                             'stdout.sink': _stdout_datasink_api}
 
     def get_storage_api(self):
         """Storage api."""
