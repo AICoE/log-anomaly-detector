@@ -35,6 +35,7 @@ kafka-python = "*"
 jaeger-client = "*"
 opentracing_instrumentation = "*"
 cryptography = "*"
+prometheus_flask_exporter = "*"
 
 [requires]
 python_version = "3.6"

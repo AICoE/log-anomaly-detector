@@ -1,9 +1,10 @@
 """Fact Store main rest interface."""
 import logging
 from flask import Flask, request, render_template, jsonify, make_response
-from anomaly_detector.fact_store.fact_store_api import FactStore
+from anomaly_detector.fact_store.api import FactStore
 import os
 from prometheus_client import Counter
+from prometheus_flask_exporter import PrometheusMetrics
 
 HUMAN_FEEDBACK_COUNT = Counter("aiops_human_feedback", "count of number of human feedback provided by customer",
                                ['customer_id', 'anomaly_status'])
@@ -11,6 +12,8 @@ HUMAN_FEEDBACK_ERROR_COUNT = Counter("aiops_human_feedback_error", "count of hum
                                      ['err_msg'])
 
 app = Flask(__name__, static_folder="static")
+metrics = PrometheusMetrics(app)
+metrics.info('app_info', 'Log Anomaly Detector', version='v0.1.0.beta1')
 
 
 @app.route("/")

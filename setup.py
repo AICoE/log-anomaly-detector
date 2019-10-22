@@ -26,6 +26,7 @@ REQUIRED_PKG = [
     "kafka-python",
     "jaeger-client",
     "opentracing_instrumentation",
+    "prometheus_flask_exporter"
 ]
 
 setup(

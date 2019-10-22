@@ -1,5 +1,5 @@
 """Test cases for validating fact store persistence."""
-from anomaly_detector.fact_store.fact_store_api import FactStore
+from anomaly_detector.fact_store.api import FactStore
 from anomaly_detector.fact_store.model import FeedbackModel
 
 
