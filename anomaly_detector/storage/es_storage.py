@@ -127,6 +127,8 @@ class ElasticSearchDataSource(StorageSource, DataCleaner, ESStorage):
 
         # only use _source sub-dict
         es_data = [x["_source"] for x in es_data["hits"]["hits"]]
+        self.format_log(self.config, es_data)
+
         es_data_normalized = pandas.DataFrame(json_normalize(es_data)["message"])
 
         _LOGGER.info("%d logs loaded in from last %d seconds", len(es_data_normalized), storage_attribute.time_range)
