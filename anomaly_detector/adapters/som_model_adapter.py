@@ -116,6 +116,7 @@ class SomModelAdapter(BaseModelAdapter):
                         continue
                 hist_count += 1
                 s["anomaly"] = 1
+                s["elast_alert"] = self.storage_adapter.ES_ELAST_ALERT
                 s["e_message"] = quote(s["message"])
                 logging.warning("Anomaly found (score: %f): %s" % (dist[i], s["message"]))
                 console_report.add(quote(s["message"]))
