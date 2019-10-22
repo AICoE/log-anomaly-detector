@@ -91,6 +91,7 @@ class SomModelAdapter(BaseModelAdapter):
     def predict(self, data, json_logs, threshold):
         """Prediction from data provided and if it hits threshold it flags it an anomaly."""
         feedback_strategy = self.storage_adapter.feedback_strategy
+        inference_batch_id = str(uuid.uuid4())
         false_positives = None
         if feedback_strategy is not None:
             false_positives = feedback_strategy.execute()
@@ -117,6 +118,7 @@ class SomModelAdapter(BaseModelAdapter):
                 hist_count += 1
                 s["anomaly"] = 1
                 s["elast_alert"] = self.storage_adapter.ES_ELAST_ALERT
+                s["inference_batch_id"] = inference_batch_id
                 s["e_message"] = quote(s["message"])
                 logging.warning("Anomaly found (score: %f): %s" % (dist[i], s["message"]))
                 console_report.add(quote(s["message"]))
