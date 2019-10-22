@@ -13,8 +13,8 @@ HUMAN_FEEDBACK_ERROR_COUNT = Counter("aiops_human_feedback_error", "count of hum
 
 app = Flask(__name__, static_folder="static")
 metrics = PrometheusMetrics(app)
-
 metrics.info('app_info', 'Log Anomaly Detector', version='v0.1.0.beta1')
+
 
 @app.route("/")
 def index():
