@@ -1,0 +1,9 @@
+---
+factstore_customer_id: "c1"
+factstore_app_name: "log-anomaly-detector-factstore-{{ factstore_customer_id }}"
+factstore_git_uri: "https://github.com/AICoE/log-anomaly-detector.git"
+factstore_git_ref: "master"
+factstore_sql_connect: >-
+  mysql+pymysql://admin:password@$(MYSQL_56_CENTOS7_SERVICE_HOST):$(MYSQL_56_CENTOS7_SERVICE_PORT)/factstore
+factstore_cpu_limit: "1"
+factstore_memory_limit: "2Gi"
