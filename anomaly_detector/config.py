@@ -126,6 +126,7 @@ class Configuration(Borg):
     KF_CACERT = None
     KF_SECURITY_PROTOCOL = 'PLAINTEXT'
     KF_AUTO_TIMEOUT = 30000
+    ES_ELAST_ALERT = 1
 
     prefix = "LAD"
 
