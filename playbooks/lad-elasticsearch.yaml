@@ -1,0 +1,31 @@
+---
+- name: Deploy Elasticsearch to Openshift
+  hosts: 127.0.0.1
+  connection: local
+  tasks:
+    - name: Load the common vars file
+      include_vars:
+        file: "vars/common-vars.yaml"
+
+    - name: Load the elasticsearch vars file
+      include_vars:
+        file: "vars/elasticsearch-vars.yaml"
+
+    - name: Ensure that the required variables were found in the vars file
+      fail:
+        msg: "{{ item }} variable was not found in vars files"
+      when: "{{ item }} is undefined"
+      with_items:
+        - namespace
+        - kubeconfig
+        - es_app_name
+        - es_image_name
+
+    - name: Deploy the Elasticsearch objects to Openshift
+      k8s:
+        kubeconfig: "{{ kubeconfig }}"
+        state: present
+        namespace: "{{ namespace }}"
+        verify_ssl: "no"
+        definition: >-
+          {{ lookup('template', 'elasticsearch-openshift-objects.yaml') }}
