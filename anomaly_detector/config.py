@@ -118,7 +118,9 @@ class Configuration(Borg):
     ES_TARGET_INDEX = ""
     # ElasticSearch index name where log entries will be pulled from
     ES_INPUT_INDEX = ""
-    # JSON representing a query passed to ElasticSearch to match the data
+    # JSON representing a query passed to data source to match the data
+    LOG_FORMATTER = ""
+    # When customer has custom log format. We will need to perform custom processing.
     ES_QUERY = ""
     ES_VERSION = 5
     KF_BOOTSTRAP_SERVER = ""

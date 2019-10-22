@@ -1,6 +1,7 @@
 """Storage abstract class."""
 from abc import ABCMeta, abstractmethod
 import re
+import logging
 
 
 class Storage(metaclass=ABCMeta):
@@ -46,3 +47,15 @@ class DataCleaner:
                 data[col] = data[col].apply(to_str)
 
         data = data.fillna("EMPTY")
+
+    @classmethod
+    def format_log(cls, config, es_dataset):
+        """Format log will extract prefix out of the message."""
+        if config.LOG_FORMATTER == "strip_prefix":
+            for es_data in es_dataset:
+                try:
+                    if len(es_data['message'].split("] ")) > 1:
+                        es_data["orig_message"] = es_data["message"]
+                        es_data["message"] = es_data["message"].split("] ")[1]
+                except Exception as ex:
+                    logging.debug("Error {} in log formatter: {}".format(ex, config.ES_LOG_FORMATTER))
