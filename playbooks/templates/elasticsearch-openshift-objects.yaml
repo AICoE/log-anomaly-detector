@@ -1,0 +1,48 @@
+---
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: "{{ es_app_name }}"
+  labels:
+    deploymentConfig: "{{ es_app_name }}"
+    app: "{{ es_app_name }}"
+spec:
+  replicas: 1
+  selector:
+    deploymentConfig: "{{ es_app_name }}"
+  strategy:
+    type: Rolling
+  template:
+    metadata:
+      labels:
+        deploymentConfig: "{{ es_app_name }}"
+        app: "{{ es_app_name }}"
+    spec:
+      containers:
+        - env:
+            - name: "discovery.type"
+              value: "{{ es_discovery_type }}"
+          name: "{{ es_app_name }}"
+          image: "{{ es_image_name }}"
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: "{{ es_container_cpu_limit }}"
+              memory: "{{ es_container_memory_limit }}"
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ es_app_name }}"
+  labels:
+    app: "{{ es_app_name }}"
+spec:
+  ports:
+    - port: 9200
+      name: http
+    - port: 9300
+      name: es-comm
+  selector:
+    app: "{{ es_app_name }}"
