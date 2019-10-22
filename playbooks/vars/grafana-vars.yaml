@@ -1,0 +1,4 @@
+---
+grafana_app_name: lad-grafana
+grafana_container_image: grafana/grafana:6.4.2
+grafana_container_memory_limit: 1Gi
