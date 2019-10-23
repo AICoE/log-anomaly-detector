@@ -38,8 +38,8 @@ objects:
           name: log-anomaly-detector:latest
       source:
         git:
-          ref: master
-          uri: https://github.com/AICoE/log-anomaly-detector.git
+          ref: ${GIT_REF}
+          uri: ${GIT_URI}
         type: Git
       strategy:
         sourceStrategy:
@@ -150,8 +150,6 @@ objects:
         SOMPY_TRAIN_ROUGH_LEN: 100
         SOMPY_TRAIN_FINETUNE_LEN: 5
         SOMPY_INIT: "random"
-
-
 parameters:
   - name: APP_NAME
     value: "demo"
@@ -165,3 +163,7 @@ parameters:
     required: true
   - name: CMD
     value: run --config-yaml validation_data/.env_config.yaml
+  - name: GIT_URI
+    value: https://github.com/AICoE/log-anomaly-detector.git
+  - name: GIT_REF
+    value: master
