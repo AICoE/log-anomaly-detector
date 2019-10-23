@@ -38,10 +38,12 @@
       }
     ]
   },
+  "description": "Provides anomaly detection of logs",
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": null,
+  "id": 3,
+  "iteration": 1571864488424,
   "links": [],
   "panels": [
     {
@@ -62,7 +64,7 @@
         "thresholdMarkers": true
       },
       "gridPos": {
-        "h": 4,
+        "h": 5,
         "w": 3,
         "x": 0,
         "y": 0
@@ -105,7 +107,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "aiops_lad_loglines_count{job=\"log-anomaly-detector-greenwave\"}",
+          "expr": "aiops_lad_loglines_count{job=\"$job\"}",
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
@@ -129,97 +131,14 @@
     },
     {
       "cacheTimeout": null,
-      "colorBackground": false,
+      "colorBackground": true,
       "colorValue": false,
       "colors": [
-        "#299c46",
+        "#d44a3a",
         "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
+        "#299c46"
       ],
-      "format": "none",
-      "gauge": {
-        "maxValue": 2000,
-        "minValue": 0,
-        "show": true,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 3,
-        "x": 3,
-        "y": 0
-      },
-      "id": 11,
-      "interval": null,
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "options": {},
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": false
-      },
-      "tableColumn": "",
-      "targets": [
-        {
-          "expr": "aiops_lad_inference_count_total{job=\"log-anomaly-detector-greenwave\"}",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "refId": "A"
-        }
-      ],
-      "thresholds": "",
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "False Positive Count",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "avg"
-    },
-    {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorPrefix": false,
-      "colorValue": false,
-      "colors": [
-        "#299c46",
-        "#FF780A",
-        "#d44a3a"
-      ],
-      "format": "none",
+      "format": "percentunit",
       "gauge": {
         "maxValue": 100,
         "minValue": 0,
@@ -228,12 +147,12 @@
         "thresholdMarkers": true
       },
       "gridPos": {
-        "h": 4,
+        "h": 5,
         "w": 3,
-        "x": 6,
+        "x": 3,
         "y": 0
       },
-      "id": 27,
+      "id": 8,
       "interval": null,
       "links": [],
       "mappingType": 1,
@@ -251,7 +170,7 @@
       "nullPointMode": "connected",
       "nullText": null,
       "options": {},
-      "pluginVersion": "6.2.1",
+      "pluginVersion": "6.2.5",
       "postfix": "",
       "postfixFontSize": "50%",
       "prefix": "",
@@ -272,17 +191,18 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "aiops_human_feedback_count_total{anomaly_status=\"False\",customer_id=\"greenwave\",job=\"log-anomaly-detector-greenwave-factstore\"}",
+          "expr": "aiops_lad_anomaly_count{anomaly_status=\"0\", job=\"$job\"} / aiops_lad_anomaly_count{job=\"$job\"}\n",
           "format": "time_series",
+          "hide": false,
           "intervalFactor": 1,
-          "legendFormat": "{{Feedback count}}",
+          "legendFormat": "{{job}}",
           "refId": "A"
         }
       ],
-      "thresholds": "",
+      "thresholds": "1,0",
       "timeFrom": null,
       "timeShift": null,
-      "title": "Feedback Count",
+      "title": "Percentage of non anomalous logs",
       "type": "singlestat",
       "valueFontSize": "80%",
       "valueMaps": [
@@ -293,6 +213,88 @@
         }
       ],
       "valueName": "current"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": true,
+      "colorValue": true,
+      "colors": [
+        "#d44a3a",
+        "#C4162A",
+        "#299c46"
+      ],
+      "format": "none",
+      "gauge": {
+        "maxValue": 2000,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 3,
+        "x": 6,
+        "y": 0
+      },
+      "id": 6,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "options": {},
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": true,
+        "lineColor": "#1F60C4",
+        "show": false
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "aiops_lad_anomaly_count{anomaly_status=\"1\", job=\"$job\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Total Anomaly",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "0",
+          "value": "null"
+        }
+      ],
+      "valueName": "total"
     },
     {
       "aliasColors": {
@@ -306,9 +308,9 @@
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 10,
-        "w": 12,
-        "x": 10,
+        "h": 9,
+        "w": 6,
+        "x": 9,
         "y": 0
       },
       "id": 14,
@@ -341,14 +343,14 @@
       "steppedLine": true,
       "targets": [
         {
-          "expr": "aiops_lad_anomaly_count{anomaly_status=\"0\",job=\"log-anomaly-detector-greenwave\"}\n",
+          "expr": "aiops_lad_anomaly_count{anomaly_status=\"0\",job=\"$job\"}\n",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Normal Log",
           "refId": "A"
         },
         {
-          "expr": "aiops_lad_anomaly_count{anomaly_status=\"1\",job=\"log-anomaly-detector-greenwave\"}",
+          "expr": "aiops_lad_anomaly_count{anomaly_status=\"1\",job=\"$job\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Anomaly Log",
@@ -399,90 +401,106 @@
       }
     },
     {
-      "cacheTimeout": null,
-      "colorBackground": true,
-      "colorValue": false,
-      "colors": [
-        "#299c46",
-        "#C4162A",
-        "#d44a3a"
-      ],
-      "format": "none",
-      "gauge": {
-        "maxValue": 2000,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
+      "aliasColors": {
+        "anomaly": "dark-orange",
+        "normal": "light-orange"
       },
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
-        "h": 5,
-        "w": 3,
-        "x": 0,
-        "y": 4
+        "h": 9,
+        "w": 8,
+        "x": 15,
+        "y": 0
       },
-      "id": 6,
-      "interval": null,
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "options": {},
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": true,
-        "lineColor": "#1F60C4",
-        "show": false
+      "id": 25,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
       },
-      "tableColumn": "",
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
       "targets": [
         {
-          "expr": "aiops_lad_anomaly_count{anomaly_status=\"1\", job=\"log-anomaly-detector-greenwave\"}",
+          "expr": "rate(aiops_lad_anomaly_count{anomaly_status=\"0\",job=\"$job\"}[1m])",
           "format": "time_series",
           "intervalFactor": 1,
+          "legendFormat": "normal",
           "refId": "A"
-        }
-      ],
-      "thresholds": "",
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Total Anomaly",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
+        },
         {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
+          "expr": "rate(aiops_lad_anomaly_count{anomaly_status=\"1\",job=\"$job\"}[1m])",
+          "format": "time_series",
+          "hide": false,
+          "intervalFactor": 1,
+          "legendFormat": "anomaly",
+          "refId": "B"
         }
       ],
-      "valueName": "current"
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Rate Anomalies per minute",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
     },
     {
       "cacheTimeout": null,
-      "colorBackground": false,
+      "colorBackground": true,
       "colorValue": false,
       "colors": [
         "#299c46",
@@ -500,8 +518,8 @@
       "gridPos": {
         "h": 5,
         "w": 3,
-        "x": 3,
-        "y": 4
+        "x": 0,
+        "y": 5
       },
       "id": 13,
       "interval": null,
@@ -536,12 +554,12 @@
         "fillColor": "rgba(31, 118, 189, 0.18)",
         "full": false,
         "lineColor": "rgb(31, 120, 193)",
-        "show": false
+        "show": true
       },
       "tableColumn": "",
       "targets": [
         {
-          "expr": "aiops_lad_train_count_total{job=\"log-anomaly-detector-greenwave\"}",
+          "expr": "aiops_lad_train_count_total{job=\"$job\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A"
@@ -565,10 +583,95 @@
     {
       "cacheTimeout": null,
       "colorBackground": true,
+      "colorPrefix": false,
       "colorValue": false,
       "colors": [
-        "#F2495C",
-        "#73BF69",
+        "#299c46",
+        "#A352CC",
+        "#d44a3a"
+      ],
+      "format": "none",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 3,
+        "x": 3,
+        "y": 5
+      },
+      "id": 27,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "options": {},
+      "pluginVersion": "6.2.1",
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": true
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "aiops_human_feedback_count_total{anomaly_status=\"False\",job=\"$job\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "{{Feedback count}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Feedback Count",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "0",
+          "value": "null"
+        }
+      ],
+      "valueName": "current"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": true,
+      "colorValue": false,
+      "colors": [
+        "#299c46",
+        "#A352CC",
         "#d44a3a"
       ],
       "format": "none",
@@ -583,9 +686,9 @@
         "h": 5,
         "w": 3,
         "x": 6,
-        "y": 4
+        "y": 5
       },
-      "id": 17,
+      "id": 29,
       "interval": null,
       "links": [],
       "mappingType": 1,
@@ -618,22 +721,21 @@
         "fillColor": "rgba(31, 118, 189, 0.18)",
         "full": false,
         "lineColor": "rgb(31, 120, 193)",
-        "show": false
+        "show": true
       },
-      "tableColumn": "__name__",
+      "tableColumn": "",
       "targets": [
         {
-          "expr": "aiops_lad_threshold{job=\"log-anomaly-detector-greenwave\"}",
+          "expr": "aiops_lad_inference_count_total{job=\"$job\"}",
           "format": "time_series",
           "intervalFactor": 1,
-          "legendFormat": "",
           "refId": "A"
         }
       ],
-      "thresholds": "20",
+      "thresholds": "",
       "timeFrom": null,
       "timeShift": null,
-      "title": "Threshold Value",
+      "title": "Total Inference Count",
       "type": "singlestat",
       "valueFontSize": "80%",
       "valueMaps": [
@@ -656,9 +758,9 @@
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 10,
-        "w": 8,
-        "x": 0,
+        "h": 9,
+        "w": 9,
+        "x": 14,
         "y": 9
       },
       "id": 16,
@@ -688,14 +790,14 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg(aiops_lad_anomaly_avg_score)",
+          "expr": "aiops_lad_anomaly_avg_score{job=\"$job\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Average Anomaly Score",
           "refId": "A"
         },
         {
-          "expr": "aiops_lad_threshold",
+          "expr": "aiops_lad_threshold{job=\"$job\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "Threshold",
@@ -744,6 +846,172 @@
       }
     },
     {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorValue": true,
+      "colors": [
+        "#299c46",
+        "rgba(237, 129, 40, 0.89)",
+        "#d44a3a"
+      ],
+      "format": "none",
+      "gauge": {
+        "maxValue": 2000,
+        "minValue": 0,
+        "show": true,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 3,
+        "x": 0,
+        "y": 10
+      },
+      "id": 11,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "options": {},
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "increase(aiops_lad_inference_count_total{job=\"$job\"}[8h])",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "False positives found in last 8 hours",
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "False Positive Count",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "avg"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": true,
+      "colorValue": false,
+      "colors": [
+        "#F2495C",
+        "#73BF69",
+        "#d44a3a"
+      ],
+      "format": "none",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 3,
+        "x": 3,
+        "y": 10
+      },
+      "id": 17,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "options": {},
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "tableColumn": "__name__",
+      "targets": [
+        {
+          "expr": "aiops_lad_threshold{job=\"$job\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "thresholds": "20",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Threshold Value",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "current"
+    },
+    {
       "aliasColors": {
         "aiops_lad_loglines_count{instance=\"localhost:8080\",job=\"log-anomaly-detector-f20\"}": "blue"
       },
@@ -753,9 +1021,9 @@
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 8,
-        "w": 7,
-        "x": 8,
+        "h": 9,
+        "w": 8,
+        "x": 6,
         "y": 10
       },
       "id": 4,
@@ -789,7 +1057,7 @@
           "format": "time_series",
           "instant": false,
           "intervalFactor": 1,
-          "legendFormat": "log entries",
+          "legendFormat": "{{job}}",
           "refId": "A"
         }
       ],
@@ -798,104 +1066,6 @@
       "timeRegions": [],
       "timeShift": null,
       "title": "Rate in last 5 mins of logs",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {
-        "anomaly": "dark-orange",
-        "normal": "light-orange"
-      },
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 15,
-        "y": 10
-      },
-      "id": 25,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "rate(aiops_lad_anomaly_count{anomaly_status=\"0\",job=\"log-anomaly-detector-greenwave\"}[5m])",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "legendFormat": "normal",
-          "refId": "A"
-        },
-        {
-          "expr": "rate(aiops_lad_anomaly_count{anomaly_status=\"1\",job=\"log-anomaly-detector-greenwave\"}[5m])",
-          "format": "time_series",
-          "hide": false,
-          "intervalFactor": 1,
-          "legendFormat": "anomaly",
-          "refId": "B"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Rate Anomalies per minute",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -977,17 +1147,19 @@
       "steppedLine": true,
       "targets": [
         {
-          "expr": "aiops_lad_anomaly_count{anomaly_status=\"1\",job=\"log-anomaly-detector-greenwave\"}\n",
+          "expr": "aiops_lad_anomaly_count{anomaly_status=\"1\",job=\"$job\"}\n",
           "format": "time_series",
+          "hide": false,
           "intervalFactor": 1,
           "legendFormat": "Anomaly Log",
           "refId": "B"
         },
         {
-          "expr": "aiops_lad_anomaly_count{job=\"log-anomaly-detector-greenwave\"}\n",
+          "expr": "aiops_lad_anomaly_count{job=\"$job\"}\n",
           "format": "time_series",
+          "hide": false,
           "intervalFactor": 1,
-          "legendFormat": "Anomaly Log",
+          "legendFormat": "Normal log",
           "refId": "A"
         }
       ],
@@ -1083,201 +1255,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "num of lines injested",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {
-        "Anomaly Log": "yellow",
-        "aiops_lad_anomaly_count{anomaly_status=\"0\",instance=\"localhost:8080\",job=\"log-anomaly-detector-f20\"}": "blue",
-        "aiops_lad_anomaly_count{anomaly_status=\"1\",instance=\"localhost:8080\",job=\"log-anomaly-detector-f20\"}": "semi-dark-purple"
-      },
-      "bars": true,
-      "cacheTimeout": null,
-      "dashLength": 10,
-      "dashes": false,
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 9,
-        "w": 11,
-        "x": 0,
-        "y": 33
-      },
-      "id": 22,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": false,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pluginVersion": "6.2.5",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": true,
-      "targets": [
-        {
-          "expr": "rate(aiops_lad_anomaly_count{anomaly_status=\"0\",job=\"log-anomaly-detector-greenwave\"}[5m])\n",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "legendFormat": "Anomaly Log",
-          "refId": "B"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Percentage of logs that are not anomalies",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {
-        "aiops_lad_anomaly_count{anomaly_status=\"0\",instance=\"localhost:8080\",job=\"log-anomaly-detector-f20\"}": "blue",
-        "aiops_lad_anomaly_count{anomaly_status=\"1\",instance=\"localhost:8080\",job=\"log-anomaly-detector-f20\"}": "semi-dark-purple"
-      },
-      "bars": false,
-      "cacheTimeout": null,
-      "dashLength": 10,
-      "dashes": false,
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 9,
-        "w": 13,
-        "x": 11,
-        "y": 33
-      },
-      "id": 8,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pluginVersion": "6.2.5",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": true,
-      "targets": [
-        {
-          "expr": "aiops_lad_anomaly_count{anomaly_status=\"0\"}\n",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "legendFormat": "Normal Log",
-          "refId": "A"
-        },
-        {
-          "expr": "aiops_lad_anomaly_count{anomaly_status=\"1\"}\n",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "legendFormat": "Anomaly Log",
-          "refId": "B"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Percentage of logs that are not anomalies",
+      "title": "Number of log lines ingested",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1315,12 +1293,38 @@
       }
     }
   ],
-  "refresh": "5s",
+  "refresh": "10s",
   "schemaVersion": 18,
   "style": "dark",
   "tags": [],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "allValue": null,
+        "current": {
+          "text": "log-anomaly-detector-odsc",
+          "value": "log-anomaly-detector-odsc"
+        },
+        "datasource": "Prometheus",
+        "definition": "label_values(aiops_lad_loglines_count, job)",
+        "hide": 0,
+        "includeAll": false,
+        "label": null,
+        "multi": false,
+        "name": "job",
+        "options": [],
+        "query": "label_values(aiops_lad_loglines_count, job)",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      }
+    ]
   },
   "time": {
     "from": "now-5m",
@@ -1352,7 +1356,7 @@
     ]
   },
   "timezone": "",
-  "title": "Log_anomaly_detector_dashboard-0.0.1",
+  "title": "Log Anomaly Detector -  Customer Dashboard",
   "uid": "2YhDPbpWk",
-  "version": 11
+  "version": 18
 }
