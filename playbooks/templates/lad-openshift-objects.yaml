@@ -1,0 +1,131 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: "{{ lad_app_name }}"
+  name: "{{ lad_app_name }}"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "{{ lad_pvc_size }}"
+
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  labels:
+    app: "{{ lad_app_name }}"
+  name: "{{ lad_app_name }}"
+spec:
+  lookupPolicy:
+    local: true
+
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  labels:
+    app: "{{ lad_app_name }}"
+  name: "{{ lad_app_name }}"
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: "{{ lad_app_name }}:latest"
+  source:
+    git:
+      ref: "{{ lad_git_ref }}"
+      uri: "{{ lad_git_uri }}"
+    type: Git
+  strategy:
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        name: python:3.6
+        namespace: openshift
+    type: Source
+  triggers:
+    - imageChange: {}
+      type: ImageChange
+    - type: ConfigChange
+
+---
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: "{{ lad_app_name }}"
+  name: "{{ lad_app_name }}"
+spec:
+  replicas: 1
+  selector:
+    deploymentconfig: "{{ lad_app_name }}"
+  template:
+    metadata:
+      labels:
+        app: "{{ lad_app_name }}"
+        deploymentconfig: "{{ lad_app_name }}"
+    spec:
+      containers:
+        - args:
+            - app.py
+            - run
+            - --config-yaml
+            - validation_data/.env_config.yaml
+          command:
+            - python
+          image: "{{ lad_app_name }}:latest"
+          imagePullPolicy: Always
+          name: log-anomaly-detector
+          resources:
+            limits:
+              cpu: "{{ lad_container_cpu_limit }}"
+              memory: "{{ lad_container_memory_limit }}"
+          volumeMounts:
+            - mountPath: /opt/app-root/src/models
+              name: model-storage
+            - mountPath: /opt/app-root/src/validation_data
+              name: lad-config-volume
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - claimName: "{{ lad_app_name }}"
+          name: model-storage
+          persistentVolumeClaim: null
+        - configMap:
+            defaultMode: 420
+            name: "{{ lad_app_name }}"
+          name: lad-config-volume
+  test: false
+  triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - log-anomaly-detector
+        from:
+          kind: ImageStreamTag
+          name: "{{ lad_app_name }}:latest"
+      type: ImageChange
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ lad_app_name }}"
+  labels:
+    app: "{{ lad_app_name }}"
+spec:
+  selector:
+    app: "{{ lad_app_name }}"
+  ports:
+    - protocol: TCP
+      name: metrics
+      port: 8080
+      targetPort: 8080
