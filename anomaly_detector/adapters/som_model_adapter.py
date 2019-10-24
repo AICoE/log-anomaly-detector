@@ -100,7 +100,6 @@ class SomModelAdapter(BaseModelAdapter):
         f = []
         hist_count = 0
         logging.info("Max anomaly score: %f" % max(dist))
-        console_report = set()
         ANOMALY_COUNT._metrics.clear()
 
         last_id = dict()
@@ -108,6 +107,9 @@ class SomModelAdapter(BaseModelAdapter):
             s = json_logs[i]
             s["predict_id"] = str(uuid.uuid4())
             s["anomaly_score"] = dist[i]
+            s["elast_alert"] = self.storage_adapter.ES_ELAST_ALERT
+            s["inference_batch_id"] = inference_batch_id
+            s["e_message"] = quote(s["message"])
             # Record anomaly event in fact_store
             if dist[i] > threshold:
                 if false_positives is not None:
@@ -117,11 +119,8 @@ class SomModelAdapter(BaseModelAdapter):
                         continue
                 hist_count += 1
                 s["anomaly"] = 1
-                s["elast_alert"] = self.storage_adapter.ES_ELAST_ALERT
-                s["inference_batch_id"] = inference_batch_id
-                s["e_message"] = quote(s["message"])
+
                 logging.warning("Anomaly found (score: %f): %s" % (dist[i], s["message"]))
-                console_report.add(quote(s["message"]))
                 last_id[quote(s["message"])] = s["predict_id"]
                 ANOMALY_SCORE.set(dist[i])
             else:
