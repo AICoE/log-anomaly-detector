@@ -1,0 +1,9 @@
+database_service_name: "mysql"
+mysql_database: "factstore"
+mysql_password: "eyMP6oGhbf4YlOFY"
+mysql_root_password: "2O8E6AImdFLjHHwJ"
+mysql_user: "userSM4"
+memory_limit: "512Mi"
+volume_capacity: "1Gi"
+mysql_version: "5.7"
+mysql_service_port: 3306
