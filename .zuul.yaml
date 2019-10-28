@@ -8,6 +8,15 @@
       jobs:
         - "thoth-coala"
         - "thoth-pytest"
+        
+    post:
+      jobs:
+        - "trigger-build":
+            vars:
+              cluster: "paas.psi.redhat.com"
+              namespace: "aiops-staging-log-analysis"
+              buildConfigName: "log-anomaly-detector"
+              
     kebechet-auto-gate:
       jobs:
         - "thoth-coala"
