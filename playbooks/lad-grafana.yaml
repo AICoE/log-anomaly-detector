@@ -81,7 +81,7 @@
           "isDefault": true,
           "typeLogoUrl": "",
           "access": "proxy",
-          "url": "http://{{ prometheus_route.resources[0].spec.host }} )",
+          "url": "http://{{ prometheus_route.resources[0].spec.host }}",
           "basicAuth": false,
           "withCredentials": false
           }
