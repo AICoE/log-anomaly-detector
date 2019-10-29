@@ -44,8 +44,8 @@ class Configuration(Borg):
     FACT_STORE_URL = ""
     FREQ_NOISE = 1
     # One of the storage backends available in storage/ dir
-    STORAGE_DATASOURCE = "local.source"
-    STORAGE_DATASINK = "local.sink"
+    STORAGE_DATASOURCE = "local"
+    STORAGE_DATASINK = "local"
     # Location of local data
     # A directory where trained models will be stored
     MODEL_DIR = "./models/"

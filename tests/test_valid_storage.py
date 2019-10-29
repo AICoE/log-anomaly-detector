@@ -6,14 +6,16 @@ from anomaly_detector.config import Configuration
 from anomaly_detector.jobs import SomTrainJob, SomInferenceJob
 from anomaly_detector.storage.local_storage import DefaultStorageAttribute
 
-CONFIGURATION_PREFIX = "LAD"
 NUM_LOG_LINES = 812
 
 
 @pytest.fixture()
 def config():
     """Initialize configurations before testing."""
-    config = Configuration(prefix=CONFIGURATION_PREFIX, config_yaml="config_files/.env_local_dir.yaml")
+    config = Configuration()
+    config.STORAGE_DATASOURCE = "localdir"
+    config.STORAGE_DATASINK = "stdout"
+    config.LS_INPUT_PATH = "validation_data/test_sample_input"
     return config
 
 

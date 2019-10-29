@@ -16,7 +16,8 @@ NUM_LOG_LINES = 812
 def config():
     """Initialize configurations before testing."""
     config = Configuration()
-    config.STORAGE_BACKEND = "local"
+    config.STORAGE_DATASOURCE = "local"
+    config.STORAGE_DATASINK = "local"
     config.LS_INPUT_PATH = "validation_data/orders-500.log"
     config.LS_OUTPUT_PATH = "validation_data/results-oct4.1.txt"
     return config

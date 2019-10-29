@@ -13,7 +13,10 @@ LOG_MSG = "(root) CMD (/usr/local/bin/monitor-apache-stats.sh >/dev/null 2>&1)"
 @pytest.fixture()
 def config():
     """Provide default configurations to load yaml instead of env var."""
-    config = Configuration(config_yaml="config_files/.test_env_config.yaml")
+    config = Configuration()
+    config.STORAGE_DATASOURCE = "local"
+    config.STORAGE_DATASINK = "stdout"
+    config.LS_INPUT_PATH = "validation_data/log_anomaly_detector-100000-events.json"
     return config
 
 

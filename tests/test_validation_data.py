@@ -10,7 +10,10 @@ CONFIGURATION_PREFIX = "LAD"
 @pytest.fixture()
 def config():
     """Initialize configurations before testing."""
-    config = Configuration(prefix=CONFIGURATION_PREFIX, config_yaml="config_files/.env_config.yaml")
+    config = Configuration()
+    config.STORAGE_DATASOURCE = "local"
+    config.STORAGE_DATASINK = "stdout"
+    config.LS_INPUT_PATH = "validation_data/Hadoop_2k.json"
     return config
 
 
