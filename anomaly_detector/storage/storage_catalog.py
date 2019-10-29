@@ -8,7 +8,7 @@ import logging
 
 
 class StorageCatalog(object):
-    """Storage Catalog for storing data to and from ML Runs."""
+    """Internal api and client should use storage proxy for data access.."""
 
     def __init__(self, config, storage_api):
         """Storage initialization logic."""

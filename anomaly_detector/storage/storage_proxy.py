@@ -8,10 +8,15 @@ from anomaly_detector.storage.storage_sink import StorageSink
 class StorageProxy(StorageSource, StorageSink):
     """Storage Proxy for facilitating communication with backend."""
 
+    SUFFIX_SOURCE = ".source"
+    SUFFIX_SINK = ".sink"
+
     def __init__(self, config: Configuration):
         """Create storage data source and sinks to talk to storage backend."""
-        self.source = StorageCatalog(config=config, storage_api=config.STORAGE_DATASOURCE).get_storage_api()
-        self.sink = StorageCatalog(config=config, storage_api=config.STORAGE_DATASINK).get_storage_api()
+        self.source = StorageCatalog(config=config,
+                                     storage_api=config.STORAGE_DATASOURCE + self.SUFFIX_SOURCE).get_storage_api()
+        self.sink = StorageCatalog(config=config,
+                                   storage_api=config.STORAGE_DATASINK + self.SUFFIX_SINK).get_storage_api()
 
     def retrieve(self, storage_attribute):
         """Retrieve data from backend storage."""

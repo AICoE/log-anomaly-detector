@@ -1,7 +1,44 @@
 Storage
 =======
 
-There are 2 storage backends implemented at the moment - ElasticSearch and local.
+The following table provides source and sink configuration fields that you can set for your data pipeline
+
++-----------------+----------+--------+
+| Data Source     | Source   | Sink   |
++=================+==========+========+
+| Elasticsearch   | es       | es     |
++-----------------+----------+--------+
+| Local           | local    | local  |
++-----------------+----------+--------+
+| Local Directory | localdir |        |
++-----------------+----------+--------+
+| Console Output  |          | stdout |
++-----------------+----------+--------+
+| Kafka           |          | kafka  |
++-----------------+----------+--------+
+
+
+
+Example
+-------
+To read from Elasticsearch and write predictions to Kafka you can use the following configurations
+
+.. code-block:: shell
+
+   STORAGE_DATASOURCE: “es”
+   STORAGE_DATASINK: “kafka”
+
+.. image:: ../../imgs/storage-example.png
+
+.. DANGER::
+
+   We have removed es.source/es.sink entirely and you need to specify "es" instead. See table above.
+
+
+
+Storage Details
+===============
+
 
 ElasticSearch
 -------------
@@ -20,7 +57,7 @@ Input data can be in a form of JSON (one entry per line) or plain text (simplifi
 
 
 Stdout
------
+------
 
 You can output anomalies found out on console to allow us to debug without sending emails.
 
@@ -29,17 +66,8 @@ LocalDir
 --------
 This works the same as the local storage except this will let you read from a directory of logs which can either be json or common log. We support only files ending with '.log' or '.json'
 
-Example
--------
-To read from Elasticsearch and write predictions to Kafka you can use the following configurations
-
-.. code-block:: shell
-
-   STORAGE_DATASOURCE: “es.source”
-   STORAGE_DATASINK: “kafka.sink”
 
 
-.. image:: ../../imgs/storage-example.png
 
 
 
@@ -64,9 +92,6 @@ See: https://github.com/AICoE/log-anomaly-detector/issues/281 for example of how
 See: https://github.com/AICoE/log-anomaly-detector/issues/207 for example of how to add new storage source
 
 
-Note you will need to update the storage_catalog.py which can be found here:
-
-.. literalinclude:: ../../anomaly_detector/storage/storage_catalog.py
 
  
 

@@ -3,7 +3,7 @@ from unittest import TestCase
 from anomaly_detector.adapters.som_model_adapter import SomModelAdapter
 from anomaly_detector.adapters.som_storage_adapter import SomStorageAdapter
 from anomaly_detector.config import Configuration
-from anomaly_detector.jobs import *
+from anomaly_detector.jobs.core import Pipeline, SomTrainJob, AbstractCommand
 
 TASKS_IN_QUEUE = 1
 
@@ -14,7 +14,10 @@ class TestTaskManager(TestCase):
     def test_train_command(self):
         """Test case for validating that when we train a model and add it to task queue that it will run."""
         mgr = Pipeline()
-        config = Configuration(config_yaml="config_files/.env_config.yaml")
+        config = Configuration()
+        config.STORAGE_DATASOURCE = "local"
+        config.STORAGE_DATASINK = "stdout"
+        config.LS_INPUT_PATH = "validation_data/Hadoop_2k.json"
         storage_adapter = SomStorageAdapter(config=config, feedback_strategy=None)
         model_adapter = SomModelAdapter(storage_adapter)
         tc = SomTrainJob(node_map=2, model_adapter=model_adapter)
