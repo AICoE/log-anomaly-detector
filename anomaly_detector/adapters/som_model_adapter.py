@@ -109,6 +109,7 @@ class SomModelAdapter(BaseModelAdapter):
             s["anomaly_score"] = dist[i]
             s["elast_alert"] = self.storage_adapter.ES_ELAST_ALERT
             s["inference_batch_id"] = inference_batch_id
+            s["predictor_namespace"] = self.storage_adapter.OS_NAMESPACE
             s["e_message"] = quote(s["message"])
             # Record anomaly event in fact_store
             if dist[i] > threshold:
@@ -119,7 +120,6 @@ class SomModelAdapter(BaseModelAdapter):
                         continue
                 hist_count += 1
                 s["anomaly"] = 1
-
                 logging.warning("Anomaly found (score: %f): %s" % (dist[i], s["message"]))
                 last_id[quote(s["message"])] = s["predict_id"]
                 ANOMALY_SCORE.set(dist[i])
