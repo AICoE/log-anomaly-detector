@@ -134,8 +134,8 @@ objects:
         app: log-anomaly-detector-${APP_NAME}
     data:
       .env_config.yaml: |
-        STORAGE_DATASOURCE: "es.source"
-        STORAGE_DATASINK: "es.sink"
+        STORAGE_DATASOURCE: "es"
+        STORAGE_DATASINK: "es"
         ES_ENDPOINT: ${ES_ENDPOINT}
         ES_QUERY: 'ecommerce'
         ES_USE_SSL: False
