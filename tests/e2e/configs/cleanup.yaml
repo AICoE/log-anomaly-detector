@@ -1,0 +1,43 @@
+openshift:
+  # The ocp name space to test in
+  namespace: <namespace>
+  # The ocp auth token
+  authToken: <auth_token>
+  # The ocp host e.g: localhost:8443
+  host: <host>
+  # Delete objects from ocp namespace created by the openshift templates in this
+  # repo. Note that this clean up will execute even if all "deploy"
+  # and "runtests" are disabled.
+  clean: "True"
+  # The amount of minutes to wait for resources to reach success phases
+  timeout: 10
+logs:
+  # The logs file name prefix
+  build_log_file: ./logs/e2e_build_logs
+  pod_log_file: ./logs/e2e_pod_logs
+spec:
+  factstore:
+    deploy: "False"
+    runtests: "False"
+    template: ../../openshift/aiops_factstore.deployment.yaml
+    timeout: 10
+  ad_demo:
+    deploy: "False"
+    runtests: "False"
+    template: https://raw.githubusercontent.com/AICoE/anomaly-detection-demo-app/master/openshift/ad_demo.yaml
+    timeout: 10
+  elasticsearch:
+    deploy: "False"
+    runtests: "False"
+    template: ../../openshift/aiops_lad_core.elasticsearch.storage.yaml
+    timeout: 10
+  mysql:
+    deploy: "False"
+    runtests: "False"
+    template: ../../openshift/databases/mysql-persistent.yaml
+    timeout: 10
+  lad:
+    deploy: "False"
+    runtests: "False"
+    template: ../../openshift/log-anomaly-detector-minishift.yaml
+    timeout: 10
