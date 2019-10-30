@@ -129,7 +129,7 @@ class Configuration(Borg):
     KF_SECURITY_PROTOCOL = 'PLAINTEXT'
     KF_AUTO_TIMEOUT = 30000
     ES_ELAST_ALERT = 1
-
+    OS_NAMESPACE = os.getenv("OPENSHIFT_BUILD_NAMESPACE", "localhost")
     prefix = "LAD"
 
     def __init__(self, prefix=None, config_yaml=None):
