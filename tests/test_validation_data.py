@@ -1,7 +1,7 @@
 """Validates if training was successful."""
 import pytest
 from anomaly_detector.adapters import SomModelAdapter, SomStorageAdapter
-from anomaly_detector.jobs import SomTrainJob, SomInferenceJob
+from anomaly_detector.core import SomTrainJob, SomInferenceJob
 from anomaly_detector.config import Configuration
 
 CONFIGURATION_PREFIX = "LAD"

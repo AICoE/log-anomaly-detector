@@ -3,7 +3,7 @@ from unittest import TestCase
 from anomaly_detector.adapters.som_model_adapter import SomModelAdapter
 from anomaly_detector.adapters.som_storage_adapter import SomStorageAdapter
 from anomaly_detector.config import Configuration
-from anomaly_detector.jobs.core import Pipeline, SomTrainJob, AbstractCommand
+from anomaly_detector.core import DetectorPipeline, SomTrainJob, AbstractCommand
 
 TASKS_IN_QUEUE = 1
 
@@ -13,7 +13,7 @@ class TestTaskManager(TestCase):
 
     def test_train_command(self):
         """Test case for validating that when we train a model and add it to task queue that it will run."""
-        mgr = Pipeline()
+        mgr = DetectorPipeline()
         config = Configuration()
         config.STORAGE_DATASOURCE = "local"
         config.STORAGE_DATASINK = "stdout"
@@ -31,7 +31,7 @@ class TestTaskManager(TestCase):
 
     def test_invalid_command(self):
         """Test case for validating that when we train a model and add it to task queue that it will run."""
-        mgr = Pipeline()
+        mgr = DetectorPipeline()
 
         class mock_func:
             def execute(self):
@@ -44,7 +44,7 @@ class TestTaskManager(TestCase):
 
     def test_valid_command(self):
         """Test case for validating that when we train a model and add it to task queue that it will run."""
-        mgr = Pipeline()
+        mgr = DetectorPipeline()
 
         class mock_func(AbstractCommand):
             def execute(self):

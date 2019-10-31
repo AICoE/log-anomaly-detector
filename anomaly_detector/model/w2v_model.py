@@ -40,7 +40,7 @@ class W2VModel(BaseModel):
             else:
                 _LOGGER.warning("Skipping key %s as it does not exist in 'words'" % col)
 
-    def one_vector(self, new_D):
+    def one_vector(self, new_D: object) -> object:
         """Create a single vector from model."""
         transforms = {}
         for col in self.model.keys():

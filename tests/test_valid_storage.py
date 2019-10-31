@@ -3,7 +3,7 @@ import pytest
 
 from anomaly_detector.adapters import SomModelAdapter, SomStorageAdapter
 from anomaly_detector.config import Configuration
-from anomaly_detector.jobs import SomTrainJob, SomInferenceJob
+from anomaly_detector.core import SomTrainJob, SomInferenceJob
 from anomaly_detector.storage.local_storage import DefaultStorageAttribute
 
 NUM_LOG_LINES = 812

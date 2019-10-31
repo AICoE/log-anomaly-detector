@@ -1,5 +1,5 @@
 """Anomaly Detector Facade - Acts as a gateway and abstracts the complexity."""
-from anomaly_detector.jobs.core import Pipeline, PipelineCatalog
+from anomaly_detector.core import DetectorPipeline, DetectorPipelineCatalog
 from anomaly_detector.exception.exceptions import EmptyDataSetException
 from anomaly_detector.config import Configuration
 from anomaly_detector.adapters.feedback_strategy import FeedbackStrategy
@@ -23,7 +23,7 @@ class Facade:
         """
         self.config = config
         self.feedback_strategy = feedback_strategy
-        self.pipeline = Pipeline()
+        self.pipeline = DetectorPipeline()
         self.tracing_enabled = tracing_enabled
 
     @staticmethod
@@ -56,9 +56,9 @@ class Facade:
         exit = False
         while exit is False:
             try:
-                jobs = PipelineCatalog(config=self.config,
-                                       feedback_strategy=self.feedback_strategy,
-                                       job="sompy.train.inference")
+                jobs = DetectorPipelineCatalog(config=self.config,
+                                               feedback_strategy=self.feedback_strategy,
+                                               job="sompy.train.inference")
                 self.pipeline = jobs.get_pipeline()
                 self.start_job()
                 logging.info("Job ran succesfully")
@@ -87,9 +87,9 @@ class Facade:
 
         :return: None
         """
-        jobs = PipelineCatalog(config=self.config,
-                               feedback_strategy=self.feedback_strategy,
-                               job="sompy.train")
+        jobs = DetectorPipelineCatalog(config=self.config,
+                                       feedback_strategy=self.feedback_strategy,
+                                       job="sompy.train")
 
         self.pipeline = jobs.get_pipeline()
         self.start_job()
@@ -99,8 +99,8 @@ class Facade:
 
         :return: None
         """
-        jobs = PipelineCatalog(config=self.config,
-                               feedback_strategy=self.feedback_strategy,
-                               job="sompy.inference")
+        jobs = DetectorPipelineCatalog(config=self.config,
+                                       feedback_strategy=self.feedback_strategy,
+                                       job="sompy.inference")
         self.pipeline = jobs.get_pipeline()
         self.start_job()
