@@ -1,6 +1,8 @@
 """Anomaly Detector Facade - Acts as a gateway and abstracts the complexity."""
 from anomaly_detector.jobs.core import Pipeline, PipelineCatalog
 from anomaly_detector.exception.exceptions import EmptyDataSetException
+from anomaly_detector.config import Configuration
+from anomaly_detector.adapters.feedback_strategy import FeedbackStrategy
 import logging
 import uuid
 
@@ -9,10 +11,11 @@ from jaeger_client import Config
 from opentracing_instrumentation.request_context import get_current_span, span_in_context
 
 
-class AnomalyDetectorFacade:
+class Facade:
     """For external interface for integration different adapters for custom models and training logic."""
 
-    def __init__(self, config, feedback_strategy=None, tracing_enabled=False):
+    def __init__(self, config: Configuration, feedback_strategy: FeedbackStrategy = None,
+                 tracing_enabled: bool = False):
         """Set up required properties to run training or prediction.
 
         :param config: configuration provided via yaml or environment variables
@@ -25,7 +28,11 @@ class AnomalyDetectorFacade:
 
     @staticmethod
     def create_tracer(service):
-        """Initialize tracer for open tracing."""
+        """Initialize tracer for open tracing.
+
+        :param service: service name to use for tracing this application.
+        :return: Tracer(opentracing.Tracer)
+        """
         logging.getLogger('').handlers = []
         logging.basicConfig(format='%(message)s', level=logging.DEBUG)
         config = Config(
@@ -40,7 +47,7 @@ class AnomalyDetectorFacade:
         )
         return config.initialize_tracer()
 
-    def run(self, single_run=False):
+    def run(self, single_run: bool = False):
         """Run train and inference and main event loop.
 
         :param single_run: if this is set to TRUE then we exit loop after first iteration.
