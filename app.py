@@ -9,7 +9,7 @@ CONFIGURATION_PREFIX = "LAD"
 
 
 @click.group()
-@click.option("--metric-port", default=8080, help="sets up metrics to publish ot custom port")
+@click.option("--metric-port", default=8080, help="sets up metrics to publish to custom port")
 def cli(metric_port: int):
     """Cli bootstrap method.
 
