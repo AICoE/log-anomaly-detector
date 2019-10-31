@@ -3,7 +3,7 @@ import logging
 import pytest
 from anomaly_detector.adapters import FeedbackStrategy, SomModelAdapter, SomStorageAdapter
 from anomaly_detector.config import Configuration
-from anomaly_detector.jobs import SomTrainJob
+from anomaly_detector.core import SomTrainJob
 
 FREQ_NUM = 10000
 NODE_MAP = 2
