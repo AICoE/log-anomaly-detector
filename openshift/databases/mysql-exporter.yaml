@@ -1,0 +1,53 @@
+---
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  template: mysql-exporter
+metadata:
+  name: mysql-exporter
+objects:
+  - apiVersion: extensions/v1beta1
+    kind: Deployment
+    metadata:
+      name: mysql-exporter
+    spec:
+      template:
+        metadata:
+          annotations:
+          labels:
+            app: mysql-exporter
+        spec:
+          containers:
+            - name: mysql-exporter
+              image: prom/mysqld-exporter:latest
+              env:
+                - name: DATA_SOURCE_NAME
+                  value: "${DATA_SOURCE_NAME}"
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 100Mi
+              ports:
+                - name: http
+                  containerPort: 9104
+
+  - kind: Service
+    apiVersion: v1
+    metadata:
+      name: mysql-exporter
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9104"
+    spec:
+      selector:
+        app: mysql-exporter
+      ports:
+        - name: prom
+          port: 9104
+          targetPort: 9104
+          protocol: TCP
+parameters:
+  - description: data source connection string used to connect to the database
+    displayName: data souce name
+    name: DATA_SOURCE_NAME
+    value: '<USERNAME>:<PASSWORD>@(<HOSTNAME>:3306)/<DATABASE>'
