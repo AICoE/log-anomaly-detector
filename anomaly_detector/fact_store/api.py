@@ -5,9 +5,10 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 import json
 import logging
+from anomaly_detector.core.detector_pipeline import Singleton
 
 
-class FactStore(object):
+class FactStore(metaclass=Singleton):
     """FactStore: Service for feedback collection on accuracy of machine learning."""
 
     def __init__(self, autocreate=True):
