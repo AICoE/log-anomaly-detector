@@ -103,5 +103,6 @@ Example Usage:
 
 .. note::
 
-   We need to set the environment variables SQL_CONNECT and we can choose a different connection string.
-  See https://docs.sqlalchemy.org/en/latest/dialects/
+    We need to set the environment variables SQL_CONNECT and we can choose a different connection string.
+    See https://docs.sqlalchemy.org/en/latest/dialects/
+

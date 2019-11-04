@@ -1,0 +1,119 @@
+---
+- name: Deploy LAD stack
+  hosts: 127.0.0.1
+  connection: local
+  tasks:
+    - name: Ensure that the target_env variable is set
+      fail:
+        msg: "target_env variable must be set"
+      when: "target_env is undefined"
+
+    - name: Ensure that the customer variable is set
+      fail:
+        msg: "customer variable must be set"
+      when: "customer is undefined"
+
+    - name: Load the appropriate common vars file
+      include_vars:
+        file: "vars/common/{{ target_env }}-vars.yaml"
+
+    - name: Load the appropriate vars file
+      include_vars:
+        file: "vars/{{ customer }}/{{ target_env }}-vars.yaml"
+
+    - debug:
+        msg: "Target Namespace -> {{ common.namespace }}"
+
+    - include_role:
+        name: mysql
+
+    - include_role:
+        name: elasticsearch
+      when: es.deploy == 'true'
+
+    - include_role:
+        name: factstore
+
+    - include_role:
+        name: lad-build
+
+    - name: Get the Factstore route
+      when: common.state == 'present'
+      k8s_facts:
+        api_version: v1
+        kind: Route
+        validate_certs: false
+        name: "{{ factstore.app_name }}"
+        namespace: "{{ common.namespace }}"
+      register: factstore_route
+
+    - debug:
+        msg: >-
+          factstore url -> http://{{ factstore_route.resources[0].spec.host }}
+      when: common.state == 'present'
+
+    - name: create json payload for adding grafana dashboard
+      when: common.state == 'present'
+      set_fact:
+        factstore_route: http://{{ factstore_route.resources[0].spec.host }}
+
+    - name: Get the Elasticsearch route
+      when: common.state == 'present' and es.deploy == 'true'
+      k8s_facts:
+        api_version: v1
+        kind: Route
+        validate_certs: false
+        name: "{{ es.app_name }}"
+        namespace: "{{ common.namespace }}"
+      register: elasticsearch_route
+
+    - debug:
+        msg: >-
+          elasticsearch url -> http://{{ es_route.resources[0].spec.host }}
+      when: common.state == 'present' and es.deploy == 'true'
+
+    - name: create json payload for adding grafana dashboard
+      when: common.state == 'present' and es.deploy == 'true'
+      set_fact:
+        elasticsearch_route: http://{{ elasticsearch_route.resources[0].spec.host }}
+
+    - debug:
+        msg: "{{ lad.app_config }}"
+      when: common.state == 'present'
+
+    - include_role:
+        name: lad
+
+    # Monitoring Stuff
+    - name: Get the Services we need to monitor
+      k8s_facts:
+        api_version: v1
+        kind: Service
+        validate_certs: false
+        label_selectors:
+          - monitor = True
+        namespace: "{{ common.namespace }}"
+      register: prom_target_services
+
+    - name: Setup empty list for scraping_targets
+      set_fact:
+        prom_targets_list: []
+
+    - name: Extract host and port for the targets
+      set_fact:
+        prom_targets_list: >-
+          {{ prom_targets_list +
+          [item.metadata.name + '.'
+          + item.metadata.namespace + '.'
+          + 'svc' + ':'
+          + (item.spec.ports[0].port | string)] }}
+      with_items: "{{ prom_target_services.resources }}"
+
+    - debug:
+        msg: "Prometheus targets -> {{ prometheus.target_hosts }}"
+
+    - include_role:
+        name: prometheus
+
+    - include_role:
+        name: grafana

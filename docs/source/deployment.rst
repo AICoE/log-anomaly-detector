@@ -1,4 +1,0 @@
-
-.. include:: ../../openshift-deployment.rst 
-
-

@@ -1,0 +1,131 @@
+---
+- name: Ensure that the required variables were found in the vars file
+  fail:
+    msg: "{{ item }} variable was not found in vars files"
+  when: "{{ item }} is undefined"
+  with_items:
+    - common.namespace
+    - common.kubeconfig
+    - grafana.app_name
+    - grafana.container_image
+    - prometheus.app_name
+
+- name: Deploy the Grafana objects to Openshift
+  k8s:
+    kubeconfig: "{{ common.kubeconfig }}"
+    state: "{{ common.state }}"
+    namespace: "{{ common.namespace }}"
+    verify_ssl: "no"
+    definition: >-
+      {{ lookup('template', 'main.yaml') }}
+
+- name: Wait for the Grafana deployment to complete
+  when: common.state == 'present'
+  k8s_facts:
+    api_version: v1
+    kind: DeploymentConfig
+    name: "{{ grafana.app_name }}"
+    namespace: "{{ common.namespace }}"
+    verify_ssl: "no"
+  register: grafana_dc
+  until: "grafana_dc.resources[0].status.availableReplicas == 1"
+  retries: 15
+  delay: 5
+
+- name: Get the Grafana route
+  when: common.state == 'present'
+  k8s_facts:
+    api_version: v1
+    kind: Route
+    validate_certs: false
+    name: "{{ grafana.app_name }}-route"
+    namespace: "{{ common.namespace }}"
+  register: grafana_route
+
+- name: Get the Prometheus route
+  when: common.state == 'present'
+  k8s_facts:
+    api_version: v1
+    kind: Route
+    validate_certs: false
+    name: "{{ prometheus.app_name }}-route"
+    namespace: "{{ common.namespace }}"
+  register: prometheus_route
+
+- debug:
+    msg: "grafana url -> http://{{ grafana_route.resources[0].spec.host }}"
+  when: common.state == 'present'
+
+- name: Wait for prometheus route to be available
+  when: common.state == 'present'
+  uri:
+    url: "http://{{ prometheus_route.resources[0].spec.host }}"
+    method: GET
+    return_content: "yes"
+  register: prom_response
+  until: (prom_response.status == 200)
+  retries: 15
+  delay: 10
+
+- debug:
+    msg: >-
+      prometheus url -> http://{{ prometheus_route.resources[0].spec.host }}
+  when: common.state == 'present'
+
+- name: create json payload for adding Prometheus datasource
+  when: common.state == 'present'
+  set_fact:
+    datasource_payload: >
+      {
+      "name": "{{ prometheus.app_name }}",
+      "type": "prometheus",
+      "isDefault": true,
+      "typeLogoUrl": "",
+      "access": "proxy",
+      "url": "http://{{ prometheus_route.resources[0].spec.host }}",
+      "basicAuth": false,
+      "withCredentials": false
+      }
+
+- name: Add the lad prometheus datasource
+  when: common.state == 'present'
+  uri:
+    url: "http://{{ grafana_route.resources[0].spec.host }}/api/datasources"
+    user: admin
+    password: admin
+    method: POST
+    return_content: "yes"
+    force_basic_auth: "yes"
+    headers:
+      Content-Type: "application/json"
+    body: "{{ datasource_payload }}"
+    body_format: "json"
+  register: grafana_response
+  failed_when: >-
+    (grafana_response.status != 409) and (grafana_response.status != 200)
+
+- name: create json payload for adding grafana dashboard
+  when: common.state == 'present'
+  set_fact:
+    dashboard_payload: >-
+      {'Dashboard': {{ lookup('file',
+      'templates/grafana-dashboards/log_anomaly_detector_dashboard.json')
+      }} }
+
+- name: Add the lad grafana dashboard
+  when: common.state == 'present'
+  uri:
+    url: >-
+      http://{{ grafana_route.resources[0].spec.host }}/api/dashboards/db
+    user: admin
+    password: admin
+    method: POST
+    return_content: "yes"
+    force_basic_auth: "yes"
+    headers:
+      Content-Type: "application/json"
+    body: "{{ dashboard_payload }}"
+    body_format: "json"
+  register: grafana_response
+  failed_when: >-
+    (grafana_response.status != 412) and (grafana_response.status != 200)

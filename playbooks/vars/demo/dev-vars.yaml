@@ -1,0 +1,34 @@
+common:
+  namespace: "lad"
+  kubeconfig: $HOME/.kube/config
+  state: present
+  customer_id: "demo"
+factstore:
+  app_name: "lad-factstore-{{ common.customer_id }}"
+  sql_connect: >-
+    mysql+pymysql://{{ mysql.mysql_user }}:{{ mysql.mysql_password }}@{{ mysql.database_service_name }}:{{ mysql.mysql_service_port }}/{{ mysql.mysql_database }}
+  cpu_limit: "1"
+  memory_limit: "2Gi"
+lad:
+  app_name: "log-anomaly-detector-{{ common.customer_id }}"
+  image_name: "log-anomaly-detector-image"
+  pvc_size: "1Gi"
+  container_cpu_limit: "1"
+  container_memory_limit: "1Gi"
+  # Update the elasticsearch host and factstore url before deploying
+  app_config: |
+    STORAGE_DATASOURCE:           "es"
+    STORAGE_DATASINK:             "stdout"
+    ES_ENDPOINT:                  <elastic search URL>
+    ES_QUERY:                     'ecommerce'
+    ES_USE_SSL:                   False
+    ES_INPUT_INDEX:               "lad-"
+    ES_VERSION:                   7
+    FACT_STORE_URL:               <fact store URL>
+    INFER_ANOMALY_THRESHOLD:      1.3
+    INFER_TIME_SPAN:              900
+    INFER_LOOPS:                  1
+    INFER_MAX_ENTRIES:            3000
+    TRAIN_TIME_SPAN:              900
+    TRAIN_MAX_ENTRIES:            3000
+    PARALLELISM:                  6

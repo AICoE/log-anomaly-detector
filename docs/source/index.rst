@@ -22,25 +22,6 @@ It currently contains the following components:
 3. Fact-Store: In addition we have a metadata registry for tracking feedback from false_positives in the machine learning system and to providing a method for ML to self correcting false predictions called the “fact-store”.
 	
 
- 
- 
-Installing
-==========
-
-Install Log Anomaly Detector (LAD):
-
-.. code-block:: shell
-
-   pip install git+https://github.com/AICoE/log-anomaly-detector.git 
-
-.. note::
- 
-   LAD requires python 3.6
-
-Documentation
--------------
-Official documentation for LAD can be found at https://log-anomaly-detector.readthedocs.io/en/latest
-
 Community
 ---------
 For help or questions about Log Anomaly Detector usage (e.g. "how do I do X?") then you can open an issue and mark it as question. One of our engineers would be glad to answer.
@@ -49,7 +30,7 @@ To report a bug, file a documentation issue, or submit a feature request, please
 
 For release announcements and other discussions, please subscribe to our mailing list (https://groups.google.com/forum/#!members/aiops)  
 
-Major updates will be presented at our  AiOps special interest group meeting which is a part of openshift commons 
+Major updates will be presented at our AiOps special interest group meeting which is a part of openshift commons
 
 Details: https://commons.openshift.org/events.html#event|ai-ops-sig|939
 
@@ -60,16 +41,19 @@ Contributing
 We happily welcome contributions to LAD. Please see our contribution guide for details.
 
 
-.. toctree::
 
-   cli
-   use_case
-   factstore
-   development_guide
-   deployment
-   configinfo
-   metricsinfo
-   changelog
-   architecture
-   model
-   storage
+.. toctree::
+    :caption: Table of Contents
+    :name: mastertoc
+
+    installation
+    cli
+    use_case
+    factstore
+    Contributing <development_guide>
+    configinfo
+    metricsinfo
+    architecture
+    model
+    storage
+    changelog

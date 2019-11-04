@@ -1,0 +1,21 @@
+---
+- name: Ensure that the required variables were found in the vars file
+  fail:
+    msg: "{{ item }} variable was not found in vars files"
+  when: "{{ item }} is undefined"
+  with_items:
+    - common.namespace
+    - common.kubeconfig
+    - common.state
+    - common.customer_id
+    - factstore.sql_connect
+    - factstore.app_name
+
+- name: Deploy the Factstore objects to Openshift
+  k8s:
+    kubeconfig: "{{ common.kubeconfig }}"
+    state: "{{ common.state }}"
+    namespace: "{{ common.namespace }}"
+    verify_ssl: "no"
+    definition: >-
+      {{ lookup('template', 'main.yaml') }}

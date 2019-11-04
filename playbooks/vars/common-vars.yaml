@@ -1,3 +1,0 @@
----
-namespace: lad
-kubeconfig: $HOME/.kube/config

@@ -1,0 +1,115 @@
+---
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: "{{ factstore.app_name }}"
+    component: factstore
+    customer: "{{ common.customer_id }}"
+  name: "{{ factstore.app_name }}"
+spec:
+  replicas: 1
+  selector:
+    deploymentconfig: "{{ factstore.app_name }}"
+  template:
+    metadata:
+      labels:
+        app: "{{ factstore.app_name }}"
+        component: factstore
+        customer: "{{ common.customer_id }}"
+        deploymentconfig: "{{ factstore.app_name }}"
+    spec:
+      containers:
+        - args:
+            - app.py
+            - ui
+          command:
+            - python
+          image: log-anomaly-detector-factstore:latest
+          imagePullPolicy: Always
+          name: log-anomaly-detector-factstore
+          env:
+            - name: SQL_CONNECT
+              value: "{{ factstore.sql_connect }}"
+            - name: CUSTOMER_ID
+              value: "{{ common.customer_id }}"
+          resources:
+            limits:
+              cpu: "{{ factstore.cpu_limit }}"
+              memory: "{{ factstore.memory_limit }}"
+            requests:
+              cpu: 500m
+              memory: 500Mi
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: 5001
+              scheme: HTTP
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 100
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+  test: false
+  triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - log-anomaly-detector-factstore
+        from:
+          kind: ImageStreamTag
+          name: "{{ ladbuild.app_name }}:latest"
+      type: ImageChange
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ factstore.app_name }}"
+  labels:
+    app: "{{ factstore.app_name }}"
+    component: factstore
+    customer: "{{ common.customer_id }}"
+spec:
+  selector:
+    app: "{{ factstore.app_name }}"
+  ports:
+    - port: 5001
+      name: http
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ factstore.app_name }}-metrics"
+  labels:
+    app: "{{ factstore.app_name }}"
+    component: factstore
+    customer: "{{ common.customer_id }}"
+    monitor: "True"
+spec:
+  selector:
+    app: "{{ factstore.app_name }}"
+  ports:
+    - port: 8080
+      name: metrics
+
+---
+apiVersion: v1
+kind: Route
+metadata:
+  name: "{{ factstore.app_name }}"
+  labels:
+    app: "{{ factstore.app_name }}"
+    component: factstore
+    customer: "{{ common.customer_id }}"
+spec:
+  to:
+    kind: Service
+    name: "{{ factstore.app_name }}"

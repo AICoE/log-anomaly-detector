@@ -1,6 +1,0 @@
----
-es_app_name: "lad-elasticsearch"
-es_image_name: "docker.elastic.co/elasticsearch/elasticsearch:7.3.2"
-es_discovery_type: "single-node"
-es_container_memory_limit: "2G"
-es_container_cpu_limit: "1"
