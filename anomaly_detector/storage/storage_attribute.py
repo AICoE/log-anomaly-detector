@@ -24,6 +24,7 @@ class ESStorageAttribute(DefaultStorageAttribute):
 
     def __init__(self, time_range: int, number_of_entries: int, false_data=None):
         """Set initial properties for required fields when fetching data from ES."""
+        super().__init__(false_data)
         self.__time_range = time_range
         self.__number_of_entries = number_of_entries
         self.false_data = false_data
@@ -43,7 +44,7 @@ class ESStorageAttribute(DefaultStorageAttribute):
         """Max number of entries for query."""
         return self.__number_of_entries
 
-    @time_range.setter
+    @number_of_entries.setter
     def number_of_entries(self, x):
         """Time range for query and max number of entries."""
         self.__number_of_entries = x

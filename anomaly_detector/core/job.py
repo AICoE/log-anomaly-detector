@@ -2,11 +2,8 @@
 import datetime
 import logging
 from abc import ABCMeta, abstractmethod
-import os
 from prometheus_client import Counter
-from anomaly_detector.model import W2VModel
-from anomaly_detector.adapters import FeedbackStrategy, SomModelAdapter, SomStorageAdapter
-from anomaly_detector.exception import EmptyDataSetException, ModelSaveException, ModelLoadException
+from anomaly_detector.exception import EmptyDataSetException
 import time
 from opentracing_instrumentation.request_context import get_current_span, span_in_context
 
@@ -75,9 +72,8 @@ class SomInferenceJob(AbstractCommand):
         mean, threshold = self.model_adapter.set_threshold()
         infer_loops = 0
         while infer_loops < self.model_adapter.storage_adapter.INFER_LOOPS:
-            INFER_COUNT.inc()
             then = time.time()
-            now = datetime.datetime.now()
+            INFER_COUNT.inc()
             # Get data for inference
             data, json_logs = self.model_adapter.preprocess(config_type="infer",
                                                             recreate_model=self.recreate_model)

@@ -83,9 +83,3 @@ def feedback():
     else:
         result = {"feedback_service": "success"}
         return make_response(jsonify(result), 200)
-
-    return ""
-
-
-if __name__ == "__main__":
-    app.run(debug=True, port=8080, host="0.0.0.0")
