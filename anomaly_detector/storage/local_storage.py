@@ -1,5 +1,4 @@
 """Local Storage."""
-from anomaly_detector.storage.storage import Storage
 from anomaly_detector.storage.storage_attribute import DefaultStorageAttribute
 from pandas.io.json import json_normalize
 from anomaly_detector.storage.storage_sink import StorageSink
@@ -7,7 +6,6 @@ from anomaly_detector.storage.storage_source import StorageSource
 from anomaly_detector.storage.storage import DataCleaner
 import logging
 import json
-import re
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -8,7 +8,7 @@ import uuid
 
 import time
 from jaeger_client import Config
-from opentracing_instrumentation.request_context import get_current_span, span_in_context
+from opentracing_instrumentation.request_context import span_in_context
 
 
 class Facade:

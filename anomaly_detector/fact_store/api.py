@@ -3,7 +3,6 @@ import os
 from anomaly_detector.fact_store.model import FeedbackModel, Base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
-import json
 import logging
 from anomaly_detector.core.detector_pipeline import Singleton
 

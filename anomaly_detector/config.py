@@ -24,21 +24,7 @@ def check_or_create_model_dir(config):
         os.mkdir(config.MODEL_DIR)
 
 
-class Borg(object):
-    """Borg aka monostate is a class that has shared state."""
-
-    __shared_state = {}
-
-    def __init__(self):
-        """Setting up dictionary to be equal to shared state."""
-        self.__dict__ = self.__shared_state
-
-    def __str__(self):
-        """When we print the string we want to get the shared state."""
-        return self.state
-
-
-class Configuration(Borg):
+class Configuration:
     """Main configuration class which is contains the config values."""
 
     FACT_STORE_URL = ""
