@@ -10,20 +10,10 @@ NODE_MAP = 2
 LOG_MSG = "(root) CMD (/usr/local/bin/monitor-apache-stats.sh >/dev/null 2>&1)"
 
 
-@pytest.fixture()
-def config():
-    """Provide default configurations to load yaml instead of env var."""
-    config = Configuration()
-    config.STORAGE_DATASOURCE = "local"
-    config.STORAGE_DATASINK = "stdout"
-    config.LS_INPUT_PATH = "validation_data/log_anomaly_detector-100000-events.json"
-    return config
-
-
-def test_false_positive(config):
+def test_false_positive(cnf_100K_events):
     """Testing False Positives and feeding it into the model."""
-    freq_one = get_score(config, NODE_MAP, lambda ctx: [{"message": LOG_MSG}])
-    freq_two = get_score(config, NODE_MAP, lambda ctx: [{"message": LOG_MSG}] * FREQ_NUM)
+    freq_one = get_score(cnf_100K_events, NODE_MAP, lambda ctx: [{"message": LOG_MSG}])
+    freq_two = get_score(cnf_100K_events, NODE_MAP, lambda ctx: [{"message": LOG_MSG}] * FREQ_NUM)
     logging.info("FREQ = {}, FREQ_TWO = {}".format(freq_one, freq_two))
     assert freq_one > freq_two
 
