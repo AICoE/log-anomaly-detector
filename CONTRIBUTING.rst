@@ -33,14 +33,14 @@ Fork the project and clone the repo
      .. code-block:: shell
 
         $ git clone https://github.com/<YOUR_GIT_ID>/log-anomaly-detector.git
-	 
-     .. code-block:: shell
 
-        $ git remote add upstream https://github.com/aicoe/log-anomaly-detector.git
-	
      .. code-block:: shell
 
         $ cd log-anomaly-detector/
+
+     .. code-block:: shell
+
+        $ git remote add upstream https://github.com/aicoe/log-anomaly-detector.git
 
 
 Install pipenv to allow for dependencie installation via Pipfile

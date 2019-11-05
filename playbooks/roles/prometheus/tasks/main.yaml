@@ -1,0 +1,31 @@
+---
+- name: Ensure that the required variables were found in the vars file
+  fail:
+    msg: "{{ item }} variable was not found in vars files"
+  when: "{{ item }} is undefined"
+  with_items:
+    - common.namespace
+    - common.kubeconfig
+    - common.state
+    - prometheus.target_hosts
+    - prometheus.container_image
+    - prometheus.app_name
+
+- name: Delete the configmap so it can be recreated
+  k8s:
+    kubeconfig: "{{ common.kubeconfig }}"
+    state: absent
+    namespace: "{{ common.namespace }}"
+    verify_ssl: "no"
+    api_version: v1
+    kind: ConfigMap
+    name: "{{ prometheus.app_name }}"
+
+- name: Deploy the Prometheus objects to Openshift
+  k8s:
+    kubeconfig: "{{ common.kubeconfig }}"
+    state: "{{ common.state }}"
+    namespace: "{{ common.namespace }}"
+    verify_ssl: "no"
+    definition: >-
+      {{ lookup('template', 'main.yaml') }}

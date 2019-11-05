@@ -1,0 +1,22 @@
+---
+- name: Ensure that the required variables were found in the vars file
+  fail:
+    msg: "{{ item }} variable was not found in vars files"
+  when: "{{ item }} is undefined"
+  with_items:
+    - common.namespace
+    - common.kubeconfig
+    - common.state
+    - common.customer_id
+    - ladbuild.app_name
+    - ladbuild.git_ref
+    - ladbuild.git_uri
+
+- name: Deploy the lad build to Openshift
+  k8s:
+    kubeconfig: "{{ common.kubeconfig }}"
+    state: "{{ common.state }}"
+    namespace: "{{ common.namespace }}"
+    verify_ssl: "no"
+    definition: >-
+      {{ lookup('template', 'main.yaml') }}

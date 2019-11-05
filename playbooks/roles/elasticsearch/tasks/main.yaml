@@ -1,0 +1,72 @@
+---
+- name: Ensure that the required variables were found in the vars file
+  fail:
+    msg: "{{ item }} variable was not found in vars files"
+  when: "{{ item }} is undefined"
+  with_items:
+    - common.namespace
+    - common.kubeconfig
+    - common.state
+    - es.app_name
+    - es.image_name
+- name: Deploy the Elasticsearch objects to Openshift
+  k8s:
+    kubeconfig: "{{ common.kubeconfig }}"
+    state: "{{ common.state }}"
+    namespace: "{{ common.namespace }}"
+    verify_ssl: "no"
+    definition: >-
+      {{ lookup('template', 'main.yaml') }}
+
+- name: Wait for the es deployment to complete
+  when: common.state == 'present'
+  k8s_facts:
+    api_version: v1
+    kind: DeploymentConfig
+    name: "{{ es.app_name }}"
+    namespace: "{{ common.namespace }}"
+    verify_ssl: "no"
+  register: es_dc
+  until: "es_dc.resources[0].status.availableReplicas == 1"
+  retries: 15
+  delay: 5
+
+- name: Get the es route
+  when: common.state == 'present'
+  k8s_facts:
+    api_version: v1
+    kind: Route
+    validate_certs: false
+    name: "{{ es.app_name }}"
+    namespace: "{{ common.namespace }}"
+  register: es_route
+
+- debug:
+    msg: >-
+      es url -> http://{{ es_route.resources[0].spec.host }}
+  when: common.state == 'present'
+
+- debug:
+    msg: >-
+      es index: {{ es.index_name_prefix }}-{{ es.index_creation_date }}
+
+- name: Wait for route to be available
+  when: common.state == 'present'
+  uri:
+    url: "http://{{ es_route.resources[0].spec.host }}"
+    method: GET
+    return_content: "yes"
+  register: es_response
+  until: (es_response.status == 200)
+  retries: 15
+  delay: 10
+
+- name: Create elastic search index
+  when: common.state == 'present'
+  uri:
+    url: "http://{{ es_route.resources[0].spec.host }}/{{ es.index_name_prefix }}-{{ es.index_creation_date }}"
+    method: PUT
+    return_content: "yes"
+  register: es_response
+  failed_when: >-
+    (es_response.status != 400) and (es_response.status != 409) and (es_response.status != 200)

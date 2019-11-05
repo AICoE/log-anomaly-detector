@@ -1,0 +1,95 @@
+---
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: "{{ prometheus.app_name }}"
+  labels:
+    deploymentConfig: "{{ prometheus.app_name }}"
+    app: "{{ prometheus.app_name }}"
+spec:
+  replicas: 1
+  selector:
+    deploymentConfig: "{{ prometheus.app_name }}"
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        deploymentConfig: "{{ prometheus.app_name }}"
+        app: "{{ prometheus.app_name }}"
+    spec:
+      containers:
+        - name: "{{ prometheus.app_name }}"
+          args:
+            - --storage.tsdb.retention.time=12h
+            - --storage.tsdb.min-block-duration=2h
+            - --storage.tsdb.max-block-duration=2h
+            - --config.file=/etc/prometheus/prometheus.yml
+            - --web.listen-address=0.0.0.0:9090
+          image: "{{ prometheus.container_image }}"
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: '1'
+              memory: "{{ prometheus.container_memory_limit }}"
+          volumeMounts:
+            - mountPath: /etc/prometheus
+              name: prometheus-config
+            - mountPath: /prometheus
+              name: prometheus-data
+      restartPolicy: Always
+      volumes:
+        - name: prometheus-config
+          configMap:
+            defaultMode: 420
+            name: "{{ prometheus.app_name }}"
+        - name: prometheus-data
+          emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ prometheus.app_name }}-service"
+  labels:
+    app: "{{ prometheus.app_name }}"
+spec:
+  ports:
+    - port: 9090
+      name: http
+  selector:
+    app: "{{ prometheus.app_name }}"
+
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: "{{ prometheus.app_name }}-route"
+  labels:
+    app: "{{ prometheus.app_name }}"
+spec:
+  to:
+    kind: Service
+    name: "{{ prometheus.app_name }}-service"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ prometheus.app_name }}"
+data:
+  prometheus.yml: |
+    global:
+      external_labels:
+        monitor: prometheus
+    scrape_configs:
+    - job_name: "{{ prometheus.scrape_job_name }}"
+      tls_config:
+        insecure_skip_verify: true
+      honor_labels: true
+      scrape_interval: 60s
+      scrape_timeout: 10s
+      metrics_path: /metrics
+      scheme: http
+      static_configs:
+      - targets: {{ prometheus.target_hosts }}

@@ -1,0 +1,34 @@
+ladbuild:
+  app_name: "log-anomaly-detector"
+  git_uri: "https://github.com/AICoE/log-anomaly-detector.git"
+  git_ref: "master"
+mysql:
+  database_service_name: "log-anomaly-detector-mysql"
+  mysql_database: "factstore"
+  mysql_password: "admin"
+  mysql_root_password: "admin"
+  mysql_user: "admin"
+  memory_limit: "512Mi"
+  volume_capacity: "1Gi"
+  mysql_version: "5.6"
+  mysql_service_port: 3306
+es:
+  deploy: false
+  app_name: "lad-elasticsearch-{{ common.customer_id }}"
+  image_name: "docker.elastic.co/elasticsearch/elasticsearch:7.3.2"
+  discovery_type: "single-node"
+  container_memory_limit: "2G"
+  container_cpu_limit: "1"
+  index_name_prefix: "lad"
+  index_creation_date: "{{ ansible_date_time.year }}.{{ ansible_date_time.month }}.{{ ansible_date_time.day }}"
+prometheus:
+  app_name: "lad-prometheus"
+  container_image: quay.io/prometheus/prometheus:v2.13.0
+  container_memory_limit: 1Gi
+  target_hosts: >-
+    {{ prom_targets_list }}
+  scrape_job_name: lad
+grafana:
+  app_name: "lad-grafana"
+  container_image: grafana/grafana:6.4.2
+  container_memory_limit: 1Gi

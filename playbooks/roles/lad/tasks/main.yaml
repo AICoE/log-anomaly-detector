@@ -1,0 +1,36 @@
+---
+- name: Ensure that the required variables were found in the vars file
+  fail:
+    msg: "{{ item }} variable was not found in vars files"
+  when: "{{ item }} is undefined"
+  with_items:
+    - common.namespace
+    - common.kubeconfig
+    - common.state
+    - lad.app_name
+    - factstore_route
+
+- name: Update the configmap
+  k8s:
+    kubeconfig: "{{ common.kubeconfig }}"
+    state: "{{ common.state }}"
+    namespace: "{{ common.namespace }}"
+    verify_ssl: "no"
+    api_version: v1
+    definition:
+      kind: ConfigMap
+      metadata:
+        name: "{{ lad.app_name }}"
+        labels:
+          app: "{{ lad.app_name }}"
+      data:
+        .env_config.yaml: "{{ lad.app_config }}"
+
+- name: Deploy the Log Anomaly Detector objects to Openshift
+  k8s:
+    kubeconfig: "{{ common.kubeconfig }}"
+    state: "{{ common.state }}"
+    namespace: "{{ common.namespace }}"
+    verify_ssl: "no"
+    definition: >-
+      {{ lookup('template', lad_template) }}

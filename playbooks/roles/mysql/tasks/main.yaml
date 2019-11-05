@@ -1,0 +1,26 @@
+---
+- name: Ensure that the required variables were found in the vars file
+  fail:
+    msg: "{{ item }} variable was not found in vars files"
+  when: "{{ item }} is undefined"
+  with_items:
+    - common.namespace
+    - common.kubeconfig
+    - common.state
+    - mysql.database_service_name
+    - mysql.mysql_database
+    - mysql.mysql_password
+    - mysql.mysql_root_password
+    - mysql.mysql_user
+    - mysql.memory_limit
+    - mysql.volume_capacity
+    - mysql.mysql_version
+    - mysql.mysql_service_port
+- name: Deploy the MySQL-Persistent objects to Openshift
+  k8s:
+    kubeconfig: "{{ common.kubeconfig }}"
+    state: "{{ common.state }}"
+    namespace: "{{ common.namespace }}"
+    verify_ssl: "no"
+    definition: >-
+      {{ lookup('template', 'main.yaml') }}

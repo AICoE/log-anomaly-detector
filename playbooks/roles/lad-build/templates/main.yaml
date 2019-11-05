@@ -1,0 +1,43 @@
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  labels:
+    app: "{{ ladbuild.app_name }}"
+  name: "{{ ladbuild.app_name }}"
+spec:
+  lookupPolicy:
+    local: true
+
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  labels:
+    app: "{{ ladbuild.app_name }}"
+  name: "{{ ladbuild.app_name }}"
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: "{{ ladbuild.app_name }}:latest"
+  source:
+    git:
+      ref: "{{ ladbuild.git_ref }}"
+      uri: "{{ ladbuild.git_uri }}"
+    type: Git
+  strategy:
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        name: python:3.6
+        namespace: openshift
+    type: Source
+  triggers:
+    - imageChange: {}
+      type: ImageChange
+    - type: ConfigChange
+    - type: "Generic"
+      generic:
+        secretReference:
+          name: generic-webhook-secret

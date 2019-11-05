@@ -32,7 +32,7 @@ To read from Elasticsearch and write predictions to Kafka you can use the follow
 
 .. image:: ../../imgs/storage-example.png
 
-.. DANGER::
+.. Caution::
 
    We have removed es.source/es.sink entirely and you need to specify "es" instead. See table above.
 

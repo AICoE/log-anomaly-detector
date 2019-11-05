@@ -1,8 +1,0 @@
----
-prometheus_app_name: lad-prometheus
-prometheus_container_image: quay.io/prometheus/prometheus:v2.13.0
-prometheus_container_memory_limit: 1Gi
-prometheus_target_hosts: >-
-  anomaly-detection-demo.{{ namespace }}.svc:8088,
-  log-anomaly-detector-demo-svc.{{ namespace }}.svc:8080
-prometheus_scrape_job_name: lad
