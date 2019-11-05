@@ -9,6 +9,8 @@ from anomaly_detector.storage.local_storage import DefaultStorageAttribute
 NUM_LOG_LINES = 812
 
 
+@pytest.mark.storage
+@pytest.mark.localdir
 def test_local_dir_ingest_retrieve(cnf_localdir):
     """Test anomaly detection training on public dataset."""
     storage_adapter = SomStorageAdapter(config=cnf_localdir, feedback_strategy=None)
@@ -17,6 +19,8 @@ def test_local_dir_ingest_retrieve(cnf_localdir):
     assert len(data) == NUM_LOG_LINES
 
 
+@pytest.mark.storage
+@pytest.mark.localdir
 def test_training_local_dir(cnf_localdir):
     """Test anomaly detection training on public dataset."""
     model_adapter = SomModelAdapter(SomStorageAdapter(config=cnf_localdir, feedback_strategy=None))
