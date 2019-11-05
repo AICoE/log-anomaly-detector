@@ -6,43 +6,33 @@ from anomaly_detector.config import Configuration
 
 import pytest
 import random
-random.seed(55)
 
+random.seed(55)
 
 CONFIGURATION_PREFIX = "LAD"
 
 
-@pytest.fixture()
-def config():
-    """Initialize configurations before testing."""
-    config = Configuration()
-    config.STORAGE_DATASOURCE = "local"
-    config.STORAGE_DATASINK = "stdout"
-    config.LS_INPUT_PATH = "validation_data/Hadoop_2k.json"
-    return config
-
-
-def test_output_values(config):
+def test_output_values(cnf_hadoop_2k):
     """Test that all distance values in training set are less than or equal to 1 on Hadoop_2k.json."""
-    storage_adapter = SomStorageAdapter(config=config, feedback_strategy=None)
+    storage_adapter = SomStorageAdapter(config=cnf_hadoop_2k, feedback_strategy=None)
     model_adapter = SomModelAdapter(storage_adapter=storage_adapter)
     tc = SomTrainJob(node_map=2, model_adapter=model_adapter)
     result, dist = tc.execute()
     assert sum(dist) <= 2000
 
 
-def test_output_length(config):
+def test_output_length(cnf_hadoop_2k):
     """Test that correct number of outputs are generated with Hadoop_2k.json."""
-    storage_adapter = SomStorageAdapter(config=config, feedback_strategy=None)
+    storage_adapter = SomStorageAdapter(config=cnf_hadoop_2k, feedback_strategy=None)
     model_adapter = SomModelAdapter(storage_adapter=storage_adapter)
     tc = SomTrainJob(node_map=2, model_adapter=model_adapter)
     result, dist = tc.execute()
     assert len(dist) == 2000
 
 
-def test_model_shape(config):
+def test_model_shape(cnf_hadoop_2k):
     """Test that the trained model size is expected based on given parameters."""
-    storage_adapter = SomStorageAdapter(config=config, feedback_strategy=None)
+    storage_adapter = SomStorageAdapter(config=cnf_hadoop_2k, feedback_strategy=None)
     model_adapter = SomModelAdapter(storage_adapter=storage_adapter)
     tc = SomTrainJob(node_map=2, model_adapter=model_adapter)
     result, dist = tc.execute()
