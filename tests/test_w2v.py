@@ -1,8 +1,8 @@
 """Validates if training was successful."""
 from anomaly_detector.adapters.som_model_adapter import SomModelAdapter
 from anomaly_detector.adapters.som_storage_adapter import SomStorageAdapter
-from anomaly_detector.core.job import SomTrainJob, SomInferenceJob
-from anomaly_detector.config import Configuration
+from anomaly_detector.core.job import SomTrainJob
+import logging
 
 import pytest
 
@@ -39,7 +39,7 @@ def test_log_similarity(cnf_hadoop2k_w2v_params):
     answer_2 = 'WARNLeaseRenewermsrabimsrasaorgapachehadoophdfsLeaseRenewerFailedtorenewleaseforDFSClient' \
                'NONMAPREDUCEforsecondsWillretryshortly'
     match_2 = [model_adapter.w2v_model.model["message"].wv.most_similar(log_2)[i][0] for i in range(3)]
-    print(match_2[0])
+    logging.info(match_2[0])
     assert answer_2 in match_2
 
 
@@ -51,6 +51,6 @@ def test_loss_value(cnf_hadoop2k_w2v_params):
     model_adapter = SomModelAdapter(storage_adapter=storage_adapter)
     tc = SomTrainJob(node_map=2, model_adapter=model_adapter)
     result, dist = tc.execute()
-    print(model_adapter.w2v_model.model["message"].get_latest_training_loss())
+    logging.info(model_adapter.w2v_model.model["message"].get_latest_training_loss())
     tl = model_adapter.w2v_model.model["message"].get_latest_training_loss()
     assert tl < 320000.0
