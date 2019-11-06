@@ -1,9 +1,12 @@
 """Log Anomaly Detector."""
 from prometheus_client import start_http_server
 from anomaly_detector.config import Configuration
-from anomaly_detector.fact_store.app import app
 from anomaly_detector.facade import Facade
 import click
+import os
+
+from anomaly_detector.fact_store.app import create_app
+from anomaly_detector.fact_store.app.deploy_prod import GunicornFactstore
 
 CONFIGURATION_PREFIX = "LAD"
 
@@ -21,9 +24,12 @@ def cli(metric_port: int):
 
 
 @cli.command("ui")
+@click.option("--env", default="dev", help="Run Flask in dev mode or prod.", type=click.Choice(['dev', 'prod']))
+@click.option("--workers", default=2, help="No. of Flask Gunicorn workers. Only applies to --env=prod")
 @click.option("--debug", default=False, help="Sets flask in debug mode to true")
 @click.option("--port", default=5001, help="Select the port number you would like to run the web ui ")
-def ui(debug: bool, port: int):
+@click.option("--host", default="0.0.0.0", help="Select the host. ")
+def ui(debug: bool, port: int, env: str, workers: int, host: str):
     """Start web ui for user feedback system.
 
     :param debug: enable debug mode for flask.
@@ -31,7 +37,18 @@ def ui(debug: bool, port: int):
     :return: None
     """
     click.echo("Starting UI...")
-    app.run(debug=debug, port=port, host="0.0.0.0")
+    if env == "dev":
+        app = create_app()
+        app.run(debug=debug, port=port, host=host)
+    else:
+        options = {
+                'bind': '%s:%s' % (host, port),
+                'limit_request_field_size': 0,
+                'limit_request_line': 0,
+                'timeout': 60,
+                'workers': workers,
+            }
+        GunicornFactstore(create_app(), options).run()
 
 
 @cli.command("run")
