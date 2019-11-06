@@ -7,6 +7,8 @@ from anomaly_detector.config import Configuration
 CONFIGURATION_PREFIX = "LAD"
 
 
+@pytest.mark.core
+@pytest.mark.pipeline
 def test_end2endtraining(cnf_hadoop_2k):
     """Test anomaly detection training on public dataset."""
     storage_adapter = SomStorageAdapter(config=cnf_hadoop_2k, feedback_strategy=None)
@@ -16,6 +18,8 @@ def test_end2endtraining(cnf_hadoop_2k):
     assert result == 0
 
 
+@pytest.mark.core
+@pytest.mark.pipeline
 def test_training_infer(cnf_hadoop_2k):
     """Test anomaly detection training on public dataset."""
     model_adapter = SomModelAdapter(SomStorageAdapter(config=cnf_hadoop_2k, feedback_strategy=None))

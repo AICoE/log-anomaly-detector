@@ -8,6 +8,8 @@ import logging
 TASKS_IN_QUEUE = 1
 
 
+@pytest.mark.core
+@pytest.mark.pipeline
 def test_train_command(cnf_hadoop_2k, pipeline):
     """Test case for validating that when we train a model and add it to task queue that it will run."""
     storage_adapter = SomStorageAdapter(config=cnf_hadoop_2k, feedback_strategy=None)
@@ -20,6 +22,8 @@ def test_train_command(cnf_hadoop_2k, pipeline):
     assert pipeline.count == TASKS_IN_QUEUE
 
 
+@pytest.mark.core
+@pytest.mark.pipeline
 def test_invalid_command(pipeline):
     """Throw exception if job does not extend AbstractCommand."""
     class mock_func:
@@ -31,6 +35,8 @@ def test_invalid_command(pipeline):
         pipeline.add_steps(mock)
 
 
+@pytest.mark.core
+@pytest.mark.pipeline
 def test_valid_command(pipeline):
     """Run job successfuly as mock function extends AbstractCommand."""
     class mock_func(AbstractCommand):

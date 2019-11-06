@@ -10,6 +10,8 @@ NODE_MAP = 2
 LOG_MSG = "(root) CMD (/usr/local/bin/monitor-apache-stats.sh >/dev/null 2>&1)"
 
 
+@pytest.mark.core
+@pytest.mark.false_positive
 def test_false_positive(cnf_100K_events):
     """Testing False Positives and feeding it into the model."""
     freq_one = get_score(cnf_100K_events, NODE_MAP, lambda ctx: [{"message": LOG_MSG}])
