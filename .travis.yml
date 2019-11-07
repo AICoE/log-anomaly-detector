@@ -13,4 +13,4 @@ before_install:
 install:
   - "pipenv install --dev --deploy"
 script:
-  - "pipenv run python setup.py test --addopts -vs"
+  - "pipenv run pytest -n auto  --log-file-level DEBUG "

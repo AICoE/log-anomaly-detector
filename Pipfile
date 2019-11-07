@@ -13,6 +13,8 @@ pytest-cov = "*"
 black = "*"
 coala = "*"
 openshift = "*"
+pytest-sugar = "*"
+pytest-xdist = "*"
 
 [packages]
 "elasticsearch5" = "*"
