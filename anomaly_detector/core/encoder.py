@@ -8,7 +8,7 @@ from anomaly_detector.exception import ModelSaveException, ModelLoadException
 class LogEncoderCatalog(object):
     """Log Encoder Catalog class to provide a point of extension for new encoding schemas."""
 
-    def __init__(self, encoder_api, config, recreate_model=False):
+    def __init__(self, encoder_api, config, create_model=True):  # TODO: Custom preprocessing might be required.
         """Initialize the encoder to allow for training model which converts raw logs to vector for ML.
 
         :param encoder_api: select which encoding scheme to use for nlp of logs
@@ -17,9 +17,10 @@ class LogEncoderCatalog(object):
         """
         self.config = config
         self.update_model = os.path.isfile(self.config.W2V_MODEL_PATH) and self.config.TRAIN_UPDATE_MODEL
-        self.recreate_model = recreate_model
+        self.create_model = True
         if encoder_api in self._instance_method_choices:
             self.encoder_api = encoder_api
+            self.build()
         else:
             raise ValueError("Invalid Value for Param: {0}".format(encoder_api))
 
@@ -30,17 +31,27 @@ class LogEncoderCatalog(object):
         :return: None
         """
         if dataframe is not None:
-            if not self.recreate_model:
+            if not self.create_model:
+                self._w2v_load_model()
                 self.model.update(dataframe)
             else:
                 self.model.create(dataframe,
                                   self.config.TRAIN_VECTOR_LENGTH,
                                   self.config.TRAIN_WINDOW)
+                self.create_model = False
             try:
                 self.model.save(self.config.W2V_MODEL_PATH)
             except ModelSaveException as ex:
                 logging.error("Failed to save W2V model: %s" % ex)
                 raise
+
+
+    def _w2v_load_model(self):
+        try:
+            self.model.load(self.config.W2V_MODEL_PATH)
+        except ModelLoadException as ex:
+            logging.error("Failed to load W2V model: %s" % ex)
+            raise
 
     def _w2v_encoder(self):
         """Load the encoder and prepare model for processing logs.
@@ -48,13 +59,8 @@ class LogEncoderCatalog(object):
         :return: None
         """
         self.model = W2VModel(config=self.config)
-        try:
-            self.model.load(self.config.W2V_MODEL_PATH)
-        except ModelLoadException as ex:
-            logging.error("Failed to load W2V model: %s" % ex)
-            raise
 
-        return self.model
+ 
 
     def one_vector(self, data):
         """Based on the data you provide you will get the vector representation of that log message.
@@ -71,4 +77,4 @@ class LogEncoderCatalog(object):
 
         :return:None
         """
-        return self._instance_method_choices[self.encoder_api].__get__(self)()
+        self._instance_method_choices[self.encoder_api].__get__(self)()

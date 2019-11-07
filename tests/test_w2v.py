@@ -2,11 +2,12 @@
 from anomaly_detector.adapters.som_model_adapter import SomModelAdapter
 from anomaly_detector.adapters.som_storage_adapter import SomStorageAdapter
 from anomaly_detector.core.job import SomTrainJob
+from anomaly_detector.core.encoder import LogEncoderCatalog
+import numpy as np
+from pandas import pandas as pd
 import logging
 
 import pytest
-
-CONFIGURATION_PREFIX = "LAD"
 
 
 @pytest.mark.core
@@ -54,3 +55,17 @@ def test_loss_value(cnf_hadoop2k_w2v_params):
     logging.info(model_adapter.w2v_model.model["message"].get_latest_training_loss())
     tl = model_adapter.w2v_model.model["message"].get_latest_training_loss()
     assert tl < 320000.0
+
+
+@pytest.mark.core
+@pytest.mark.w2v_model
+def test_encoder(cnf_hadoop_2k, sample_logs):
+    """Test should throw an exception for logs that are not encoded and will return an vectors for logs that do exist."""
+    encoder = LogEncoderCatalog(encoder_api="w2v_encoder", config=cnf_hadoop_2k, create_model=True)
+    dataframe = pd.DataFrame(sample_logs)
+    encoder.encode_log(dataframe)
+
+    with pytest.raises(KeyError) as excinfo:
+        encoder.model.model['message'].wv['bob']
+    assert excinfo.type == KeyError
+    assert len(list(encoder.model.model['message'].wv['normal log data'])) is 25

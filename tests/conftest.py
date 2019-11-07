@@ -100,6 +100,23 @@ def sample_feedback():
             })
 
 
+@pytest.fixture(scope='module')
+def sample_logs():
+    return [
+        {
+            'message': 'normal log data'
+        },
+        {
+            'message': 'error message'
+        },
+        {
+            'message': 'out of storage space'
+        },
+        {
+            'message': 'network down'
+        }]
+
+
 @pytest.fixture(scope='function')
 def pipeline():
     """Providing pipeline that clears up history of task runs."""
