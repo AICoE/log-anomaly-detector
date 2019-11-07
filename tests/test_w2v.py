@@ -68,4 +68,4 @@ def test_encoder(cnf_hadoop_2k, sample_logs):
     with pytest.raises(KeyError) as excinfo:
         encoder.model.model['message'].wv['bob']
     assert excinfo.type == KeyError
-    assert len(list(encoder.model.model['message'].wv['normal log data'])) is 25
+    assert len(encoder.model.model['message'].wv['normal log data']) is 25
