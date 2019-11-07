@@ -35,7 +35,10 @@ setup(
     py_modules=['app'],
     packages=find_packages(),
     setup_requires=["pytest-runner"],
-    tests_require=["pytest"],
+    tests_require=[
+        "pytest",
+        "pytest-sugar",
+        "pytest-xdist"],
     zip_safe=False,
     classifiers=(
         "Development Status :: 1 - Planning",
