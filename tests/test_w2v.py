@@ -19,7 +19,7 @@ def test_vocab_length(cnf_hadoop2k_w2v_params):
     tc = SomTrainJob(node_map=2, model_adapter=model_adapter)
     result, dist = tc.execute()
 
-    assert len(model_adapter.w2v_model.model["message"].wv.vocab) == 141
+    assert len(model_adapter.encoder.model.model["message"].wv.vocab) == 141
 
 
 @pytest.mark.core
@@ -33,13 +33,13 @@ def test_log_similarity(cnf_hadoop2k_w2v_params):
     log_1 = 'INFOmainorgapachehadoopmapreducevappMRAppMasterExecutingwithtokens'
     answer_1 = 'INFOmainorgapachehadoopmapreducevappMRAppMasterCreatedMRAppMasterforapplicationappattempt'
 
-    match_1 = [model_adapter.w2v_model.model["message"].wv.most_similar(log_1)[i][0] for i in range(3)]
+    match_1 = [model_adapter.encoder.model.model["message"].wv.most_similar(log_1)[i][0] for i in range(3)]
     assert answer_1 in match_1
 
     log_2 = 'ERRORRMCommunicatorAllocatororgapachehadoopmapreducevapprmRMContainerAllocatorERRORINCONTACTINGRM'
     answer_2 = 'WARNLeaseRenewermsrabimsrasaorgapachehadoophdfsLeaseRenewerFailedtorenewleaseforDFSClient' \
                'NONMAPREDUCEforsecondsWillretryshortly'
-    match_2 = [model_adapter.w2v_model.model["message"].wv.most_similar(log_2)[i][0] for i in range(3)]
+    match_2 = [model_adapter.encoder.model.model["message"].wv.most_similar(log_2)[i][0] for i in range(3)]
     logging.info(match_2[0])
     assert answer_2 in match_2
 
@@ -52,8 +52,8 @@ def test_loss_value(cnf_hadoop2k_w2v_params):
     model_adapter = SomModelAdapter(storage_adapter=storage_adapter)
     tc = SomTrainJob(node_map=2, model_adapter=model_adapter)
     result, dist = tc.execute()
-    logging.info(model_adapter.w2v_model.model["message"].get_latest_training_loss())
-    tl = model_adapter.w2v_model.model["message"].get_latest_training_loss()
+    logging.info(model_adapter.encoder.model.model["message"].get_latest_training_loss())
+    tl = model_adapter.encoder.model.model["message"].get_latest_training_loss()
     assert tl < 320000.0
 
 
@@ -61,7 +61,7 @@ def test_loss_value(cnf_hadoop2k_w2v_params):
 @pytest.mark.w2v_model
 def test_encoder(cnf_hadoop_2k, sample_logs):
     """Test should throw an exception for logs that are not encoded and will return an vectors for logs that do exist."""
-    encoder = LogEncoderCatalog(encoder_api="w2v_encoder", config=cnf_hadoop_2k, create_model=True)
+    encoder = LogEncoderCatalog(encoder_api="w2v_encoder", config=cnf_hadoop_2k)
     dataframe = pd.DataFrame(sample_logs)
     encoder.encode_log(dataframe)
 

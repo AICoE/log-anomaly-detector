@@ -67,7 +67,6 @@ class SomInferenceJob(AbstractCommand):
 
     def execute(self):
         """Execute inference logic for SOMPY with W2V encoding."""
-        self.model_adapter.load_w2v_model()
         self.model_adapter.load_som_model()
         mean, threshold = self.model_adapter.set_threshold()
         infer_loops = 0

@@ -44,6 +44,7 @@ class Configuration:
     MODEL_PATH = ""
     W2V_MODEL_PATH_CALLABLE = join_w2v_model_path
     W2V_MODEL_PATH = ""
+    W2V_CREATE_MODEL = True
     # Custom parameters for W2V
     W2V_MIN_COUNT = 1
     W2V_ITER = 5

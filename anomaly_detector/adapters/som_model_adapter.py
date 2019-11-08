@@ -9,7 +9,7 @@ from anomaly_detector.model import SOMPYModel, W2VModel
 import os
 from prometheus_client import Gauge, Counter, Histogram
 from urllib.parse import quote
-
+from anomaly_detector.core.encoder import LogEncoderCatalog
 ANOMALY_COUNT = Gauge("aiops_lad_anomaly_count", "count of anomalies runs", ['anomaly_status'])
 ANOMALY_SCORE = Gauge("aiops_lad_anomaly_avg_score", "avg anomaly score")
 LOG_LINES_COUNT = Gauge("aiops_lad_loglines_count", "count of log lines processed runs")
@@ -29,15 +29,8 @@ class SomModelAdapter(BaseModelAdapter):
         self.update_w2v_model = os.path.isfile(self.storage_adapter.W2V_MODEL_PATH) and update_model
         self.recreate_models = False
         self.model = SOMPYModel(config=storage_adapter.config)
-        self.w2v_model = W2VModel(config=storage_adapter.config)
+        self.encoder = LogEncoderCatalog(encoder_api="w2v_encoder", config=storage_adapter.config)
 
-    def load_w2v_model(self):
-        """Load in w2v model."""
-        try:
-            self.w2v_model.load(self.storage_adapter.W2V_MODEL_PATH)
-        except ModelLoadException as ex:
-            logging.error("Failed to load W2V model: %s" % ex)
-            raise
 
     def load_som_model(self):
         """Load in w2v model."""
@@ -50,7 +43,7 @@ class SomModelAdapter(BaseModelAdapter):
     @latency_logger(name="SomModelAdapter")
     def train(self, node_map, data, recreate_model=True):
         """Train som model after creating vectors from words using w2v model."""
-        vectors = self.w2v_model.one_vector(data)
+        vectors = self.encoder.one_vector(data)
         # If node_map is none then we assume it is calculating score for inference
         if recreate_model is True:
             self.model.set(np.random.rand(node_map, node_map, vectors.shape[1]))
@@ -73,17 +66,7 @@ class SomModelAdapter(BaseModelAdapter):
         dataframe, raw_data = self.storage_adapter.load_data(config_type)
         if dataframe is not None:
             LOG_LINES_COUNT.set(len(dataframe))
-            if not recreate_model:
-                self.w2v_model.update(dataframe)
-            else:
-                self.w2v_model.create(dataframe,
-                                      self.storage_adapter.TRAIN_VECTOR_LENGTH,
-                                      self.storage_adapter.TRAIN_WINDOW)
-            try:
-                self.w2v_model.save(self.storage_adapter.W2V_MODEL_PATH)
-            except ModelSaveException as ex:
-                logging.error("Failed to save W2V model: %s" % ex)
-                raise
+            self.encoder.encode_log(dataframe)
 
         return dataframe, raw_data
 
@@ -135,7 +118,7 @@ class SomModelAdapter(BaseModelAdapter):
         """Generate scores from some. To be used for inference."""
         meta_data = self.model.get_metadata()
         max_dist = meta_data[2]
-        v = self.w2v_model.one_vector(data)
+        v = self.encoder.one_vector(data)
         dist = []
         dist = self.model.get_anomaly_score(v, self.storage_adapter.PARALLELISM)
         dist = dist / max_dist

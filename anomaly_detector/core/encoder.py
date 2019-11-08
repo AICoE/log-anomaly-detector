@@ -8,7 +8,7 @@ from anomaly_detector.exception import ModelSaveException, ModelLoadException
 class LogEncoderCatalog(object):
     """Log Encoder Catalog class to provide a point of extension for new encoding schemas."""
 
-    def __init__(self, encoder_api, config, create_model=True):  # TODO: Custom preprocessing might be required.
+    def __init__(self, encoder_api, config):  # TODO: Custom preprocessing might be required.
         """Initialize the encoder to allow for training model which converts raw logs to vector for ML.
 
         :param encoder_api: select which encoding scheme to use for nlp of logs
@@ -16,8 +16,6 @@ class LogEncoderCatalog(object):
         :param recreate_model: when set to true will recreate the model
         """
         self.config = config
-        self.update_model = os.path.isfile(self.config.W2V_MODEL_PATH) and self.config.TRAIN_UPDATE_MODEL
-        self.create_model = True
         if encoder_api in self._instance_method_choices:
             self.encoder_api = encoder_api
             self.build()
@@ -31,14 +29,14 @@ class LogEncoderCatalog(object):
         :return: None
         """
         if dataframe is not None:
-            if not self.create_model:
+            if not self.config.W2V_CREATE_MODEL:
                 self._w2v_load_model()
                 self.model.update(dataframe)
             else:
                 self.model.create(dataframe,
                                   self.config.TRAIN_VECTOR_LENGTH,
                                   self.config.TRAIN_WINDOW)
-                self.create_model = False
+                self.config.W2V_CREATE_MODEL = False
             try:
                 self.model.save(self.config.W2V_MODEL_PATH)
             except ModelSaveException as ex:
