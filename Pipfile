@@ -39,6 +39,7 @@ jaeger-client = "*"
 opentracing_instrumentation = "*"
 cryptography = "*"
 prometheus_flask_exporter = "*"
+gunicorn = "*"
 
 [requires]
 python_version = "3.6"

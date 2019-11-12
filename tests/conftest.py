@@ -1,9 +1,10 @@
-"""Conftest provides all shared configurations for testing log anomaly detector."""
+"""Provide all shared configurations for testing log anomaly detector."""
 import pytest
 from anomaly_detector.config import Configuration
 import uuid
 from enum import Enum
 from anomaly_detector.core import DetectorPipeline
+from anomaly_detector.fact_store.app import db, create_app
 
 
 class Spec(Enum):
@@ -76,25 +77,25 @@ def cnf_hadoop2k_w2v_params(cnf_hadoop_2k):
     return cnf_hadoop_2k
 
 
-@pytest.fixture()
+@pytest.fixture(scope='module')
 def sample_feedback():
     """Provide sample feedback objects for testing factstore."""
     CUSTOMER_ID = "#123456"
     return ({
                 'predict_id': str(uuid.uuid4()),
-                'message': "222JSJSJJS",
+                'message': str(uuid.uuid4()),
                 'anomaly_status': True,
                 'customer_id': CUSTOMER_ID
             },
             {
                 'predict_id': str(uuid.uuid4()),
-                'message': "Testing123",
+                'message': str(uuid.uuid4()),
                 'anomaly_status': True,
                 'customer_id': CUSTOMER_ID
             },
             {
                 'predict_id': str(uuid.uuid4()),
-                'message': "PhonyMessage",
+                'message': str(uuid.uuid4()),
                 'anomaly_status': False,
                 'customer_id': CUSTOMER_ID
             })
@@ -106,3 +107,40 @@ def pipeline():
     pipeline = DetectorPipeline()
     yield pipeline
     pipeline.clear()
+
+
+@pytest.fixture(scope='module')
+def app():
+    """Create a Flask app context for the tests."""
+    app = create_app()
+    app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite://"
+    return app
+
+
+@pytest.fixture(scope="module")
+def test_client(app):
+    """Create A Flask Test Client."""
+    testing_client = app.test_client()
+    # Establish an application context before running the tests.
+    ctx = app.app_context()
+    ctx.push()
+    yield testing_client
+    ctx.pop()
+
+
+@pytest.fixture(scope='module')
+def database(app):
+    """Create a Flask app context for the tests."""
+    db.init_app(app)
+    with app.app_context():
+        db.create_all()
+    return db
+
+
+def generate_feedback(anomaly="False"):
+    """Create a feedback request payload with unique id/message."""
+    return {
+        "lad_id": str(uuid.uuid4()),
+        "is_anomaly": anomaly,
+        "message": str(uuid.uuid4())
+    }
